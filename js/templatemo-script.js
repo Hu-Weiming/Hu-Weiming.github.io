@@ -1,13 +1,21 @@
 const initBg = (autoplay = true) => {
     // const bgImgsNames = ['diagoona-bg-1.jpg', 'diagoona-bg-2.jpg', 'diagoona-bg-3.jpg'];
     const bgImgsNames = [
+        'https://s2.loli.net/2022/03/06/EIx5UQqrJVgeDPG.jpg',
+        'https://s2.loli.net/2022/03/06/GZyO5U4lExvmrJg.jpg',
         'https://s2.loli.net/2022/03/06/bhir6WFGTBIdyQN.jpg',
         'https://s2.loli.net/2022/03/06/wHeVatpidWOFyG8.png',
         'https://s2.loli.net/2022/03/06/pi7NJlETLz82gM1.jpg',
-        'https://s2.loli.net/2022/03/06/QNujdVvP8wRbzMH.png'];
+        'https://s2.loli.net/2022/03/06/QNujdVvP8wRbzMH.png',
+        'https://s2.loli.net/2022/03/06/6uUZLQOPyW2Geas.jpg',
+        'https://s2.loli.net/2022/03/06/BQ9gcwrCnP5LZkJ.jpg',
+        'https://s2.loli.net/2022/03/06/oFeLzhQPjlgO4NK.jpg',
+        'https://s2.loli.net/2022/03/06/Qg2JI7XHBwmNUTs.jpg',
+        'https://s2.loli.net/2022/03/06/MuFSbnivIC4zdxB.jpg'];
+
     const bgImgs = bgImgsNames.map(img => img);
 
-    $.backstretch(bgImgs, {duration: 1000, fade: 500});
+    $.backstretch(bgImgs, {duration: 2000, fade: 500});
 
     if (!autoplay) {
         $.backstretch('pause');
