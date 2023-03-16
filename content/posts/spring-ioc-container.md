@@ -43,6 +43,68 @@ public class MyService {
 
 ## BeanFactory 和 ApplicationContext，到底用哪个
 
+你可能会想，这俩都是 IOC 容器，有啥区别？
+
+简单说，`BeanFactory` 是爹，`ApplicationContext` 是儿子。ApplicationContext 继承了 BeanFactory，在它基础上加了一堆功能：
+
+- 国际化（`MessageSource`）
+- 事件机制（`ApplicationEventPublisher`）
+- 资源加载（`ResourceLoader`）
+- AOP 支持
+
+日常开发你基本不会直接用 `BeanFactory`。用 `ApplicationContext` 就对了。
+
+还有个重要区别：BeanFactory 是懒加载，用到 Bean 的时候才去创建。ApplicationContext 默认是饿加载，启动的时候就把单例 Bean 全创建好了。这也是为啥 Spring Boot 启动有时候比较慢——它在启动阶段把所有 Bean 都实例化了。
+
 ## 依赖注入的几种方式
 
+Spring 的依赖注入有三种姿势：
+
+**1. 字段注入（最偷懒的写法）**
+
+```java
+@Component
+public class OrderService {
+    @Autowired
+    private UserService userService;
+}
+```
+
+写起来最爽，但 Spring 官方其实不推荐。为啥？因为它依赖反射，没法做 final 字段，而且单元测试的时候不好 mock。
+
+**2. Setter 注入**
+
+```java
+@Component
+public class OrderService {
+    private UserService userService;
+    
+    @Autowired
+    public void setUserService(UserService userService) {
+        this.userService = userService;
+    }
+}
+```
+
+**3. 构造器注入（官方推荐）**
+
+```java
+@Component
+public class OrderService {
+    private final UserService userService;
+    
+    public OrderService(UserService userService) {
+        this.userService = userService;
+    }
+}
+```
+
+构造器注入的好处：字段可以是 final 的，依赖关系一目了然，Spring 4.3 之后如果只有一个构造方法连 `@Autowired` 都不用写。配合 Lombok 的 `@RequiredArgsConstructor` 简直完美。
+
+说到这里，我个人项目里基本都用构造器注入了。一开始觉得麻烦，用了之后发现代码清爽多了。
+
 ## 循环依赖怎么解决的
+
+这是面试高频题。什么是循环依赖？就是 A 依赖 B，B 又依赖 A。
+
+Spring 用三级缓存来解决这个问题。说实话这部分我看源码看了好几遍才搞明白。
