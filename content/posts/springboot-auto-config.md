@@ -14,7 +14,7 @@ draft: true
 
 ## @SpringBootApplication 背后藏了什么
 
-你写的启动类上面那个 `@SpringBootApplication`，其实是个组合注解，拆开来看有三个核心的：
+启动类上那个 `@SpringBootApplication`，其实是个组合注解，拆开来看有三个核心的：
 
 ```java
 @SpringBootConfiguration  // 本质就是 @Configuration
@@ -26,7 +26,7 @@ public @interface SpringBootApplication {
 
 重点是 `@EnableAutoConfiguration`。这个注解里面用了 `@Import(AutoConfigurationImportSelector.class)`，这个 Selector 会去加载所有的自动配置类。
 
-怎么加载的？它会去读 `META-INF/spring.factories` 文件（Spring Boot 3.x 改成了 `META-INF/spring/org.springframework.boot.autoconfigure.AutoConfiguration.imports`）。
+怎么加载的？它会读 `META-INF/spring.factories` 文件（Spring Boot 3.x 改成了 `META-INF/spring/org.springframework.boot.autoconfigure.AutoConfiguration.imports`）。
 
 ## spring.factories 是怎么回事
 
@@ -42,8 +42,45 @@ org.springframework.boot.autoconfigure.data.redis.RedisAutoConfiguration,\
 ...
 ```
 
-启动的时候 Spring Boot 会把这些类全加载进来。你可能想：这么多配置类全加载，不会很慢吗？别急，这就是条件注解要干的事了。
+启动的时候 Spring Boot 会把这些类全加载进来。你可能想：这么多配置类全加载，不会很慢吗？别急，这就是条件注解的作用了。
 
 ## 条件注解——按需加载的秘密
 
+虽然 `spring.factories` 里列了上百个配置类，但不是每个都会生效。Spring Boot 用条件注解来控制：
+
+| 注解 | 含义 |
+|------|------|
+| `@ConditionalOnClass` | classpath 里有某个类才生效 |
+| `@ConditionalOnMissingClass` | classpath 里没某个类才生效 |
+| `@ConditionalOnBean` | 容器里有某个 Bean 才生效 |
+| `@ConditionalOnMissingBean` | 容器里没某个 Bean 才生效 |
+| `@ConditionalOnProperty` | 配置文件里有某个属性才生效 |
+
+举个例子，`RedisAutoConfiguration` 的源码大概长这样：
+
+```java
+@Configuration
+@ConditionalOnClass(RedisOperations.class)
+@EnableConfigurationProperties(RedisProperties.class)
+public class RedisAutoConfiguration {
+    
+    @Bean
+    @ConditionalOnMissingBean(name = "redisTemplate")
+    public RedisTemplate<Object, Object> redisTemplate(
+            RedisConnectionFactory factory) {
+        RedisTemplate<Object, Object> template = new RedisTemplate<>();
+        template.setConnectionFactory(factory);
+        return template;
+    }
+}
+```
+
+看到了吗？`@ConditionalOnClass(RedisOperations.class)` 意味着只有你引了 Redis 的依赖，这个配置类才会生效。`@ConditionalOnMissingBean` 意味着如果你自己定义了 redisTemplate，Spring Boot 就不会再创建一个。
+
+这就是为啥 Spring Boot 叫"约定大于配置"——它帮你配好了默认值，你不满意再自己覆盖。
+
+我之前遇到一个问题，项目里明明引了 Redis 依赖，但 RedisTemplate 注入失败。查了半天，发现是 `spring-boot-starter-data-redis` 的版本跟 Spring Boot 版本不匹配，导致 `RedisOperations` 类没加载进来。条件注解一判断，这类不存在，整个配置就跳过了。这种问题很隐蔽，报错信息还是 "No qualifying bean"，很容易往错误的方向排查。
+
 ## 手撸一个自定义 Starter
+
+理解了自动配置的原理，自己写一个 Starter 就不难了。
