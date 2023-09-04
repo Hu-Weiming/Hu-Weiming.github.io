@@ -30,7 +30,7 @@ public @interface SpringBootApplication {
 
 ## spring.factories 是怎么回事
 
-这个文件在每个 starter 的 jar 包里都有。你去解压 `spring-boot-autoconfigure` 这个 jar，就能看到里面的 `spring.factories` 文件，密密麻麻写了一堆配置类。
+这个文件在每个 starter 的 jar 包里都有。去解压 `spring-boot-autoconfigure` 这个 jar，就能看到里面的 `spring.factories`，密密麻麻写了一堆配置类。
 
 格式是这样的：
 
@@ -56,7 +56,7 @@ org.springframework.boot.autoconfigure.data.redis.RedisAutoConfiguration,\
 | `@ConditionalOnMissingBean` | 容器里没某个 Bean 才生效 |
 | `@ConditionalOnProperty` | 配置文件里有某个属性才生效 |
 
-举个例子，`RedisAutoConfiguration` 的源码大概长这样：
+举个例子，`RedisAutoConfiguration` 的源码大概是这样：
 
 ```java
 @Configuration
@@ -75,12 +75,81 @@ public class RedisAutoConfiguration {
 }
 ```
 
-看到了吗？`@ConditionalOnClass(RedisOperations.class)` 意味着只有你引了 Redis 的依赖，这个配置类才会生效。`@ConditionalOnMissingBean` 意味着如果你自己定义了 redisTemplate，Spring Boot 就不会再创建一个。
+`@ConditionalOnClass(RedisOperations.class)` 意味着只有你引了 Redis 依赖，这个配置类才生效。`@ConditionalOnMissingBean` 意味着如果你自己定义了 redisTemplate，Spring Boot 就不会再创建。
 
 这就是为啥 Spring Boot 叫"约定大于配置"——它帮你配好了默认值，你不满意再自己覆盖。
 
-我之前遇到一个问题，项目里明明引了 Redis 依赖，但 RedisTemplate 注入失败。查了半天，发现是 `spring-boot-starter-data-redis` 的版本跟 Spring Boot 版本不匹配，导致 `RedisOperations` 类没加载进来。条件注解一判断，这类不存在，整个配置就跳过了。这种问题很隐蔽，报错信息还是 "No qualifying bean"，很容易往错误的方向排查。
+我之前遇到一个问题，项目里明明引了 Redis 依赖，但 RedisTemplate 注入失败。查了半天，发现是 `spring-boot-starter-data-redis` 版本跟 Spring Boot 版本不匹配，导致 `RedisOperations` 类没加载进来。条件注解一判断这类不存在，整个配置就跳过了。报错信息还是 "No qualifying bean"，很容易往错误方向排查。
 
 ## 手撸一个自定义 Starter
 
-理解了自动配置的原理，自己写一个 Starter 就不难了。
+理解了自动配置原理，自己写一个 Starter 也不难。我之前做课程项目的时候写过一个短信发送的 Starter，过程大概是这样：
+
+**1. 创建配置属性类**
+
+```java
+@ConfigurationProperties(prefix = "sms")
+public class SmsProperties {
+    private String accessKey;
+    private String secretKey;
+    private String signName;
+    // getter setter...
+}
+```
+
+**2. 写核心服务类**
+
+```java
+public class SmsService {
+    private SmsProperties properties;
+    
+    public SmsService(SmsProperties properties) {
+        this.properties = properties;
+    }
+    
+    public void send(String phone, String templateCode, Map<String, String> params) {
+        // 调用短信API发送
+    }
+}
+```
+
+**3. 写自动配置类**
+
+```java
+@Configuration
+@ConditionalOnClass(SmsService.class)
+@EnableConfigurationProperties(SmsProperties.class)
+public class SmsAutoConfiguration {
+    
+    @Bean
+    @ConditionalOnMissingBean
+    @ConditionalOnProperty(prefix = "sms", name = "access-key")
+    public SmsService smsService(SmsProperties properties) {
+        return new SmsService(properties);
+    }
+}
+```
+
+**4. 注册到 spring.factories**
+
+在 `resources/META-INF/spring.factories` 里加一行：
+
+```properties
+org.springframework.boot.autoconfigure.EnableAutoConfiguration=\
+com.example.sms.SmsAutoConfiguration
+```
+
+这样别人引你的 starter，只需要在 `application.yml` 里配上 accessKey，SmsService 就自动注入好了。是不是挺简单的？
+
+## debug 小技巧
+
+如果你想看到底哪些自动配置生效了、哪些没生效，有两个办法：
+
+1. 启动的时候加 `--debug` 参数，或者配置 `debug=true`，日志里会打印 ConditionEvaluationReport
+2. 引入 `spring-boot-actuator`，访问 `/actuator/conditions` 端点
+
+我经常用第一种，排查自动配置问题特别好使。
+
+## 小结
+
+Spring Boot 自动配置的核心就三步：`@EnableAutoConfiguration` 触发加载 → 读 `spring.factories` 找到配置类 → 条件注解控制哪些生效。把这个链路搞清楚了，遇到"为啥这个 Bean 没注入"之类的问题就不慌了。
