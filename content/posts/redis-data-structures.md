@@ -29,8 +29,6 @@ INCRBY inventory:sku:3001 -1            # 库存 -1
 - **embstr**：字符串长度 <= 44 字节，一次内存分配
 - **raw**：字符串长度 > 44 字节，两次内存分配
 
-为啥是 44？因为 Redis 对象头 16 字节 + SDS 头 3 字节 + 末尾 \0 一共 20 字节。jemalloc 会分配 64 字节，64 - 20 = 44。这个细节面试偶尔会问。
-
 实际项目里 String 最常用的场景就是缓存和计数器。我之前做选课系统的时候用 `INCR` 做并发计数，原子操作不用加锁，很方便。
 
 ## Hash——存对象就用它
@@ -47,8 +45,43 @@ HGETALL user:1001          # 取所有字段
 
 区别在于：String 存 JSON 的话，改一个字段得把整个 JSON 读出来、改完再写回去。Hash 可以直接 `HSET` 改单个字段，省带宽省操作。
 
+底层编码：字段少且值短的时候用 ziplist（Redis 7.0 改成了 listpack），省内存。字段多了自动转成 hashtable。
+
+有个坑：`HGETALL` 在字段特别多的时候会阻塞 Redis，因为 Redis 是单线程的。字段多的话建议用 `HSCAN` 分批取。
+
 ## List——队列和栈都能搞
+
+List 是个双向链表（底层其实是 quicklist，ziplist 和链表的混合体）。
+
+```bash
+LPUSH queue:email "msg1" "msg2"    # 左边插入
+RPOP queue:email                    # 右边弹出 → 队列
+LPOP queue:email                    # 左边弹出 → 栈
+
+BRPOP queue:email 30               # 阻塞弹出，最多等30秒
+```
+
+`BRPOP` 是做消息队列的关键。没有消息的时候客户端阻塞等待，比轮询省资源多了。
+
+不过用 List 做消息队列有个问题：消息取出来就没了，如果消费者挂了消息就丢了。所以生产环境还是用 Stream 或者 RabbitMQ/Kafka 比较靠谱。我们课程项目里用 List 做过简单的异步任务队列，demo 级别够用。
 
 ## Set——去重和交并集
 
+Set 里面的元素不重复，而且支持集合运算。
+
+```bash
+SADD like:article:2001 "user:1001" "user:1002"   # 点赞
+SISMEMBER like:article:2001 "user:1001"            # 是否点过赞
+SCARD like:article:2001                             # 点赞数
+
+SINTER follow:1001 follow:1002                      # 共同关注
+SDIFF follow:1001 follow:1002                       # 我关注ta没关注的
+```
+
+微博的共同关注、可能认识的人，底层就可以用 Set 的交集、差集来算。
+
+底层编码：元素少且都是整数时用 intset，否则用 hashtable。
+
 ## ZSet——排行榜神器
+
+ZSet（有序集合）是我觉得 Redis 最有意思的数据结构。每个元素有个 score，按 score 排序。
