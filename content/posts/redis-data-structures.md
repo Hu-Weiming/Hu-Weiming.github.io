@@ -3,16 +3,16 @@ title: "Redis 五种数据结构，各有各的妙用"
 date: 2024-02-20
 categories: ["中间件"]
 tags: ["Redis", "缓存", "数据结构"]
-draft: true
+draft: false
 ---
 
 # Redis 五种数据结构，各有各的妙用
 
-Redis 谁都用过吧？但我发现很多人（包括之前的我）用 Redis 就只会 `SET` 和 `GET`，把它当个 key-value 缓存用。其实 Redis 有五种基本数据结构，每种都有自己的应用场景，选对了效率翻倍，选错了可能还不如不用。
+Redis 谁都用过吧？但我发现很多人（包括之前的我）用 Redis 就只会 `SET` 和 `GET`，把它当个 key-value 缓存使。其实 Redis 有五种基本数据结构，每种都有自己的应用场景，选对了效率翻倍，选错了可能还不如不用。
 
 ## String——最简单但别小看它
 
-String 是 Redis 最基础的数据类型。一个 key 对应一个 value，value 最大 512MB。
+String 是最基础的数据类型。一个 key 对应一个 value，value 最大 512MB。
 
 常见用法：
 
@@ -43,9 +43,9 @@ HGETALL user:1001          # 取所有字段
 
 你可能会想，用 String 存 JSON 也能存对象啊，为啥要用 Hash？
 
-区别在于：String 存 JSON 的话，改一个字段得整个 JSON 读出来、改完再写回去。Hash 可以直接 `HSET` 改单个字段，省带宽省操作。
+区别在于：String 存 JSON 改一个字段得把整个 JSON 读出来、改完再写回去。Hash 可以直接 `HSET` 改单个字段，省带宽也省操作。
 
-底层编码：字段少且值短的时候用 ziplist（Redis 7.0 改成了 listpack），省内存。字段多了自动转成 hashtable。
+底层编码：字段少且值短时用 ziplist（Redis 7.0 改成 listpack），省内存；字段多了自动转 hashtable。
 
 有个坑：`HGETALL` 在字段特别多的时候会阻塞 Redis，因为 Redis 是单线程的。字段多的话用 `HSCAN` 分批取。
 
@@ -61,13 +61,13 @@ LPOP queue:email                    # 左边弹出 → 栈
 BRPOP queue:email 30               # 阻塞弹出，最多等30秒
 ```
 
-`BRPOP` 是做消息队列的关键。没有消息的时候客户端阻塞等待，比轮询省资源多了。
+`BRPOP` 是做消息队列的关键。没消息的时候客户端阻塞等待，比轮询省资源多了。
 
-不过用 List 做消息队列有个问题：消息取出来就没了，消费者挂了消息就丢。生产环境还是用 Stream 或者 RabbitMQ/Kafka 比较靠谱。课程项目里用 List 做过简单的异步任务队列，demo 级别够用。
+不过用 List 做消息队列有个问题：消息取出来就没了，消费者挂了消息就丢。生产环境还是用 Stream 或者专业的 MQ 比较靠谱。课程项目里用 List 做过简单的异步任务队列，demo 级别够用。
 
 ## Set——去重和交并集
 
-Set 里面元素不重复，而且支持集合运算：
+Set 里元素不重复，支持集合运算：
 
 ```bash
 SADD like:article:2001 "user:1001" "user:1002"   # 点赞
@@ -84,7 +84,7 @@ SDIFF follow:1001 follow:1002                       # 我关注ta没关注的
 
 ## ZSet——排行榜神器
 
-ZSet 是我觉得 Redis 最有意思的数据结构。每个元素有个 score，按 score 排序：
+ZSet 是我觉得 Redis 最有意思的数据结构。每个元素带个 score，按 score 排序：
 
 ```bash
 ZADD ranking:game 1000 "player:A" 800 "player:B" 1200 "player:C"
@@ -93,11 +93,11 @@ ZRANK ranking:game "player:B"             # 排名（从0开始）
 ZINCRBY ranking:game 50 "player:B"        # 加分
 ```
 
-排行榜、热搜、延迟队列，都可以用 ZSet。
+排行榜、热搜、延迟队列，都可以用 ZSet 搞定。
 
-底层编码：元素少时用 ziplist，多了用 skiplist（跳表）+ hashtable。跳表是个很有意思的数据结构，查找效率和平衡二叉树差不多，但实现简单得多。Redis 选跳表而不是红黑树，据说是因为 antirez 觉得跳表代码更好写好调试。
+底层编码：元素少时用 ziplist，多了用 skiplist（跳表）加 hashtable。跳表查找效率跟平衡二叉树差不多，但实现简单得多。Redis 选跳表而不是红黑树，据说是 antirez 觉得跳表代码更好写好调试。
 
-说到实际应用，我在做一个校园二手交易平台的时候，用 ZSet 做了一个"最近发布"的功能。score 用时间戳，`ZREVRANGEBYSCORE` 就能按时间倒序取，比数据库 ORDER BY 快多了。
+说到实际应用，我在做一个校园二手交易平台的时候，用 ZSet 做了"最近发布"功能。score 用时间戳，`ZREVRANGEBYSCORE` 按时间倒序取，比数据库 ORDER BY 快不少。
 
 ## 选型总结
 
@@ -105,8 +105,8 @@ ZINCRBY ranking:game 50 "player:B"        # 加分
 |----------|----------|----------|
 | String | 缓存、计数器、分布式锁 | int/embstr/raw |
 | Hash | 对象属性、购物车 | ziplist/hashtable |
-| List | 消息队列、最新消息列表 | quicklist |
+| List | 消息队列、最新列表 | quicklist |
 | Set | 去重、社交关系、抽奖 | intset/hashtable |
 | ZSet | 排行榜、延迟队列、热搜 | ziplist/skiplist+hashtable |
 
-选数据结构的时候想想你的查询模式。要精确查找用 Hash，要排序用 ZSet，要去重用 Set。别什么都用 String 硬塞 JSON，那是暴殄天物。
+选数据结构的时候想想你的查询模式。要精确查找用 Hash，要排序用 ZSet，要去重用 Set。别什么都用 String 塞 JSON，那是暴殄天物。
