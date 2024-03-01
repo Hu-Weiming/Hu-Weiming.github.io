@@ -51,15 +51,60 @@ public class DefaultSqlSession implements SqlSession {
 
 ## Executor 执行器
 
-TODO
+Executor 是真正执行 SQL 的组件。MyBatis 有三种 Executor：
+
+- **SimpleExecutor**：每次执行都创建新的 Statement
+- **ReuseExecutor**：会复用 Statement
+- **BatchExecutor**：批量执行，适合大量 insert/update
+
+默认用的是 SimpleExecutor。Executor 拿到 MappedStatement（就是你 XML 里那条 SQL 的所有信息），然后交给 StatementHandler 去处理。
+
+```java
+// Executor 的核心方法
+public <E> List<E> query(MappedStatement ms, Object parameter, 
+                          RowBounds rowBounds, ResultHandler resultHandler) {
+    BoundSql boundSql = ms.getBoundSql(parameter);
+    CacheKey key = createCacheKey(ms, parameter, rowBounds, boundSql);
+    return query(ms, parameter, rowBounds, resultHandler, key, boundSql);
+}
+```
+
+注意这里有个 CacheKey，后面讲缓存会用到。
 
 ## StatementHandler 和参数映射
 
-TODO
+StatementHandler 负责创建 JDBC 的 Statement，设置参数，执行 SQL。
+
+参数设置这块是 ParameterHandler 干的。它会把你传的 Java 对象映射成 SQL 的参数。这里用到了 TypeHandler，比如把 Java 的 String 映射成 VARCHAR，把 Date 映射成 TIMESTAMP。
+
+```java
+// ParameterHandler 设置参数
+public void setParameters(PreparedStatement ps) {
+    // 遍历参数映射
+    for (int i = 0; i < parameterMappings.size(); i++) {
+        ParameterMapping parameterMapping = parameterMappings.get(i);
+        Object value = // 从参数对象中取值
+        TypeHandler typeHandler = parameterMapping.getTypeHandler();
+        typeHandler.setParameter(ps, i + 1, value, parameterMapping.getJdbcType());
+    }
+}
+```
+
+我之前踩过一个坑：参数是 Map 的时候，XML 里的 `#{key}` 要和 Map 的 key 对上，不然就是 null。debug 了半天才发现是 key 写错了，大小写不一致。
 
 ## 结果集映射
 
-TODO
+SQL 执行完，ResultSetHandler 负责把 JDBC 的 ResultSet 映射成 Java 对象。
+
+这个过程大概是：
+1. 根据 resultMap 或 resultType 确定目标类型
+2. 创建目标对象（反射）
+3. 遍历列，用 TypeHandler 把数据库类型转成 Java 类型
+4. 通过反射设置属性值
+
+如果你用了 resultMap 还配了 association 和 collection，那就涉及嵌套查询或嵌套结果集映射，逻辑会复杂不少。
+
+顺便提一下，MyBatis 的自动映射（autoMapping）默认是开的，它会尝试把列名和属性名匹配。驼峰命名转换可以通过 `mapUnderscoreToCamelCase` 配置开启，这个基本是必开的。
 
 ## 一级缓存和二级缓存
 
