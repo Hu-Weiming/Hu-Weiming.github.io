@@ -108,8 +108,41 @@ SQL 执行完，ResultSetHandler 负责把 JDBC 的 ResultSet 映射成 Java 对
 
 ## 一级缓存和二级缓存
 
-TODO
+MyBatis 有两级缓存，这个面试也爱问。
 
-## 总结
+**一级缓存**在 SqlSession 级别，默认开启。同一个 SqlSession 里，相同的查询只会执行一次 SQL，第二次直接从缓存拿。
 
-TODO
+```java
+// 同一个 SqlSession 内
+User user1 = sqlSession.selectOne("selectById", 1); // 走数据库
+User user2 = sqlSession.selectOne("selectById", 1); // 走缓存
+// user1 == user2  是 true，同一个对象
+```
+
+但是有个坑：在 Spring 里，默认每个方法调用都是新的 SqlSession，所以一级缓存其实没啥用。除非你在同一个事务里多次查询。
+
+**二级缓存**在 namespace 级别（就是 Mapper 级别），需要手动开启。多个 SqlSession 可以共享。
+
+```xml
+<!-- 在 Mapper XML 里加这个就开了 -->
+<cache />
+```
+
+二级缓存听起来不错，但实际项目里很少用。因为它的粒度太粗，整个 namespace 共享一个缓存，一有更新操作就全部失效。而且多表关联查询的时候，更新了 A 表但是 B 的 Mapper 缓存不会失效，容易出脏数据。
+
+我个人建议，缓存这事别靠 MyBatis，用 Redis 更靠谱。
+
+## 整理一下流程
+
+把整个流程串起来就是：
+
+1. 调用 Mapper 接口方法（动态代理）
+2. SqlSession 接收调用
+3. Executor 执行查询（先查缓存）
+4. StatementHandler 创建 Statement
+5. ParameterHandler 设置参数
+6. 执行 SQL
+7. ResultSetHandler 映射结果
+8. 返回 Java 对象
+
+说到这里，MyBatis 的设计还是挺清晰的，每个组件职责分明。理解了这个流程，看源码也不会太懵。面试的时候把这条链路讲清楚，基本就过了。
