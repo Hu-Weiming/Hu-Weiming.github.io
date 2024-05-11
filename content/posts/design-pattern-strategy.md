@@ -29,7 +29,7 @@ public double calculate(String type, double amount) {
 }
 ```
 
-来，说实话，你的代码里有没有类似的？我之前实习的时候接手过一个项目，一个方法里二十多个 if-else，看得我头皮发麻。每次加个新类型就得在这坨代码里再加一个分支，改着改着就出 bug 了。
+说实话，你的代码里有没有类似的？我之前实习的时候接手过一个项目，一个方法里二十多个 if-else，看得我头皮发麻。每次加个新类型就得在这坨代码里再加一个分支，改着改着就出 bug。
 
 这种代码的问题很明显：违反开闭原则，每次新增逻辑都要改已有代码。而且测试也麻烦，一个方法里分支太多。
 
@@ -61,11 +61,83 @@ public class VipPriceStrategy implements PriceStrategy {
 
 ## 用策略模式重构
 
-TODO
+先搞个策略工厂，用 Map 把类型和策略对应起来：
+
+```java
+public class PriceStrategyFactory {
+    private static final Map<String, PriceStrategy> STRATEGY_MAP = new HashMap<>();
+    
+    static {
+        STRATEGY_MAP.put("NORMAL", amount -> amount);
+        STRATEGY_MAP.put("VIP", amount -> amount * 0.9);
+        STRATEGY_MAP.put("SVIP", amount -> amount * 0.8);
+        STRATEGY_MAP.put("EMPLOYEE", amount -> amount * 0.7);
+        STRATEGY_MAP.put("PARTNER", amount -> amount * 0.6);
+    }
+    
+    public static PriceStrategy getStrategy(String type) {
+        return STRATEGY_MAP.getOrDefault(type, amount -> amount);
+    }
+}
+```
+
+调用的时候：
+
+```java
+public double calculate(String type, double amount) {
+    PriceStrategy strategy = PriceStrategyFactory.getStrategy(type);
+    return strategy.calculate(amount);
+}
+```
+
+两行搞定，清爽多了吧。新加类型？往 Map 里加一条就行，原有逻辑完全不用动。
 
 ## 结合 Spring 使用
 
-TODO
+在 Spring 项目里，策略模式用起来更舒服。你可以让 Spring 帮你管理策略 Bean，自动收集。
+
+```java
+public interface PriceStrategy {
+    String getType(); // 每个策略声明自己处理什么类型
+    double calculate(double amount);
+}
+
+@Component
+public class VipPriceStrategy implements PriceStrategy {
+    @Override
+    public String getType() { return "VIP"; }
+    
+    @Override
+    public double calculate(double amount) { return amount * 0.9; }
+}
+```
+
+然后搞个上下文，用 `@Autowired` 把所有策略注入进来：
+
+```java
+@Component
+public class PriceContext {
+    private final Map<String, PriceStrategy> strategyMap;
+    
+    @Autowired
+    public PriceContext(List<PriceStrategy> strategies) {
+        strategyMap = strategies.stream()
+            .collect(Collectors.toMap(PriceStrategy::getType, s -> s));
+    }
+    
+    public double calculate(String type, double amount) {
+        PriceStrategy strategy = strategyMap.get(type);
+        if (strategy == null) {
+            throw new IllegalArgumentException("未知类型: " + type);
+        }
+        return strategy.calculate(amount);
+    }
+}
+```
+
+这样每次加新策略，只需要新建一个类加上 `@Component`，其他地方一行都不用改。Spring 会自动把所有 PriceStrategy 的实现收集到 List 里注入进来。
+
+我觉得这个写法是真的优雅。
 
 ## 实际业务案例
 
