@@ -141,8 +141,50 @@ public class PriceContext {
 
 ## 实际业务案例
 
-TODO
+说个我做过的真实场景：消息通知。系统要支持短信、邮件、站内信、企微推送等多种通知方式。
+
+最初写法，你猜对了，又是 if-else：
+
+```java
+if ("SMS".equals(channel)) {
+    sendSms(message);
+} else if ("EMAIL".equals(channel)) {
+    sendEmail(message);
+} else if ("WECHAT_WORK".equals(channel)) {
+    sendWechatWork(message);
+}
+```
+
+用策略模式重构之后：
+
+```java
+public interface NotifyStrategy {
+    String getChannel();
+    void send(Message message);
+}
+
+@Component
+public class SmsNotifyStrategy implements NotifyStrategy {
+    @Override
+    public String getChannel() { return "SMS"; }
+    
+    @Override
+    public void send(Message message) {
+        // 调用短信 SDK 发送
+    }
+}
+```
+
+后来产品说要加钉钉通知。我新建了一个 DingTalkNotifyStrategy，写完逻辑加上 @Component，结束。原来的代码一行没改。组里的大佬 code review 的时候还夸了一句，开心了好久哈哈。
 
 ## 什么时候用策略模式
 
-TODO
+也别什么地方都上策略模式。如果你的 if-else 就两三个分支，而且以后基本不会变，那没必要折腾。过度设计比代码臭味更可怕。
+
+适合用策略模式的场景：
+- 分支多，而且经常要新增
+- 各分支逻辑比较复杂，不是一两行能搞定的
+- 希望各分支独立测试
+- 团队多人开发，不想互相冲突
+
+其实吧，设计模式这东西，看着简单，用对时机才是关键。我之前学的时候光记概念，后来真正写项目才体会到它的好处。策略模式算是最实用的模式之一了，强烈建议掌握。
