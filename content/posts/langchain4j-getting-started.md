@@ -10,15 +10,13 @@ draft: true
 
 ## LangChain4j 是什么
 
-说到 AI 开发，大家第一反应都是 Python。LangChain、LlamaIndex 这些框架清一色 Python 的。但我是写 Java 的啊，难道就不能玩了？
+说到 AI 开发，大家第一反应都是 Python。LangChain、LlamaIndex 清一色 Python。但我主力语言是 Java 啊，难道就不能玩了？
 
-LangChain4j 就是来填这个坑的。它是 LangChain 的 Java 版本，提供了和 LLM 交互的各种工具：模型接入、Prompt 管理、Memory、RAG、Tools 等等。
-
-官方 GitHub 地址是 `langchain4j/langchain4j`，star 数增长很快，说明 Java 圈对这个需求确实大。
+LangChain4j 就是来填这个坑的。Java 版的 LangChain，提供和 LLM 交互的各种工具：模型接入、Prompt 管理、Memory、RAG、Tools 调用等。
 
 ## 快速上手
 
-先建个 Spring Boot 项目，加依赖：
+建个 Spring Boot 项目，加依赖：
 
 ```xml
 <dependency>
@@ -45,9 +43,7 @@ String answer = model.generate("Java 和 Go 哪个更适合后端开发？");
 System.out.println(answer);
 ```
 
-就这么几行代码，就能调大模型了。第一次跑通的时候我还挺兴奋的。
-
-当然你也可以接 Ollama 本地模型，不花钱：
+几行代码就能调大模型。也可以接 Ollama 本地模型，不花钱：
 
 ```java
 ChatLanguageModel model = OllamaChatModel.builder()
@@ -56,13 +52,58 @@ ChatLanguageModel model = OllamaChatModel.builder()
         .build();
 ```
 
-## ChatModel 接入
+## ChatModel 的更多用法
 
-TODO
+上面用的是最简单的 `generate(String)`，实际开发中你可能需要更精细的控制。
+
+LangChain4j 提供了 AiServices，可以把 LLM 调用包装成一个 Java 接口：
+
+```java
+public interface Assistant {
+    @SystemMessage("你是一个 Java 技术专家，回答简洁明了")
+    String chat(String userMessage);
+}
+
+Assistant assistant = AiServices.builder(Assistant.class)
+        .chatLanguageModel(model)
+        .build();
+
+String reply = assistant.chat("Spring Boot 3 有什么新特性？");
+```
+
+这个 AiServices 是 LangChain4j 最好用的特性之一。你定义接口，框架帮你实现，很 Java 风格。`@SystemMessage` 就是系统提示词，控制模型的角色和行为。
+
+还可以用 `@UserMessage` 做 Prompt 模板：
+
+```java
+public interface Translator {
+    @UserMessage("请将以下文本翻译成{{language}}：{{text}}")
+    String translate(@V("text") String text, @V("language") String language);
+}
+```
 
 ## Memory：多轮对话
 
-TODO
+默认情况下模型是无状态的，每次调用都是独立的。想要多轮对话，需要把历史消息传给模型。
+
+LangChain4j 提供了 ChatMemory：
+
+```java
+ChatMemory memory = MessageWindowChatMemory.withMaxMessages(20);
+
+Assistant assistant = AiServices.builder(Assistant.class)
+        .chatLanguageModel(model)
+        .chatMemory(memory)
+        .build();
+
+assistant.chat("我叫小明");
+String reply = assistant.chat("我叫什么？"); 
+// 模型会记住之前说的，回答"你叫小明"
+```
+
+`MessageWindowChatMemory` 是滑动窗口，保留最近 N 条消息。超过了就丢弃最早的，简单粗暴但够用。
+
+还有 `TokenWindowChatMemory`，按 Token 数限制，更精确一些。
 
 ## 和 Python 版 LangChain 对比
 
