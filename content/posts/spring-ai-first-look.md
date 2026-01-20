@@ -3,22 +3,24 @@ title: "Spring AI 初探：Spring 生态的 AI 新成员"
 date: 2026-01-20
 categories: ["AI"]
 tags: ["AI", "Spring AI", "Java"]
-draft: true
+draft: false
 ---
 
 # Spring AI 初探：Spring 生态的 AI 新成员
 
 ## Spring AI 是什么
 
-Spring 官方终于下场做 AI 框架了。Spring AI 是 Spring 生态的一部分，让 Java/Spring 开发者方便地集成 AI 能力。
+Spring 官方终于下场做 AI 框架了。Spring AI 是 Spring 生态里的新成员，目标是让 Java/Spring 开发者能方便地集成各种 AI 能力。
 
-之前 Java 搞 AI 主要靠 LangChain4j，现在 Spring 官方入局了。这挺有意思的，大家都在抢这块市场。
+之前 Java 圈搞 AI 开发主要靠 LangChain4j，现在 Spring 官方也入局了，竞争挺有意思的。
 
-风格很 Spring：自动配置、Starter 依赖、注解驱动。用过 Spring Boot 的人上手非常自然。
+Spring AI 的风格很"Spring"：自动配置、Starter 依赖、注解驱动。用过 Spring Boot 的人上手会非常自然。
 
-## ChatClient 基本使用
+## ChatClient：核心 API
 
-核心接口是 ChatClient。加依赖：
+ChatClient 是 Spring AI 最核心的接口，设计思路类似 RestTemplate / WebClient。
+
+先加依赖（以 OpenAI 为例）：
 
 ```xml
 <dependency>
@@ -27,7 +29,7 @@ Spring 官方终于下场做 AI 框架了。Spring AI 是 Spring 生态的一部
 </dependency>
 ```
 
-配置 API key：
+配置：
 
 ```yaml
 spring:
@@ -39,7 +41,7 @@ spring:
           model: gpt-4o-mini
 ```
 
-用起来：
+使用起来：
 
 ```java
 @RestController
@@ -60,11 +62,11 @@ public class ChatController {
 }
 ```
 
-链式调用很舒服，`.prompt().user(message).call().content()`。想要流式输出也简单，把 `.call()` 换成 `.stream()` 就行。
+链式调用写起来很流畅：`.prompt().user(message).call().content()`。想要流式输出？把 `.call()` 换成 `.stream()` 就行。
 
 ## Prompt 模板
 
-Spring AI 支持 Prompt 模板：
+Spring AI 支持用模板构造提示词：
 
 ```java
 @GetMapping("/translate")
@@ -79,11 +81,11 @@ public String translate(@RequestParam String text, @RequestParam String lang) {
 }
 ```
 
-也可以从 resource 文件加载模板。Spring AI 用的是 StringTemplate 引擎，语法跟 Spring 的 `@Value` 不一样，我第一次用的时候被坑了。
+也能从 classpath 文件加载模板。Spring AI 用的模板引擎是 StringTemplate，变量语法跟 Spring 的 `${}`  不同，用的是 `{}`，我第一次用的时候没注意到这个差别，debug 了好一会儿。
 
-## 接入 Ollama
+## 无缝切换到 Ollama
 
-换 Ollama 很简单，改依赖和配置就行：
+想用本地模型？换个 Starter 和配置就行：
 
 ```xml
 <dependency>
@@ -102,30 +104,30 @@ spring:
           model: qwen2.5:7b
 ```
 
-代码完全不用改。ChatClient 的用法一模一样，换个 Starter 就切换了后端。这个抽象做得不错。
+代码完全不动。ChatClient 的用法一模一样，只是底层换了模型提供商。这个抽象层做得确实好，典型的 Spring 设计哲学——面向接口编程。
 
 ## 和 LangChain4j 对比
 
-两个都试了一段时间，说说我的感受：
+两个都玩了一段时间，聊聊对比。
 
-**Spring AI 的优势**：
-- 原生 Spring 生态，自动配置太舒服了
-- ChatClient 的 API 设计很流畅
-- 切换模型提供商只需要改配置
-- 未来跟 Spring 全家桶的集成肯定会越来越好
+**Spring AI 的好处**：
+- 原生 Spring 生态，自动配置省心
+- ChatClient API 设计优雅，链式调用很流畅
+- 切���模型后端只改配置，代码不动
+- 长期来看跟 Spring 全家桶的整合会越来越深
 
-**LangChain4j 的优势**：
-- 功能更丰富，AiServices、Tools 调用更成熟
-- 版本更稳定（Spring AI 还在 milestone 阶段）
-- 社区更活跃，文档和示例多
-- 不依赖 Spring，非 Spring 项目也能用
+**LangChain4j 的好处**：
+- 功能更全，AiServices、Tools、Agent 更成熟
+- 版本更稳定，已经有不少生产案例
+- 社区活跃，文档和示例丰富
+- 不绑定 Spring，更灵活
 
-如果你的项目已经是 Spring Boot 的，Spring AI 用起来确实更顺手。但如果需要 RAG、Agent、Tools 这些高级功能，LangChain4j 目前更完善。
+如果项目是 Spring Boot 的，Spring AI 用着确实更顺手。但需要 RAG、Agent、Function Calling 这些高级功能的话，LangChain4j 目前更完善。
 
-我的判断是：Spring AI 正式版出来之后，在 Spring 项目中应该会逐渐成为首选。但现在还在早期，生产环境用的话要谨慎。
+我的判断：Spring AI 正式版出来之后，在 Spring 项目中大概率会成为主流选择。但现在还在早期��段，API 可能变动，生产环境要谨慎。
 
 ## 小结
 
-Spring AI 给了 Java 开发者一个原生的 AI 集成方案。ChatClient + 自动配置的开发体验很好，切换不同模型后端也方便。
+Spring AI 给了 Java 开发者一个原生的 AI 集成方案。ChatClient + 自动配置的体验很好，切换不同模型后端也很方便。
 
-目前还是早期阶段，API 可能变动，功能也在补齐。我会持续关注，等稳定了再考虑正式项目中使用。学习的话现在就可以上手玩了。
+其实吧，Java 生态在 AI 这块虽然起步��� Python 晚，但 Spring AI 和 LangChain4j 都在快速发展。作为 Java 开发者，现在入场 AI 开发并不晚。工具已经够用了，剩下的就是找场景去实践。
