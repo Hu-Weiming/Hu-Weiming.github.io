@@ -1,0 +1,483 @@
+<!DOCTYPE html>
+<html lang="en" dir="auto" data-theme="auto">
+
+<head><script src="/livereload.js?mindelay=10&amp;v=2&amp;port=49494&amp;path=livereload" data-no-instant defer></script><meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<meta name="robots" content="index, follow">
+<title>HashMap 源码笔记 | Weiming&#39;s Blog</title>
+<meta name="keywords" content="Java, 集合框架, 源码">
+<meta name="description" content="HashMap 源码我读了三遍才看懂
+大二下学期面试实习的时候，面试官问我 HashMap 的底层原理，我支支吾吾说了个&quot;数组加链表&quot;就说不下去了。回来之后就下定决心要把源码读一遍。结果读了三遍才算真正搞明白，这玩意比我想象的要精妙得多。
+
+先说说 HashMap 的内部结构
+你打开 HashMap 的源码，会看到一个叫 Node&lt;K,V&gt;[] table 的数组。这就是 HashMap 的骨架。
+每个 Node 长这样：
+static class Node&lt;K,V&gt; implements Map.Entry&lt;K,V&gt; {
+    final int hash;
+    final K key;
+    V value;
+    Node&lt;K,V&gt; next;  // 看到没，链表结构
+}
+本质就是：一个数组，数组的每个位置可以挂一条链表。你 put 一个 key-value 进去，先算 key 的 hash 值，定位到数组的某个下标，然后挂到那个位置的链表上。
+JDK8 加了个重要改动：当链表长度超过 8 的时候，链表会转成红黑树。为啥呢？链表查找是 O(n)，红黑树是 O(log n)，hash 冲突严重的时候性能差距很大。
+你可能会问，为什么阈值是 8？源码注释里写了，按泊松分布计算，链表长度达到 8 的概率大概是千万分之六。正常使用根本不会触发，这纯粹是个保底策略。
+put 一个元素到底经历了什么
+来看 putVal 方法的核心逻辑，我把它拆开讲：
+
+算 hash。不是直接用 key.hashCode()，而是做了个扰动：(h = key.hashCode()) ^ (h &gt;&gt;&gt; 16)。高 16 位和低 16 位异或一下，让 hash 分布更均匀。
+定位下标。用 (n - 1) &amp; hash 算出数组下标，n 是数组长度，后面会讲为啥要是 2 的幂。
+如果那个位置是空的，直接放进去。
+如果有东西，看 key 是不是一样的，一样就覆盖 value。
+不一样的话，看当前节点是不是 TreeNode（红黑树节点），是的话走红黑树的插入逻辑。
+不是树节点就遍历链表，找到末尾插入。插入之后看链表长度有没有到 8，到了就转红黑树。
+
+我之前踩过一个坑：以为 HashMap 的链表是头插法，结果 debug 了半天发现 JDK8 改成尾插法了。JDK7 确实是头插的，但头插法在多线程 resize 的时候会形成环链表，导致死循环。这个 bug 挺经典的，面试也爱问。">
+<meta name="author" content="">
+<link rel="canonical" href="http://localhost:49494/posts/hashmap-source-code/">
+<link crossorigin="anonymous" href="/assets/css/stylesheet.199042e659bc7245f5609d333d6c044eb554a0640849bb874e1dff8eb0f57209.css" integrity="sha256-GZBC5lm8ckX1YJ0zPWwETrVUoGQISbuHTh3/jrD1cgk=" rel="preload stylesheet" as="style">
+<link rel="icon" href="http://localhost:49494/favicon.ico">
+<link rel="icon" type="image/png" sizes="16x16" href="http://localhost:49494/favicon-16x16.png">
+<link rel="icon" type="image/png" sizes="32x32" href="http://localhost:49494/favicon-32x32.png">
+<link rel="apple-touch-icon" href="http://localhost:49494/apple-touch-icon.png">
+<link rel="mask-icon" href="http://localhost:49494/safari-pinned-tab.svg">
+<meta name="theme-color" content="#2e2e33">
+<meta name="msapplication-TileColor" content="#2e2e33">
+<link rel="alternate" hreflang="en" href="http://localhost:49494/posts/hashmap-source-code/">
+<noscript>
+    <style>
+        #theme-toggle,
+        .top-link {
+            display: none;
+        }
+
+    </style>
+    <style>
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --theme: rgb(29, 30, 32);
+                --entry: rgb(46, 46, 51);
+                --primary: rgb(218, 218, 219);
+                --secondary: rgb(155, 156, 157);
+                --tertiary: rgb(65, 66, 68);
+                --content: rgb(196, 196, 197);
+                --code-block-bg: rgb(46, 46, 51);
+                --code-bg: rgb(55, 56, 62);
+                --border: rgb(51, 51, 51);
+                color-scheme: dark;
+            }
+
+            .list {
+                background: var(--theme);
+            }
+
+            .toc {
+                background: var(--entry);
+            }
+        }
+
+        @media (prefers-color-scheme: light) {
+            .list::-webkit-scrollbar-thumb {
+                border-color: var(--code-bg);
+            }
+        }
+
+    </style>
+</noscript>
+<script>
+    if (localStorage.getItem("pref-theme") === "dark") {
+        document.querySelector("html").dataset.theme = 'dark';
+    } else if (localStorage.getItem("pref-theme") === "light") {
+       document.querySelector("html").dataset.theme = 'light';
+    } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        document.querySelector("html").dataset.theme = 'dark';
+    } else {
+        document.querySelector("html").dataset.theme = 'light';
+    }
+
+</script><meta property="og:url" content="http://localhost:49494/posts/hashmap-source-code/">
+  <meta property="og:site_name" content="Weiming&#39;s Blog">
+  <meta property="og:title" content="HashMap 源码笔记">
+  <meta property="og:description" content="HashMap 源码我读了三遍才看懂 大二下学期面试实习的时候，面试官问我 HashMap 的底层原理，我支支吾吾说了个&#34;数组加链表&#34;就说不下去了。回来之后就下定决心要把源码读一遍。结果读了三遍才算真正搞明白，这玩意比我想象的要精妙得多。
+先说说 HashMap 的内部结构 你打开 HashMap 的源码，会看到一个叫 Node&lt;K,V&gt;[] table 的数组。这就是 HashMap 的骨架。
+每个 Node 长这样：
+static class Node&lt;K,V&gt; implements Map.Entry&lt;K,V&gt; { final int hash; final K key; V value; Node&lt;K,V&gt; next; // 看到没，链表结构 } 本质就是：一个数组，数组的每个位置可以挂一条链表。你 put 一个 key-value 进去，先算 key 的 hash 值，定位到数组的某个下标，然后挂到那个位置的链表上。
+JDK8 加了个重要改动：当链表长度超过 8 的时候，链表会转成红黑树。为啥呢？链表查找是 O(n)，红黑树是 O(log n)，hash 冲突严重的时候性能差距很大。
+你可能会问，为什么阈值是 8？源码注释里写了，按泊松分布计算，链表长度达到 8 的概率大概是千万分之六。正常使用根本不会触发，这纯粹是个保底策略。
+put 一个元素到底经历了什么 来看 putVal 方法的核心逻辑，我把它拆开讲：
+算 hash。不是直接用 key.hashCode()，而是做了个扰动：(h = key.hashCode()) ^ (h &gt;&gt;&gt; 16)。高 16 位和低 16 位异或一下，让 hash 分布更均匀。 定位下标。用 (n - 1) &amp; hash 算出数组下标，n 是数组长度，后面会讲为啥要是 2 的幂。 如果那个位置是空的，直接放进去。 如果有东西，看 key 是不是一样的，一样就覆盖 value。 不一样的话，看当前节点是不是 TreeNode（红黑树节点），是的话走红黑树的插入逻辑。 不是树节点就遍历链表，找到末尾插入。插入之后看链表长度有没有到 8，到了就转红黑树。 我之前踩过一个坑：以为 HashMap 的链表是头插法，结果 debug 了半天发现 JDK8 改成尾插法了。JDK7 确实是头插的，但头插法在多线程 resize 的时候会形成环链表，导致死循环。这个 bug 挺经典的，面试也爱问。">
+  <meta property="og:locale" content="zh_cn">
+  <meta property="og:type" content="article">
+    <meta property="article:section" content="posts">
+    <meta property="article:published_time" content="2022-09-15T00:00:00+00:00">
+    <meta property="article:modified_time" content="2022-09-15T00:00:00+00:00">
+    <meta property="article:tag" content="Java">
+    <meta property="article:tag" content="集合框架">
+    <meta property="article:tag" content="源码">
+
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:title" content="HashMap 源码笔记">
+  <meta name="twitter:description" content="HashMap 源码我读了三遍才看懂 大二下学期面试实习的时候，面试官问我 HashMap 的底层原理，我支支吾吾说了个&#34;数组加链表&#34;就说不下去了。回来之后就下定决心要把源码读一遍。结果读了三遍才算真正搞明白，这玩意比我想象的要精妙得多。
+先说说 HashMap 的内部结构 你打开 HashMap 的源码，会看到一个叫 Node&lt;K,V&gt;[] table 的数组。这就是 HashMap 的骨架。
+每个 Node 长这样：
+static class Node&lt;K,V&gt; implements Map.Entry&lt;K,V&gt; { final int hash; final K key; V value; Node&lt;K,V&gt; next; // 看到没，链表结构 } 本质就是：一个数组，数组的每个位置可以挂一条链表。你 put 一个 key-value 进去，先算 key 的 hash 值，定位到数组的某个下标，然后挂到那个位置的链表上。
+JDK8 加了个重要改动：当链表长度超过 8 的时候，链表会转成红黑树。为啥呢？链表查找是 O(n)，红黑树是 O(log n)，hash 冲突严重的时候性能差距很大。
+你可能会问，为什么阈值是 8？源码注释里写了，按泊松分布计算，链表长度达到 8 的概率大概是千万分之六。正常使用根本不会触发，这纯粹是个保底策略。
+put 一个元素到底经历了什么 来看 putVal 方法的核心逻辑，我把它拆开讲：
+算 hash。不是直接用 key.hashCode()，而是做了个扰动：(h = key.hashCode()) ^ (h &gt;&gt;&gt; 16)。高 16 位和低 16 位异或一下，让 hash 分布更均匀。 定位下标。用 (n - 1) &amp; hash 算出数组下标，n 是数组长度，后面会讲为啥要是 2 的幂。 如果那个位置是空的，直接放进去。 如果有东西，看 key 是不是一样的，一样就覆盖 value。 不一样的话，看当前节点是不是 TreeNode（红黑树节点），是的话走红黑树的插入逻辑。 不是树节点就遍历链表，找到末尾插入。插入之后看链表长度有没有到 8，到了就转红黑树。 我之前踩过一个坑：以为 HashMap 的链表是头插法，结果 debug 了半天发现 JDK8 改成尾插法了。JDK7 确实是头插的，但头插法在多线程 resize 的时候会形成环链表，导致死循环。这个 bug 挺经典的，面试也爱问。">
+
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {
+      "@type": "ListItem",
+      "position":  1 ,
+      "name": "Posts",
+      "item": "http://localhost:49494/posts/"
+    }, 
+    {
+      "@type": "ListItem",
+      "position":  2 ,
+      "name": "HashMap 源码笔记",
+      "item": "http://localhost:49494/posts/hashmap-source-code/"
+    }
+  ]
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "HashMap 源码笔记",
+  "name": "HashMap 源码笔记",
+  "description": "HashMap 源码我读了三遍才看懂 大二下学期面试实习的时候，面试官问我 HashMap 的底层原理，我支支吾吾说了个\u0026quot;数组加链表\u0026quot;就说不下去了。回来之后就下定决心要把源码读一遍。结果读了三遍才算真正搞明白，这玩意比我想象的要精妙得多。\n先说说 HashMap 的内部结构 你打开 HashMap 的源码，会看到一个叫 Node\u0026lt;K,V\u0026gt;[] table 的数组。这就是 HashMap 的骨架。\n每个 Node 长这样：\nstatic class Node\u0026lt;K,V\u0026gt; implements Map.Entry\u0026lt;K,V\u0026gt; { final int hash; final K key; V value; Node\u0026lt;K,V\u0026gt; next; // 看到没，链表结构 } 本质就是：一个数组，数组的每个位置可以挂一条链表。你 put 一个 key-value 进去，先算 key 的 hash 值，定位到数组的某个下标，然后挂到那个位置的链表上。\nJDK8 加了个重要改动：当链表长度超过 8 的时候，链表会转成红黑树。为啥呢？链表查找是 O(n)，红黑树是 O(log n)，hash 冲突严重的时候性能差距很大。\n你可能会问，为什么阈值是 8？源码注释里写了，按泊松分布计算，链表长度达到 8 的概率大概是千万分之六。正常使用根本不会触发，这纯粹是个保底策略。\nput 一个元素到底经历了什么 来看 putVal 方法的核心逻辑，我把它拆开讲：\n算 hash。不是直接用 key.hashCode()，而是做了个扰动：(h = key.hashCode()) ^ (h \u0026gt;\u0026gt;\u0026gt; 16)。高 16 位和低 16 位异或一下，让 hash 分布更均匀。 定位下标。用 (n - 1) \u0026amp; hash 算出数组下标，n 是数组长度，后面会讲为啥要是 2 的幂。 如果那个位置是空的，直接放进去。 如果有东西，看 key 是不是一样的，一样就覆盖 value。 不一样的话，看当前节点是不是 TreeNode（红黑树节点），是的话走红黑树的插入逻辑。 不是树节点就遍历链表，找到末尾插入。插入之后看链表长度有没有到 8，到了就转红黑树。 我之前踩过一个坑：以为 HashMap 的链表是头插法，结果 debug 了半天发现 JDK8 改成尾插法了。JDK7 确实是头插的，但头插法在多线程 resize 的时候会形成环链表，导致死循环。这个 bug 挺经典的，面试也爱问。\n",
+  "keywords": [
+    "Java", "集合框架", "源码"
+  ],
+  "articleBody": "HashMap 源码我读了三遍才看懂 大二下学期面试实习的时候，面试官问我 HashMap 的底层原理，我支支吾吾说了个\"数组加链表\"就说不下去了。回来之后就下定决心要把源码读一遍。结果读了三遍才算真正搞明白，这玩意比我想象的要精妙得多。\n先说说 HashMap 的内部结构 你打开 HashMap 的源码，会看到一个叫 Node[] table 的数组。这就是 HashMap 的骨架。\n每个 Node 长这样：\nstatic class Node\u003cK,V\u003e implements Map.Entry\u003cK,V\u003e { final int hash; final K key; V value; Node\u003cK,V\u003e next; // 看到没，链表结构 } 本质就是：一个数组，数组的每个位置可以挂一条链表。你 put 一个 key-value 进去，先算 key 的 hash 值，定位到数组的某个下标，然后挂到那个位置的链表上。\nJDK8 加了个重要改动：当链表长度超过 8 的时候，链表会转成红黑树。为啥呢？链表查找是 O(n)，红黑树是 O(log n)，hash 冲突严重的时候性能差距很大。\n你可能会问，为什么阈值是 8？源码注释里写了，按泊松分布计算，链表长度达到 8 的概率大概是千万分之六。正常使用根本不会触发，这纯粹是个保底策略。\nput 一个元素到底经历了什么 来看 putVal 方法的核心逻辑，我把它拆开讲：\n算 hash。不是直接用 key.hashCode()，而是做了个扰动：(h = key.hashCode()) ^ (h \u003e\u003e\u003e 16)。高 16 位和低 16 位异或一下，让 hash 分布更均匀。 定位下标。用 (n - 1) \u0026 hash 算出数组下标，n 是数组长度，后面会讲为啥要是 2 的幂。 如果那个位置是空的，直接放进去。 如果有东西，看 key 是不是一样的，一样就覆盖 value。 不一样的话，看当前节点是不是 TreeNode（红黑树节点），是的话走红黑树的插入逻辑。 不是树节点就遍历链表，找到末尾插入。插入之后看链表长度有没有到 8，到了就转红黑树。 我之前踩过一个坑：以为 HashMap 的链表是头插法，结果 debug 了半天发现 JDK8 改成尾插法了。JDK7 确实是头插的，但头插法在多线程 resize 的时候会形成环链表，导致死循环。这个 bug 挺经典的，面试也爱问。\n// JDK8 尾插法的关键代码 for (int binCount = 0; ; ++binCount) { if ((e = p.next) == null) { p.next = newNode(hash, key, value, null); if (binCount \u003e= TREEIFY_THRESHOLD - 1) treeifyBin(tab, hash); break; } // ... } 扩容机制 resize 当元素数量超过 capacity * loadFactor（默认 16 * 0.75 = 12）的时候，就会触发扩容。扩容就是把数组长度翻倍，然后重新分配所有元素的位置。\n这里有个很巧妙的设计。扩容之后，每个元素要么留在原来的位置，要么移动到\"原位置 + 旧容量\"的位置。不需要重新算 hash。\n假设旧容量是 16（二进制 10000），新容量 32（二进制 100000）。原来用 hash \u0026 01111 算下标，现在用 hash \u0026 11111。就多看了一个 bit，那个 bit 是 0 就留在原地，是 1 就移到新位置。\n所以源码里只需要 (e.hash \u0026 oldCap) == 0 这一个判断就搞定了。这种位运算技巧真的很优雅。\n顺便提一下，扩容是个挺重的操作，所有元素都要重新分配。如果你事先知道要放多少元素，用 new HashMap\u003c\u003e(expectedSize) 指定初始容量，能避免好几次扩容。阿里巴巴开发规约也是这么推荐的。\n为什么容量一定要是 2 的幂次 这个问题面试高频出现，原因有两个：\n第一，定位数组下标用的是 (n - 1) \u0026 hash，而不是 hash % n。当 n 是 2 的幂的时候这两个等价，但位运算比取模快得多。\n第二，扩容的时候可以用上面说的那个技巧，只看多出来的那一位是 0 还是 1。如果容量不是 2 的幂，这个优化就没法做。\n你可能会想：那我 new HashMap\u003c\u003e(7) 会怎样？HashMap 会自动帮你找到大于等于 7 的最小 2 次幂，也就是 8。看这段代码：\nstatic final int tableSizeFor(int cap) { int n = cap - 1; n |= n \u003e\u003e\u003e 1; n |= n \u003e\u003e\u003e 2; n |= n \u003e\u003e\u003e 4; n |= n \u003e\u003e\u003e 8; n |= n \u003e\u003e\u003e 16; return (n \u003c 0) ? 1 : (n \u003e= MAXIMUM_CAPACITY) ? MAXIMUM_CAPACITY : n + 1; } 效果就是把最高位的 1 后面所有位都变成 1，再加 1，得到最近的 2 次幂。看着费解，但思路其实很简单。\n几个面试爱问的小问题 HashMap 线程安全吗？ 不安全。多线程同时 put 可能丢数据，JDK7 还可能死循环。要线程安全就用 ConcurrentHashMap。\nkey 可以是 null 吗？ 可以，null 的 hash 是 0，固定放在数组下标 0 的位置。\n为什么重写 equals 必须重写 hashCode？ 因为 HashMap 先用 hashCode 定位桶，再用 equals 比较 key。如果两个对象 equals 返回 true 但 hashCode 不同，HashMap 会把它们放到不同的桶里，get 的时候就找不到了。我之前拿自定义对象做 key 的时候踩过这个坑，get 出来一直是 null，debug 了好久才发现。\n最后说两句 HashMap 的源码其实不算长，核心方法就 putVal、getNode、resize 几个。但里面的设计思路真的值得品味——位运算的使用、红黑树的引入、扩容的优化，每个细节都有道理。\n建议自己打开 IDE 跟着 debug 一遍，比看任何博客都有用。\n",
+  "wordCount" : "340",
+  "inLanguage": "en",
+  "datePublished": "2022-09-15T00:00:00Z",
+  "dateModified": "2022-09-15T00:00:00Z",
+  "mainEntityOfPage": {
+    "@type": "WebPage",
+    "@id": "http://localhost:49494/posts/hashmap-source-code/"
+  },
+  "publisher": {
+    "@type": "Organization",
+    "name": "Weiming's Blog",
+    "logo": {
+      "@type": "ImageObject",
+      "url": "http://localhost:49494/favicon.ico"
+    }
+  }
+}
+</script>
+</head>
+<body id="top">
+    <header class="header">
+    <nav class="nav">
+        <div class="logo">
+            <a href="http://localhost:49494/" accesskey="h" title="Weiming&#39;s Blog (Alt + H)">Weiming&#39;s Blog</a>
+            <div class="logo-switches">
+                <button id="theme-toggle" accesskey="t" title="(Alt + T)" aria-label="Toggle theme">
+                    <svg id="moon" xmlns="http://www.w3.org/2000/svg" width="24" height="18" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                    </svg>
+                    <svg id="sun" xmlns="http://www.w3.org/2000/svg" width="24" height="18" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="5"></circle>
+                        <line x1="12" y1="1" x2="12" y2="3"></line>
+                        <line x1="12" y1="21" x2="12" y2="23"></line>
+                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                        <line x1="1" y1="12" x2="3" y2="12"></line>
+                        <line x1="21" y1="12" x2="23" y2="12"></line>
+                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                    </svg>
+                </button>
+            </div>
+        </div>
+        <ul id="menu">
+            <li>
+                <a href="http://localhost:49494/archives/" title="归档">
+                    <span>归档</span>
+                </a>
+            </li>
+            <li>
+                <a href="http://localhost:49494/categories/" title="分类">
+                    <span>分类</span>
+                </a>
+            </li>
+            <li>
+                <a href="http://localhost:49494/tags/" title="标签">
+                    <span>标签</span>
+                </a>
+            </li>
+            <li>
+                <a href="http://localhost:49494/about/" title="关于">
+                    <span>关于</span>
+                </a>
+            </li>
+        </ul>
+    </nav>
+</header>
+<main class="main">
+
+<article class="post-single">
+  <header class="post-header">
+    <div class="breadcrumbs"><a href="http://localhost:49494/">Home</a>&nbsp;»&nbsp;<a href="http://localhost:49494/posts/">Posts</a></div>
+    <h1 class="post-title entry-hint-parent">
+      HashMap 源码笔记
+    </h1>
+    <div class="post-meta"><span title='2022-09-15 00:00:00 +0000 UTC'>September 15, 2022</span>&nbsp;·&nbsp;<span>2 min</span>
+
+</div>
+  </header> <div class="toc">
+    <details >
+        <summary accesskey="c" title="(Alt + C)">
+            <span class="details">Table of Contents</span>
+        </summary>
+
+        <div class="inner"><ul>
+                <li>
+                    <a href="#hashmap-%e6%ba%90%e7%a0%81%e6%88%91%e8%af%bb%e4%ba%86%e4%b8%89%e9%81%8d%e6%89%8d%e7%9c%8b%e6%87%82" aria-label="HashMap 源码我读了三遍才看懂">HashMap 源码我读了三遍才看懂</a><ul>
+                        
+                <li>
+                    <a href="#%e5%85%88%e8%af%b4%e8%af%b4-hashmap-%e7%9a%84%e5%86%85%e9%83%a8%e7%bb%93%e6%9e%84" aria-label="先说说 HashMap 的内部结构">先说说 HashMap 的内部结构</a></li>
+                <li>
+                    <a href="#put-%e4%b8%80%e4%b8%aa%e5%85%83%e7%b4%a0%e5%88%b0%e5%ba%95%e7%bb%8f%e5%8e%86%e4%ba%86%e4%bb%80%e4%b9%88" aria-label="put 一个元素到底经历了什么">put 一个元素到底经历了什么</a></li>
+                <li>
+                    <a href="#%e6%89%a9%e5%ae%b9%e6%9c%ba%e5%88%b6-resize" aria-label="扩容机制 resize">扩容机制 resize</a></li>
+                <li>
+                    <a href="#%e4%b8%ba%e4%bb%80%e4%b9%88%e5%ae%b9%e9%87%8f%e4%b8%80%e5%ae%9a%e8%a6%81%e6%98%af-2-%e7%9a%84%e5%b9%82%e6%ac%a1" aria-label="为什么容量一定要是 2 的幂次">为什么容量一定要是 2 的幂次</a></li>
+                <li>
+                    <a href="#%e5%87%a0%e4%b8%aa%e9%9d%a2%e8%af%95%e7%88%b1%e9%97%ae%e7%9a%84%e5%b0%8f%e9%97%ae%e9%a2%98" aria-label="几个面试爱问的小问题">几个面试爱问的小问题</a></li>
+                <li>
+                    <a href="#%e6%9c%80%e5%90%8e%e8%af%b4%e4%b8%a4%e5%8f%a5" aria-label="最后说两句">最后说两句</a>
+                </li>
+            </ul>
+            </li>
+            </ul>
+        </div>
+    </details>
+</div>
+
+  <div class="post-content"><h1 id="hashmap-源码我读了三遍才看懂">HashMap 源码我读了三遍才看懂<a hidden class="anchor" aria-hidden="true" href="#hashmap-源码我读了三遍才看懂">#</a></h1>
+<p>大二下学期面试实习的时候，面试官问我 HashMap 的底层原理，我支支吾吾说了个&quot;数组加链表&quot;就说不下去了。回来之后就下定决心要把源码读一遍。结果读了三遍才算真正搞明白，这玩意比我想象的要精妙得多。</p>
+<p><img alt="Hash Table 示意图" loading="lazy" src="https://upload.wikimedia.org/wikipedia/commons/thumb/5/5e/Hash_table_5_0_1_1_1_1_0_SP.svg/380px-Hash_table_5_0_1_1_1_1_0_SP.svg.png"></p>
+<h2 id="先说说-hashmap-的内部结构">先说说 HashMap 的内部结构<a hidden class="anchor" aria-hidden="true" href="#先说说-hashmap-的内部结构">#</a></h2>
+<p>你打开 HashMap 的源码，会看到一个叫 <code>Node&lt;K,V&gt;[] table</code> 的数组。这就是 HashMap 的骨架。</p>
+<p>每个 Node 长这样：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#66d9ef">static</span> <span style="color:#66d9ef">class</span> <span style="color:#a6e22e">Node</span><span style="color:#f92672">&lt;</span>K,V<span style="color:#f92672">&gt;</span> <span style="color:#66d9ef">implements</span> Map.<span style="color:#a6e22e">Entry</span><span style="color:#f92672">&lt;</span>K,V<span style="color:#f92672">&gt;</span> {
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">final</span> <span style="color:#66d9ef">int</span> hash;
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">final</span> K key;
+</span></span><span style="display:flex;"><span>    V value;
+</span></span><span style="display:flex;"><span>    Node<span style="color:#f92672">&lt;</span>K,V<span style="color:#f92672">&gt;</span> next;  <span style="color:#75715e">// 看到没，链表结构</span>
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p>本质就是：一个数组，数组的每个位置可以挂一条链表。你 put 一个 key-value 进去，先算 key 的 hash 值，定位到数组的某个下标，然后挂到那个位置的链表上。</p>
+<p>JDK8 加了个重要改动：当链表长度超过 8 的时候，链表会转成红黑树。为啥呢？链表查找是 O(n)，红黑树是 O(log n)，hash 冲突严重的时候性能差距很大。</p>
+<p>你可能会问，为什么阈值是 8？源码注释里写了，按泊松分布计算，链表长度达到 8 的概率大概是千万分之六。正常使用根本不会触发，这纯粹是个保底策略。</p>
+<h2 id="put-一个元素到底经历了什么">put 一个元素到底经历了什么<a hidden class="anchor" aria-hidden="true" href="#put-一个元素到底经历了什么">#</a></h2>
+<p>来看 <code>putVal</code> 方法的核心逻辑，我把它拆开讲：</p>
+<ol>
+<li>算 hash。不是直接用 <code>key.hashCode()</code>，而是做了个扰动：<code>(h = key.hashCode()) ^ (h &gt;&gt;&gt; 16)</code>。高 16 位和低 16 位异或一下，让 hash 分布更均匀。</li>
+<li>定位下标。用 <code>(n - 1) &amp; hash</code> 算出数组下标，n 是数组长度，后面会讲为啥要是 2 的幂。</li>
+<li>如果那个位置是空的，直接放进去。</li>
+<li>如果有东西，看 key 是不是一样的，一样就覆盖 value。</li>
+<li>不一样的话，看当前节点是不是 TreeNode（红黑树节点），是的话走红黑树的插入逻辑。</li>
+<li>不是树节点就遍历链表，找到末尾插入。插入之后看链表长度有没有到 8，到了就转红黑树。</li>
+</ol>
+<p>我之前踩过一个坑：以为 HashMap 的链表是头插法，结果 debug 了半天发现 JDK8 改成尾插法了。JDK7 确实是头插的，但头插法在多线程 resize 的时候会形成环链表，导致死循环。这个 bug 挺经典的，面试也爱问。</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#75715e">// JDK8 尾插法的关键代码</span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">for</span> (<span style="color:#66d9ef">int</span> binCount <span style="color:#f92672">=</span> 0; ; <span style="color:#f92672">++</span>binCount) {
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">if</span> ((e <span style="color:#f92672">=</span> p.<span style="color:#a6e22e">next</span>) <span style="color:#f92672">==</span> <span style="color:#66d9ef">null</span>) {
+</span></span><span style="display:flex;"><span>        p.<span style="color:#a6e22e">next</span> <span style="color:#f92672">=</span> newNode(hash, key, value, <span style="color:#66d9ef">null</span>);
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">if</span> (binCount <span style="color:#f92672">&gt;=</span> TREEIFY_THRESHOLD <span style="color:#f92672">-</span> 1)
+</span></span><span style="display:flex;"><span>            treeifyBin(tab, hash);
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">break</span>;
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e">// ...</span>
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><h2 id="扩容机制-resize">扩容机制 resize<a hidden class="anchor" aria-hidden="true" href="#扩容机制-resize">#</a></h2>
+<p>当元素数量超过 <code>capacity * loadFactor</code>（默认 16 * 0.75 = 12）的时候，就会触发扩容。扩容就是把数组长度翻倍，然后重新分配所有元素的位置。</p>
+<p>这里有个很巧妙的设计。扩容之后，每个元素要么留在原来的位置，要么移动到&quot;原位置 + 旧容量&quot;的位置。不需要重新算 hash。</p>
+<p>假设旧容量是 16（二进制 10000），新容量 32（二进制 100000）。原来用 <code>hash &amp; 01111</code> 算下标，现在用 <code>hash &amp; 11111</code>。就多看了一个 bit，那个 bit 是 0 就留在原地，是 1 就移到新位置。</p>
+<p>所以源码里只需要 <code>(e.hash &amp; oldCap) == 0</code> 这一个判断就搞定了。这种位运算技巧真的很优雅。</p>
+<p>顺便提一下，扩容是个挺重的操作，所有元素都要重新分配。如果你事先知道要放多少元素，用 <code>new HashMap&lt;&gt;(expectedSize)</code> 指定初始容量，能避免好几次扩容。阿里巴巴开发规约也是这么推荐的。</p>
+<h2 id="为什么容量一定要是-2-的幂次">为什么容量一定要是 2 的幂次<a hidden class="anchor" aria-hidden="true" href="#为什么容量一定要是-2-的幂次">#</a></h2>
+<p>这个问题面试高频出现，原因有两个：</p>
+<p><strong>第一</strong>，定位数组下标用的是 <code>(n - 1) &amp; hash</code>，而不是 <code>hash % n</code>。当 n 是 2 的幂的时候这两个等价，但位运算比取模快得多。</p>
+<p><strong>第二</strong>，扩容的时候可以用上面说的那个技巧，只看多出来的那一位是 0 还是 1。如果容量不是 2 的幂，这个优化就没法做。</p>
+<p>你可能会想：那我 <code>new HashMap&lt;&gt;(7)</code> 会怎样？HashMap 会自动帮你找到大于等于 7 的最小 2 次幂，也就是 8。看这段代码：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#66d9ef">static</span> <span style="color:#66d9ef">final</span> <span style="color:#66d9ef">int</span> <span style="color:#a6e22e">tableSizeFor</span>(<span style="color:#66d9ef">int</span> cap) {
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">int</span> n <span style="color:#f92672">=</span> cap <span style="color:#f92672">-</span> 1;
+</span></span><span style="display:flex;"><span>    n <span style="color:#f92672">|=</span> n <span style="color:#f92672">&gt;&gt;&gt;</span> 1;
+</span></span><span style="display:flex;"><span>    n <span style="color:#f92672">|=</span> n <span style="color:#f92672">&gt;&gt;&gt;</span> 2;
+</span></span><span style="display:flex;"><span>    n <span style="color:#f92672">|=</span> n <span style="color:#f92672">&gt;&gt;&gt;</span> 4;
+</span></span><span style="display:flex;"><span>    n <span style="color:#f92672">|=</span> n <span style="color:#f92672">&gt;&gt;&gt;</span> 8;
+</span></span><span style="display:flex;"><span>    n <span style="color:#f92672">|=</span> n <span style="color:#f92672">&gt;&gt;&gt;</span> 16;
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">return</span> (n <span style="color:#f92672">&lt;</span> 0) <span style="color:#f92672">?</span> 1 : (n <span style="color:#f92672">&gt;=</span> MAXIMUM_CAPACITY) <span style="color:#f92672">?</span> MAXIMUM_CAPACITY : n <span style="color:#f92672">+</span> 1;
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p>效果就是把最高位的 1 后面所有位都变成 1，再加 1，得到最近的 2 次幂。看着费解，但思路其实很简单。</p>
+<h2 id="几个面试爱问的小问题">几个面试爱问的小问题<a hidden class="anchor" aria-hidden="true" href="#几个面试爱问的小问题">#</a></h2>
+<p><strong>HashMap 线程安全吗？</strong> 不安全。多线程同时 put 可能丢数据，JDK7 还可能死循环。要线程安全就用 ConcurrentHashMap。</p>
+<p><strong>key 可以是 null 吗？</strong> 可以，null 的 hash 是 0，固定放在数组下标 0 的位置。</p>
+<p><strong>为什么重写 equals 必须重写 hashCode？</strong> 因为 HashMap 先用 hashCode 定位桶，再用 equals 比较 key。如果两个对象 equals 返回 true 但 hashCode 不同，HashMap 会把它们放到不同的桶里，get 的时候就找不到了。我之前拿自定义对象做 key 的时候踩过这个坑，get 出来一直是 null，debug 了好久才发现。</p>
+<h2 id="最后说两句">最后说两句<a hidden class="anchor" aria-hidden="true" href="#最后说两句">#</a></h2>
+<p>HashMap 的源码其实不算长，核心方法就 putVal、getNode、resize 几个。但里面的设计思路真的值得品味——位运算的使用、红黑树的引入、扩容的优化，每个细节都有道理。</p>
+<p>建议自己打开 IDE 跟着 debug 一遍，比看任何博客都有用。</p>
+
+
+  </div>
+
+  <footer class="post-footer">
+    <ul class="post-tags">
+      <li><a href="http://localhost:49494/tags/java/">Java</a></li>
+      <li><a href="http://localhost:49494/tags/%E9%9B%86%E5%90%88%E6%A1%86%E6%9E%B6/">集合框架</a></li>
+      <li><a href="http://localhost:49494/tags/%E6%BA%90%E7%A0%81/">源码</a></li>
+    </ul>
+<nav class="paginav">
+  <a class="prev" href="http://localhost:49494/posts/concurrenthashmap-deep-dive/">
+    <span class="title">« Prev</span>
+    <br>
+    <span>ConcurrentHashMap 线程安全原理</span>
+  </a>
+</nav>
+
+  </footer>
+</article>
+    </main>
+    
+<footer class="footer">
+        <span>&copy; 2026 <a href="http://localhost:49494/">Weiming&#39;s Blog</a></span> · 
+
+    <span>
+        Powered by
+        <a href="https://gohugo.io/" rel="noopener noreferrer" target="_blank">Hugo</a> &
+        <a href="https://github.com/adityatelange/hugo-PaperMod/" rel="noopener" target="_blank">PaperMod</a>
+    </span>
+</footer>
+<a href="#top" aria-label="go to top" title="Go to Top (Alt + G)" class="top-link" id="top-link" accesskey="g">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 12 6" fill="currentColor">
+        <path d="M12 6H0l6-6z" />
+    </svg>
+</a>
+
+<script>
+    let menu = document.getElementById('menu');
+    if (menu) {
+        
+        const scrollPosition = localStorage.getItem("menu-scroll-position");
+        if (scrollPosition) {
+            menu.scrollLeft = parseInt(scrollPosition, 10);
+        }
+        
+        menu.onscroll = function () {
+            localStorage.setItem("menu-scroll-position", menu.scrollLeft);
+        }
+    }
+
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener("click", function (e) {
+            e.preventDefault();
+            var id = this.getAttribute("href").substr(1);
+            if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView({
+                    behavior: "smooth"
+                });
+            } else {
+                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView();
+            }
+            if (id === "top") {
+                history.replaceState(null, null, " ");
+            } else {
+                history.pushState(null, null, `#${id}`);
+            }
+        });
+    });
+
+</script>
+<script>
+    var mybutton = document.getElementById("top-link");
+    window.onscroll = function () {
+        if (document.body.scrollTop > 800 || document.documentElement.scrollTop > 800) {
+            mybutton.style.visibility = "visible";
+            mybutton.style.opacity = "1";
+        } else {
+            mybutton.style.visibility = "hidden";
+            mybutton.style.opacity = "0";
+        }
+    };
+
+</script>
+<script>
+    document.getElementById("theme-toggle").addEventListener("click", () => {
+        const html = document.querySelector("html");
+        if (html.dataset.theme === "dark") {
+            html.dataset.theme = 'light';
+            localStorage.setItem("pref-theme", 'light');
+        } else {
+            html.dataset.theme = 'dark';
+            localStorage.setItem("pref-theme", 'dark');
+        }
+    })
+
+</script>
+<script>
+    document.querySelectorAll('pre > code').forEach((codeblock) => {
+        const container = codeblock.parentNode.parentNode;
+
+        const copybutton = document.createElement('button');
+        copybutton.classList.add('copy-code');
+        copybutton.innerHTML = 'copy';
+
+        function copyingDone() {
+            copybutton.innerHTML = 'copied!';
+            setTimeout(() => {
+                copybutton.innerHTML = 'copy';
+            }, 2000);
+        }
+
+        copybutton.addEventListener('click', (cb) => {
+            if ('clipboard' in navigator) {
+                navigator.clipboard.writeText(codeblock.textContent);
+                copyingDone();
+                return;
+            }
+
+            const range = document.createRange();
+            range.selectNodeContents(codeblock);
+            const selection = window.getSelection();
+            selection.removeAllRanges();
+            selection.addRange(range);
+            try {
+                document.execCommand('copy');
+                copyingDone();
+            } catch (e) { };
+            selection.removeRange(range);
+        });
+
+        if (container.classList.contains("highlight")) {
+            container.appendChild(copybutton);
+        } else if (container.parentNode.firstChild == container) {
+            
+        } else if (codeblock.parentNode.parentNode.parentNode.parentNode.parentNode.nodeName == "TABLE") {
+            
+            codeblock.parentNode.parentNode.parentNode.parentNode.parentNode.appendChild(copybutton);
+        } else {
+            
+            codeblock.parentNode.appendChild(copybutton);
+        }
+    });
+</script>
+</body>
+
+</html>

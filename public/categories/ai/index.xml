@@ -1,0 +1,264 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:content="http://purl.org/rss/1.0/modules/content/">
+  <channel>
+    <title>AI on Weiming&#39;s Blog</title>
+    <link>http://localhost:49494/categories/ai/</link>
+    <description>Recent content in AI on Weiming&#39;s Blog</description>
+    <generator>Hugo</generator>
+    <language>zh-cn</language>
+    <lastBuildDate>Tue, 10 Mar 2026 00:00:00 +0000</lastBuildDate>
+    <atom:link href="http://localhost:49494/categories/ai/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>Prompt Engineering 技巧整理</title>
+      <link>http://localhost:49494/posts/prompt-engineering-tips/</link>
+      <pubDate>Tue, 10 Mar 2026 00:00:00 +0000</pubDate>
+      <guid>http://localhost:49494/posts/prompt-engineering-tips/</guid>
+      <description>&lt;h1 id=&#34;prompt-engineering-实用技巧我总结了这些&#34;&gt;Prompt Engineering 实用技巧，我总结了这些&lt;/h1&gt;
+&lt;p&gt;用大模型一年多了，写了不少 Prompt。从最开始&amp;quot;帮我写个 xxx&amp;quot;的大白话，到现在能让模型按我要的格式和风格精确输出，走了不少弯路。把真正实用的技巧整理一下。&lt;/p&gt;
+&lt;h2 id=&#34;零样本和少样本提示&#34;&gt;零样本和少样本提示&lt;/h2&gt;
+&lt;p&gt;&lt;strong&gt;零样本（Zero-shot）&lt;/strong&gt;：直接给指令，不带示例。&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;&#34;&gt;&lt;code class=&#34;language-fallback&#34; data-lang=&#34;fallback&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;请将以下英文翻译成中文：Hello, how are you?
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;简单任务零样本就够了。但稍微复杂点，模型可能理解不了你想要什么格式。&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;少样本（Few-shot）&lt;/strong&gt;：给几个示例让模型&amp;quot;学&amp;quot;你要的格式和风格。&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;&#34;&gt;&lt;code class=&#34;language-fallback&#34; data-lang=&#34;fallback&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;请对以下评论进行情感分类。
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;评论：这家店太好吃了，下次还来！
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;分类：正面
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;评论：等了一个小时才上菜，再也不来了
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;分类：负面
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;评论：东西还行，但价格偏贵
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;分类：
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;有了示例，输出格式一下就稳定了。我的经验：能给示例就给示例，虽然多费点 Token，但输出质量提升明显。特别是需要特定格式的时候，少样本几乎是必须的。&lt;/p&gt;
+&lt;h2 id=&#34;角色设定&#34;&gt;角色设定&lt;/h2&gt;
+&lt;p&gt;在 System Prompt 里给模型一个角色身份：&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;&#34;&gt;&lt;code class=&#34;language-fallback&#34; data-lang=&#34;fallback&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;你是一个有10年经验的 Java 后端工程师，擅长 Spring Boot 和微服务架构。
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;回答简洁专业，附带代码示例。
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;设了角色之后回答会更有深度、更有针对性。我审查代码的时候喜欢用&amp;quot;你是一个严格的代码审查专家&amp;quot;，效果比随口说&amp;quot;看看这代码有没有问题&amp;quot;好太多。&lt;/p&gt;
+&lt;p&gt;角色设定还有个好处：限定回答范围。设定&amp;quot;你是 Java 专家&amp;quot;，它就不太会扯到 Python 方案去。&lt;/p&gt;
+&lt;h2 id=&#34;思维链chain-of-thought&#34;&gt;思维链（Chain of Thought）&lt;/h2&gt;
+&lt;p&gt;这是个很强的技巧。让模型一步步推理，而不是直接给最终答案。&lt;/p&gt;
+&lt;p&gt;最简单的方式——加一句&amp;quot;请一步步思考&amp;quot;：&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;&#34;&gt;&lt;code class=&#34;language-fallback&#34; data-lang=&#34;fallback&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;一个水池有两个进水管和一个出水管。
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;A管每小时进3吨，B管每小时进5吨。
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;出水管每小时出2吨。水池容量20吨，多久能装满？
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;请一步步思考。
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;模型会把推理过程展开写出来，准确率高很多。不加这句的话，复杂推理容易直接算错。&lt;/p&gt;
+&lt;p&gt;更高级的是 Few-shot CoT——在示例里就展示推理过程：&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;&#34;&gt;&lt;code class=&#34;language-fallback&#34; data-lang=&#34;fallback&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;问题：小明有5个苹果，吃了2个，又买了3个，现在几个？
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;思考：开始5个，吃了2个剩3个，买了3个，3+3=6。
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;答案：6个
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;问题：（你的实际问题）
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;我写算法题的时候经常让模型先分析思路再写代码。比直接让它生成代码靠谱很多，debug 了几次才总结出来的经验。&lt;/p&gt;
+&lt;h2 id=&#34;结构化输出&#34;&gt;结构化输出&lt;/h2&gt;
+&lt;p&gt;如果需要程序解析模型的输出，结构化格式很关键：&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;&#34;&gt;&lt;code class=&#34;language-fallback&#34; data-lang=&#34;fallback&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;请分析以下文本的情感，以 JSON 格式返回：
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;{
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  &amp;#34;sentiment&amp;#34;: &amp;#34;正面/负面/中性&amp;#34;,
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  &amp;#34;confidence&amp;#34;: 0.0-1.0,
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  &amp;#34;keywords&amp;#34;: [&amp;#34;关键词1&amp;#34;, &amp;#34;关键词2&amp;#34;]
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;}
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;文本：今天天气真好，心情也不错，就是午饭有点难吃。
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;模型通常能很好地遵循 JSON 格式。OpenAI 还支持 JSON Mode，强制输出合法 JSON。&lt;/p&gt;</description>
+    </item>
+    <item>
+      <title>Spring AI 初探</title>
+      <link>http://localhost:49494/posts/spring-ai-first-look/</link>
+      <pubDate>Tue, 20 Jan 2026 00:00:00 +0000</pubDate>
+      <guid>http://localhost:49494/posts/spring-ai-first-look/</guid>
+      <description>&lt;h1 id=&#34;spring-ai-初探spring-生态的-ai-新成员&#34;&gt;Spring AI 初探：Spring 生态的 AI 新成员&lt;/h1&gt;
+&lt;h2 id=&#34;spring-ai-是什么&#34;&gt;Spring AI 是什么&lt;/h2&gt;
+&lt;p&gt;Spring 官方终于下场做 AI 框架了。Spring AI 是 Spring 生态里的新成员，目标是让 Java/Spring 开发者能方便地集成各种 AI 能力。&lt;/p&gt;
+&lt;p&gt;之前 Java 圈搞 AI 开发主要靠 LangChain4j，现在 Spring 官方也入局了，竞争挺有意思的。&lt;/p&gt;
+&lt;p&gt;Spring AI 的风格很&amp;quot;Spring&amp;quot;：自动配置、Starter 依赖、注解驱动。用过 Spring Boot 的人上手会非常自然。&lt;/p&gt;
+&lt;h2 id=&#34;chatclient核心-api&#34;&gt;ChatClient：核心 API&lt;/h2&gt;
+&lt;p&gt;ChatClient 是 Spring AI 最核心的接口，设计思路类似 RestTemplate / WebClient。&lt;/p&gt;
+&lt;p&gt;先加依赖（以 OpenAI 为例）：&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;&#34;&gt;&lt;code class=&#34;language-xml&#34; data-lang=&#34;xml&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;dependency&amp;gt;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;groupId&amp;gt;&lt;/span&gt;org.springframework.ai&lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;/groupId&amp;gt;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;artifactId&amp;gt;&lt;/span&gt;spring-ai-openai-spring-boot-starter&lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;/artifactId&amp;gt;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;/dependency&amp;gt;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;配置：&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;&#34;&gt;&lt;code class=&#34;language-yaml&#34; data-lang=&#34;yaml&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;spring&lt;/span&gt;:
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  &lt;span style=&#34;color:#f92672&#34;&gt;ai&lt;/span&gt;:
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#f92672&#34;&gt;openai&lt;/span&gt;:
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;      &lt;span style=&#34;color:#f92672&#34;&gt;api-key&lt;/span&gt;: &lt;span style=&#34;color:#ae81ff&#34;&gt;${OPENAI_API_KEY}&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;      &lt;span style=&#34;color:#f92672&#34;&gt;chat&lt;/span&gt;:
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        &lt;span style=&#34;color:#f92672&#34;&gt;options&lt;/span&gt;:
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;          &lt;span style=&#34;color:#f92672&#34;&gt;model&lt;/span&gt;: &lt;span style=&#34;color:#ae81ff&#34;&gt;gpt-4o-mini&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;使用起来：&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;&#34;&gt;&lt;code class=&#34;language-java&#34; data-lang=&#34;java&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#a6e22e&#34;&gt;@RestController&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;public&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;class&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;ChatController&lt;/span&gt; {
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;private&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;final&lt;/span&gt; ChatClient chatClient;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;public&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;ChatController&lt;/span&gt;(ChatClient.&lt;span style=&#34;color:#a6e22e&#34;&gt;Builder&lt;/span&gt; builder) {
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        &lt;span style=&#34;color:#66d9ef&#34;&gt;this&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;chatClient&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; builder.&lt;span style=&#34;color:#a6e22e&#34;&gt;build&lt;/span&gt;();
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    }
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#a6e22e&#34;&gt;@GetMapping&lt;/span&gt;(&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;/chat&amp;#34;&lt;/span&gt;)
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;public&lt;/span&gt; String &lt;span style=&#34;color:#a6e22e&#34;&gt;chat&lt;/span&gt;(&lt;span style=&#34;color:#a6e22e&#34;&gt;@RequestParam&lt;/span&gt; String message) {
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        &lt;span style=&#34;color:#66d9ef&#34;&gt;return&lt;/span&gt; chatClient.&lt;span style=&#34;color:#a6e22e&#34;&gt;prompt&lt;/span&gt;()
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;                .&lt;span style=&#34;color:#a6e22e&#34;&gt;user&lt;/span&gt;(message)
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;                .&lt;span style=&#34;color:#a6e22e&#34;&gt;call&lt;/span&gt;()
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;                .&lt;span style=&#34;color:#a6e22e&#34;&gt;content&lt;/span&gt;();
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    }
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;}
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;链式调用写起来很流畅：&lt;code&gt;.prompt().user(message).call().content()&lt;/code&gt;。想要流式输出？把 &lt;code&gt;.call()&lt;/code&gt; 换成 &lt;code&gt;.stream()&lt;/code&gt; 就行。&lt;/p&gt;</description>
+    </item>
+    <item>
+      <title>Ollama 本地部署大模型</title>
+      <link>http://localhost:49494/posts/ollama-local-llm/</link>
+      <pubDate>Fri, 05 Dec 2025 00:00:00 +0000</pubDate>
+      <guid>http://localhost:49494/posts/ollama-local-llm/</guid>
+      <description>&lt;h1 id=&#34;用-ollama-在本地跑大模型真的可以&#34;&gt;用 Ollama 在本地跑大模型，真的可以&lt;/h1&gt;
+&lt;h2 id=&#34;ollama-是什么&#34;&gt;Ollama 是什么&lt;/h2&gt;
+&lt;p&gt;一直觉得跑大模型得有好几块 A100 才行，直到有人跟我说&amp;quot;试试 Ollama&amp;quot;。&lt;/p&gt;
+&lt;p&gt;Ollama 是一个在本地运行大模型的工具。一行命令安装，一行命令拉模型，一行命令跑起来。它管理 LLM 的方式跟 Docker 管容器一样简单，上手极快。&lt;/p&gt;
+&lt;p&gt;Mac、Linux、Windows 都支持。对 Apple Silicon 的 Mac 支持特别好，能利用统一内存来跑模型。&lt;/p&gt;
+&lt;h2 id=&#34;安装和上手&#34;&gt;安装和上手&lt;/h2&gt;
+&lt;p&gt;Mac 上安装：&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;brew install ollama
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;也可以去官网 ollama.com 下安装包。启动服务后拉个模型试试：&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;ollama serve
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;ollama pull qwen2.5:7b
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;ollama run qwen2.5:7b
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;就可以在终端直接跟模型聊天了。第一次跑通的时候我确实挺惊讶——自己笔记本就能跑 AI，不用花一分钱。&lt;/p&gt;
+&lt;h2 id=&#34;推荐几个模型&#34;&gt;推荐几个模型&lt;/h2&gt;
+&lt;p&gt;Ollama 上可选的模型很多，说几个我试过觉得不错的：&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;strong&gt;qwen2.5:7b&lt;/strong&gt;：通义千问，中文效果好，7B 大小在普通笔记本上跑得动&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;llama3.1:8b&lt;/strong&gt;：Meta 出品，英文能力强，中文也还行&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;codellama:7b&lt;/strong&gt;：专门做代码生成和补全的，写 Java 还不错&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;mistral:7b&lt;/strong&gt;：法国 Mistral AI 的模型，综合性能不错&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;常用管理命令：&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;ollama list          &lt;span style=&#34;color:#75715e&#34;&gt;# 查看已下载的模型&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;ollama pull llama3.1 &lt;span style=&#34;color:#75715e&#34;&gt;# 下载模型&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;ollama rm mistral    &lt;span style=&#34;color:#75715e&#34;&gt;# 删除模型&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;ollama show qwen2.5  &lt;span style=&#34;color:#75715e&#34;&gt;# 查看模型详细信息&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;h2 id=&#34;api-调用&#34;&gt;API 调用&lt;/h2&gt;
+&lt;p&gt;Ollama 启动后默认在 &lt;code&gt;localhost:11434&lt;/code&gt; 提供 REST API，而且兼容 OpenAI 的接口格式。&lt;/p&gt;</description>
+    </item>
+    <item>
+      <title>RAG 检索增强生成实践</title>
+      <link>http://localhost:49494/posts/rag-practice/</link>
+      <pubDate>Wed, 15 Oct 2025 00:00:00 +0000</pubDate>
+      <guid>http://localhost:49494/posts/rag-practice/</guid>
+      <description>&lt;h1 id=&#34;rag-检索增强生成让大模型不再胡说八道&#34;&gt;RAG 检索增强生成，让大模型不再胡说八道&lt;/h1&gt;
+&lt;h2 id=&#34;rag-是什么&#34;&gt;RAG 是什么&lt;/h2&gt;
+&lt;p&gt;RAG，Retrieval-Augmented Generation，检索增强生成。名字挺唬人，但思路很简单：先从你自己的知识库里检索相关内容，把检索结果塞进 Prompt 里一起给大模型，让模型基于这些内容来回答。&lt;/p&gt;
+&lt;p&gt;用大白话说就是：给模型开卷考试。它自己可能不记得答案，但你给它参考资料，它就能答得靠谱了。&lt;/p&gt;
+&lt;h2 id=&#34;为什么需要-rag&#34;&gt;为什么需要 RAG&lt;/h2&gt;
+&lt;p&gt;大模型天然有几个局限：&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;&lt;strong&gt;知识有截止日期&lt;/strong&gt;：你公司的内部文档、最新的业务数据它不知道&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;会胡说八道&lt;/strong&gt;（幻觉）：编造看起来合理但实际错误的内容&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;微调成本高&lt;/strong&gt;：要 GPU、要标注数据、要调参，门槛不低&lt;/li&gt;
+&lt;/ol&gt;
+&lt;p&gt;RAG 好在不用微调模型。知识库更新了？改文档重新索引就行。回答有据可查，实现成本也低。&lt;/p&gt;
+&lt;p&gt;我做课设想搞个基于学校课程文档的问答系统。一开始想微调，研究了半天发现太折腾了。后来改用 RAG 方案，效果还不错。&lt;/p&gt;
+&lt;h2 id=&#34;文档切分第一步就有讲究&#34;&gt;文档切分：第一步就有讲究&lt;/h2&gt;
+&lt;p&gt;RAG 的第一步是把文档切成小块（Chunk）。为什么？模型上下文窗口有限，你不可能把整本书塞进去。而且检索粒度越小，匹配越精准。&lt;/p&gt;
+&lt;p&gt;常见切分策略：&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;按字符数切——简单但可能把句子切断&lt;/li&gt;
+&lt;li&gt;按段落切——保持语义完整&lt;/li&gt;
+&lt;li&gt;递归切分——先按大段切，太长的再往下拆&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;chunk size 一般设在 200-1000 Token 之间。太小信息不完整，太大检索不精准。记得加 overlap（重叠），比如每块重叠 50 Token，防止重要信息正好被切在边界上。&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;&#34;&gt;&lt;code class=&#34;language-java&#34; data-lang=&#34;java&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;DocumentSplitter splitter &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; DocumentSplitters.&lt;span style=&#34;color:#a6e22e&#34;&gt;recursive&lt;/span&gt;(500, 50);
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;List&lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;&lt;/span&gt;TextSegment&lt;span style=&#34;color:#f92672&#34;&gt;&amp;gt;&lt;/span&gt; segments &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; splitter.&lt;span style=&#34;color:#a6e22e&#34;&gt;split&lt;/span&gt;(document);
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;h2 id=&#34;embedding-和向量检索&#34;&gt;Embedding 和向量检索&lt;/h2&gt;
+&lt;p&gt;切完之后，怎么从一堆 Chunk 里找到跟用户问题相关的？答案是向量检索。&lt;/p&gt;
+&lt;p&gt;Embedding 模型会把文本转成一个高维向量（比如 1536 维的浮点数数组）。语义相近的文本，转出来的向量也会接近。&lt;/p&gt;
+&lt;p&gt;整个流程：&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;把所有文档 Chunk 转成向量，存到向量数据库&lt;/li&gt;
+&lt;li&gt;用户提问时，把问题也转成向量&lt;/li&gt;
+&lt;li&gt;在向量数据库里找最相似的 K 个 Chunk&lt;/li&gt;
+&lt;li&gt;把这些 Chunk 跟用户问题一起交给 LLM&lt;/li&gt;
+&lt;/ol&gt;
+&lt;p&gt;向量数据库现在选择很多：Milvus、Qdrant、Chroma、Pinecone。数据量小的话用内存存储就够了。&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;&#34;&gt;&lt;code class=&#34;language-java&#34; data-lang=&#34;java&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;EmbeddingModel embeddingModel &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; OpenAiEmbeddingModel.&lt;span style=&#34;color:#a6e22e&#34;&gt;builder&lt;/span&gt;()
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        .&lt;span style=&#34;color:#a6e22e&#34;&gt;apiKey&lt;/span&gt;(&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;your-key&amp;#34;&lt;/span&gt;)
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        .&lt;span style=&#34;color:#a6e22e&#34;&gt;modelName&lt;/span&gt;(&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;text-embedding-3-small&amp;#34;&lt;/span&gt;)
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        .&lt;span style=&#34;color:#a6e22e&#34;&gt;build&lt;/span&gt;();
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;InMemoryEmbeddingStore&lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;&lt;/span&gt;TextSegment&lt;span style=&#34;color:#f92672&#34;&gt;&amp;gt;&lt;/span&gt; embeddingStore &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;new&lt;/span&gt; InMemoryEmbeddingStore&lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;&amp;gt;&lt;/span&gt;();
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;EmbeddingStoreIngestor ingestor &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; EmbeddingStoreIngestor.&lt;span style=&#34;color:#a6e22e&#34;&gt;builder&lt;/span&gt;()
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        .&lt;span style=&#34;color:#a6e22e&#34;&gt;embeddingModel&lt;/span&gt;(embeddingModel)
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        .&lt;span style=&#34;color:#a6e22e&#34;&gt;embeddingStore&lt;/span&gt;(embeddingStore)
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        .&lt;span style=&#34;color:#a6e22e&#34;&gt;documentSplitter&lt;/span&gt;(DocumentSplitters.&lt;span style=&#34;color:#a6e22e&#34;&gt;recursive&lt;/span&gt;(500, 50))
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        .&lt;span style=&#34;color:#a6e22e&#34;&gt;build&lt;/span&gt;();
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;ingestor.&lt;span style=&#34;color:#a6e22e&#34;&gt;ingest&lt;/span&gt;(document);
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;h2 id=&#34;用-langchain4j-实现完整-rag&#34;&gt;用 LangChain4j 实现完整 RAG&lt;/h2&gt;
+&lt;p&gt;前面的准备工作做好了，把 RAG 串起来其实没几行：&lt;/p&gt;</description>
+    </item>
+    <item>
+      <title>LangChain4j 入门</title>
+      <link>http://localhost:49494/posts/langchain4j-getting-started/</link>
+      <pubDate>Wed, 20 Aug 2025 00:00:00 +0000</pubDate>
+      <guid>http://localhost:49494/posts/langchain4j-getting-started/</guid>
+      <description>&lt;h1 id=&#34;langchain4j-初体验java-也能玩-llm&#34;&gt;LangChain4j 初体验：Java 也能玩 LLM&lt;/h1&gt;
+&lt;h2 id=&#34;langchain4j-是什么&#34;&gt;LangChain4j 是什么&lt;/h2&gt;
+&lt;p&gt;说到 AI 开发，大家第一反应都是 Python。LangChain、LlamaIndex 清一色 Python 的。但我主力语言是 Java，难道就只能干看着？&lt;/p&gt;
+&lt;p&gt;LangChain4j 就是来填这个坑的。它是 LangChain 的 Java 实现，提供了和 LLM 交互的各种能力：模型接入、Prompt 管理、Memory、RAG、Tools 调用等。GitHub 上 &lt;code&gt;langchain4j/langchain4j&lt;/code&gt;，star 涨得挺快，说明 Java 圈对这个需求确实大。&lt;/p&gt;
+&lt;h2 id=&#34;快速上手&#34;&gt;快速上手&lt;/h2&gt;
+&lt;p&gt;建个 Spring Boot 项目，加依赖：&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;&#34;&gt;&lt;code class=&#34;language-xml&#34; data-lang=&#34;xml&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;dependency&amp;gt;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;groupId&amp;gt;&lt;/span&gt;dev.langchain4j&lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;/groupId&amp;gt;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;artifactId&amp;gt;&lt;/span&gt;langchain4j&lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;/artifactId&amp;gt;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;version&amp;gt;&lt;/span&gt;0.35.0&lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;/version&amp;gt;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;/dependency&amp;gt;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;dependency&amp;gt;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;groupId&amp;gt;&lt;/span&gt;dev.langchain4j&lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;/groupId&amp;gt;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;artifactId&amp;gt;&lt;/span&gt;langchain4j-open-ai&lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;/artifactId&amp;gt;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;version&amp;gt;&lt;/span&gt;0.35.0&lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;/version&amp;gt;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;/dependency&amp;gt;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;最简单的调用：&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;&#34;&gt;&lt;code class=&#34;language-java&#34; data-lang=&#34;java&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;ChatLanguageModel model &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; OpenAiChatModel.&lt;span style=&#34;color:#a6e22e&#34;&gt;builder&lt;/span&gt;()
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        .&lt;span style=&#34;color:#a6e22e&#34;&gt;apiKey&lt;/span&gt;(&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;your-api-key&amp;#34;&lt;/span&gt;)
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        .&lt;span style=&#34;color:#a6e22e&#34;&gt;modelName&lt;/span&gt;(&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;gpt-4o-mini&amp;#34;&lt;/span&gt;)
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        .&lt;span style=&#34;color:#a6e22e&#34;&gt;build&lt;/span&gt;();
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;String answer &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; model.&lt;span style=&#34;color:#a6e22e&#34;&gt;generate&lt;/span&gt;(&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;Java 和 Go 哪个更适合后端开发？&amp;#34;&lt;/span&gt;);
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;System.&lt;span style=&#34;color:#a6e22e&#34;&gt;out&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;println&lt;/span&gt;(answer);
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;几行代码就能跟大模型对话了。第一次跑通的时候还挺兴奋的。&lt;/p&gt;
+&lt;p&gt;也可以接 Ollama 跑本地模型，免费：&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;&#34;&gt;&lt;code class=&#34;language-java&#34; data-lang=&#34;java&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;ChatLanguageModel model &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; OllamaChatModel.&lt;span style=&#34;color:#a6e22e&#34;&gt;builder&lt;/span&gt;()
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        .&lt;span style=&#34;color:#a6e22e&#34;&gt;baseUrl&lt;/span&gt;(&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;http://localhost:11434&amp;#34;&lt;/span&gt;)
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        .&lt;span style=&#34;color:#a6e22e&#34;&gt;modelName&lt;/span&gt;(&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;qwen2.5:7b&amp;#34;&lt;/span&gt;)
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        .&lt;span style=&#34;color:#a6e22e&#34;&gt;build&lt;/span&gt;();
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;h2 id=&#34;aiservices最好用的特性&#34;&gt;AiServices：最好用的特性&lt;/h2&gt;
+&lt;p&gt;上面是最基础的字符串输入输出。实际开发中你需要更精细的控制。&lt;/p&gt;</description>
+    </item>
+    <item>
+      <title>大语言模型（LLM）入门</title>
+      <link>http://localhost:49494/posts/llm-introduction/</link>
+      <pubDate>Tue, 10 Jun 2025 00:00:00 +0000</pubDate>
+      <guid>http://localhost:49494/posts/llm-introduction/</guid>
+      <description>&lt;h1 id=&#34;大模型入门到底什么是-llm&#34;&gt;大模型入门：到底什么是 LLM&lt;/h1&gt;
+&lt;h2 id=&#34;transformer-到底是什么&#34;&gt;Transformer 到底是什么&lt;/h2&gt;
+&lt;p&gt;最近到处都在聊大模型、AI，感觉不了解点 LLM 都不好意思说自己学计算机的。但说实话，一开始我也是一头雾水。GPT、Transformer、Token，这些词满天飞，搜了好多资料才慢慢理出头绪。&lt;/p&gt;
+&lt;p&gt;LLM，Large Language Model，大语言模型。说白了就是一个超大的神经网络，用海量文本训练出来的，学会了&amp;quot;语言&amp;quot;这件事。你给它一段文字，它能接着往下写——本质上就是在预测下一个 Token。&lt;/p&gt;
+&lt;p&gt;底层架构叫 Transformer。2017 年 Google 那篇 &amp;ldquo;Attention is All You Need&amp;rdquo; 提出的，改变了整个 NLP 领域。&lt;/p&gt;
+&lt;p&gt;&lt;img alt=&#34;Transformer 架构&#34; loading=&#34;lazy&#34; src=&#34;https://upload.wikimedia.org/wikipedia/commons/thumb/8/8f/The-Transformer-model-architecture.png/440px-The-Transformer-model-architecture.png&#34;&gt;&lt;/p&gt;
+&lt;p&gt;Transformer 的核心是注意力机制（Attention）。不用纠结数学细节，可以这么理解：模型处理一个词的时候，会&amp;quot;看&amp;quot;句子里所有其他词，判断谁跟它关系更密切。比如&amp;quot;我去银行取钱&amp;quot;，处理&amp;quot;银行&amp;quot;时模型注意到&amp;quot;取钱&amp;quot;，就知道这是金融机构不是河岸。&lt;/p&gt;
+&lt;p&gt;之前的 RNN/LSTM 按顺序一个词一个词处理，长文本又慢效果又差。Transformer 可以并行处理所有位置，效率高太多了。这也是大模型能做到几百亿参数的关键原因。&lt;/p&gt;
+&lt;h2 id=&#34;预训练和微调&#34;&gt;预训练和微调&lt;/h2&gt;
+&lt;p&gt;大模型训练分两个阶段。&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;预训练&lt;/strong&gt;：拿海量文本数据（网页、书籍、代码、论文……），让模型学习预测下一个词。就这么简单的目标，在足够大的数据量和模型规模上，涌现出了各种能力——写代码、翻译、推理，都是&amp;quot;学&amp;quot;出来的。&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;微调&lt;/strong&gt;：预训练完的模型像一个&amp;quot;什么都懂但不听话&amp;quot;的人。微调让它更符合人类期望。常见方法是 RLHF（基于人类反馈的强化学习）——人类给模型的回答打分，模型根据反馈调整行为。&lt;/p&gt;
+&lt;p&gt;ChatGPT 之所以好用，很大功劳在微调阶段。没经过微调的 base model，你问它问题它不会好好回答，只会一直&amp;quot;接龙&amp;quot;下去。&lt;/p&gt;
+&lt;h2 id=&#34;token-和上下文窗口&#34;&gt;Token 和上下文窗口&lt;/h2&gt;
+&lt;p&gt;大模型不按&amp;quot;字&amp;quot;处理文本，而是按 Token。一个 Token 大概对应一个常见的词或子词片段。英文里一个单词通常 1-2 个 Token，中文一个字大概 1-2 个 Token。&lt;/p&gt;
+&lt;p&gt;上下文窗口（Context Window）是模型一次能处理的最大 Token 数。GPT-4 是 128K，Claude 支持到 200K。窗口越大，模型能&amp;quot;看到&amp;quot;的内容越多。&lt;/p&gt;
+&lt;p&gt;上下文窗口很重要——模型只能&amp;quot;看到&amp;quot;窗口以内的内容。跟它聊天聊久了，早期的对话超出窗口就被&amp;quot;遗忘&amp;quot;了。&lt;/p&gt;
+&lt;p&gt;Token 数也直接关系到使用成本。API 按 Token 收费，input 和 output 分开计价。所以写 Prompt 的时候别废话太多，能省就省。&lt;/p&gt;</description>
+    </item>
+  </channel>
+</rss>

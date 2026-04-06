@@ -1,0 +1,426 @@
+<!DOCTYPE html>
+<html lang="en" dir="auto" data-theme="auto">
+
+<head><script src="/livereload.js?mindelay=10&amp;v=2&amp;port=49494&amp;path=livereload" data-no-instant defer></script><meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<meta name="robots" content="index, follow">
+<title>Java | Weiming&#39;s Blog</title>
+<meta name="keywords" content="">
+<meta name="description" content="">
+<meta name="author" content="">
+<link rel="canonical" href="http://localhost:49494/tags/java/">
+<link crossorigin="anonymous" href="/assets/css/stylesheet.199042e659bc7245f5609d333d6c044eb554a0640849bb874e1dff8eb0f57209.css" integrity="sha256-GZBC5lm8ckX1YJ0zPWwETrVUoGQISbuHTh3/jrD1cgk=" rel="preload stylesheet" as="style">
+<link rel="icon" href="http://localhost:49494/favicon.ico">
+<link rel="icon" type="image/png" sizes="16x16" href="http://localhost:49494/favicon-16x16.png">
+<link rel="icon" type="image/png" sizes="32x32" href="http://localhost:49494/favicon-32x32.png">
+<link rel="apple-touch-icon" href="http://localhost:49494/apple-touch-icon.png">
+<link rel="mask-icon" href="http://localhost:49494/safari-pinned-tab.svg">
+<meta name="theme-color" content="#2e2e33">
+<meta name="msapplication-TileColor" content="#2e2e33">
+<link rel="alternate" type="application/rss+xml" href="http://localhost:49494/tags/java/index.xml" title="rss">
+<link rel="alternate" hreflang="en" href="http://localhost:49494/tags/java/">
+<noscript>
+    <style>
+        #theme-toggle,
+        .top-link {
+            display: none;
+        }
+
+    </style>
+    <style>
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --theme: rgb(29, 30, 32);
+                --entry: rgb(46, 46, 51);
+                --primary: rgb(218, 218, 219);
+                --secondary: rgb(155, 156, 157);
+                --tertiary: rgb(65, 66, 68);
+                --content: rgb(196, 196, 197);
+                --code-block-bg: rgb(46, 46, 51);
+                --code-bg: rgb(55, 56, 62);
+                --border: rgb(51, 51, 51);
+                color-scheme: dark;
+            }
+
+            .list {
+                background: var(--theme);
+            }
+
+            .toc {
+                background: var(--entry);
+            }
+        }
+
+        @media (prefers-color-scheme: light) {
+            .list::-webkit-scrollbar-thumb {
+                border-color: var(--code-bg);
+            }
+        }
+
+    </style>
+</noscript>
+<script>
+    if (localStorage.getItem("pref-theme") === "dark") {
+        document.querySelector("html").dataset.theme = 'dark';
+    } else if (localStorage.getItem("pref-theme") === "light") {
+       document.querySelector("html").dataset.theme = 'light';
+    } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        document.querySelector("html").dataset.theme = 'dark';
+    } else {
+        document.querySelector("html").dataset.theme = 'light';
+    }
+
+</script><meta property="og:url" content="http://localhost:49494/tags/java/">
+  <meta property="og:site_name" content="Weiming&#39;s Blog">
+  <meta property="og:title" content="Java">
+  <meta property="og:locale" content="zh_cn">
+  <meta property="og:type" content="website">
+
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:title" content="Java">
+
+</head>
+<body class="list" id="top">
+    <header class="header">
+    <nav class="nav">
+        <div class="logo">
+            <a href="http://localhost:49494/" accesskey="h" title="Weiming&#39;s Blog (Alt + H)">Weiming&#39;s Blog</a>
+            <div class="logo-switches">
+                <button id="theme-toggle" accesskey="t" title="(Alt + T)" aria-label="Toggle theme">
+                    <svg id="moon" xmlns="http://www.w3.org/2000/svg" width="24" height="18" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                    </svg>
+                    <svg id="sun" xmlns="http://www.w3.org/2000/svg" width="24" height="18" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="5"></circle>
+                        <line x1="12" y1="1" x2="12" y2="3"></line>
+                        <line x1="12" y1="21" x2="12" y2="23"></line>
+                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                        <line x1="1" y1="12" x2="3" y2="12"></line>
+                        <line x1="21" y1="12" x2="23" y2="12"></line>
+                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                    </svg>
+                </button>
+            </div>
+        </div>
+        <ul id="menu">
+            <li>
+                <a href="http://localhost:49494/archives/" title="归档">
+                    <span>归档</span>
+                </a>
+            </li>
+            <li>
+                <a href="http://localhost:49494/categories/" title="分类">
+                    <span>分类</span>
+                </a>
+            </li>
+            <li>
+                <a href="http://localhost:49494/tags/" title="标签">
+                    <span>标签</span>
+                </a>
+            </li>
+            <li>
+                <a href="http://localhost:49494/about/" title="关于">
+                    <span>关于</span>
+                </a>
+            </li>
+        </ul>
+    </nav>
+</header>
+<main class="main"> 
+<header class="page-header"><div class="breadcrumbs"><a href="http://localhost:49494/">Home</a>&nbsp;»&nbsp;<a href="http://localhost:49494/tags/">Tags</a></div>
+  <h1>
+    Java
+  </h1>
+</header>
+
+<article class="post-entry tag-entry"> 
+  <header class="entry-header">
+    <h2 class="entry-hint-parent">Spring AI 初探
+    </h2>
+  </header>
+  <div class="entry-content">
+    <p>Spring AI 初探：Spring 生态的 AI 新成员 Spring AI 是什么 Spring 官方终于下场做 AI 框架了。Spring AI 是 Spring 生态里的新成员，目标是让 Java/Spring 开发者能方便地集成各种 AI 能力。
+之前 Java 圈搞 AI 开发主要靠 LangChain4j，现在 Spring 官方也入局了，竞争挺有意思的。
+Spring AI 的风格很&#34;Spring&#34;：自动配置、Starter 依赖、注解驱动。用过 Spring Boot 的人上手会非常自然。
+ChatClient：核心 API ChatClient 是 Spring AI 最核心的接口，设计思路类似 RestTemplate / WebClient。
+先加依赖（以 OpenAI 为例）：
+&lt;dependency&gt; &lt;groupId&gt;org.springframework.ai&lt;/groupId&gt; &lt;artifactId&gt;spring-ai-openai-spring-boot-starter&lt;/artifactId&gt; &lt;/dependency&gt; 配置：
+spring: ai: openai: api-key: ${OPENAI_API_KEY} chat: options: model: gpt-4o-mini 使用起来：
+@RestController public class ChatController { private final ChatClient chatClient; public ChatController(ChatClient.Builder builder) { this.chatClient = builder.build(); } @GetMapping(&#34;/chat&#34;) public String chat(@RequestParam String message) { return chatClient.prompt() .user(message) .call() .content(); } } 链式调用写起来很流畅：.prompt().user(message).call().content()。想要流式输出？把 .call() 换成 .stream() 就行。
+...</p>
+  </div>
+  <footer class="entry-footer"><span title='2026-01-20 00:00:00 +0000 UTC'>January 20, 2026</span>&nbsp;·&nbsp;<span>2 min</span></footer>
+  <a class="entry-link" aria-label="post link to Spring AI 初探" href="http://localhost:49494/posts/spring-ai-first-look/"></a>
+</article>
+
+<article class="post-entry tag-entry"> 
+  <header class="entry-header">
+    <h2 class="entry-hint-parent">LangChain4j 入门
+    </h2>
+  </header>
+  <div class="entry-content">
+    <p>LangChain4j 初体验：Java 也能玩 LLM LangChain4j 是什么 说到 AI 开发，大家第一反应都是 Python。LangChain、LlamaIndex 清一色 Python 的。但我主力语言是 Java，难道就只能干看着？
+LangChain4j 就是来填这个坑的。它是 LangChain 的 Java 实现，提供了和 LLM 交互的各种能力：模型接入、Prompt 管理、Memory、RAG、Tools 调用等。GitHub 上 langchain4j/langchain4j，star 涨得挺快，说明 Java 圈对这个需求确实大。
+快速上手 建个 Spring Boot 项目，加依赖：
+&lt;dependency&gt; &lt;groupId&gt;dev.langchain4j&lt;/groupId&gt; &lt;artifactId&gt;langchain4j&lt;/artifactId&gt; &lt;version&gt;0.35.0&lt;/version&gt; &lt;/dependency&gt; &lt;dependency&gt; &lt;groupId&gt;dev.langchain4j&lt;/groupId&gt; &lt;artifactId&gt;langchain4j-open-ai&lt;/artifactId&gt; &lt;version&gt;0.35.0&lt;/version&gt; &lt;/dependency&gt; 最简单的调用：
+ChatLanguageModel model = OpenAiChatModel.builder() .apiKey(&#34;your-api-key&#34;) .modelName(&#34;gpt-4o-mini&#34;) .build(); String answer = model.generate(&#34;Java 和 Go 哪个更适合后端开发？&#34;); System.out.println(answer); 几行代码就能跟大模型对话了。第一次跑通的时候还挺兴奋的。
+也可以接 Ollama 跑本地模型，免费：
+ChatLanguageModel model = OllamaChatModel.builder() .baseUrl(&#34;http://localhost:11434&#34;) .modelName(&#34;qwen2.5:7b&#34;) .build(); AiServices：最好用的特性 上面是最基础的字符串输入输出。实际开发中你需要更精细的控制。
+...</p>
+  </div>
+  <footer class="entry-footer"><span title='2025-08-20 00:00:00 +0000 UTC'>August 20, 2025</span>&nbsp;·&nbsp;<span>2 min</span></footer>
+  <a class="entry-link" aria-label="post link to LangChain4j 入门" href="http://localhost:49494/posts/langchain4j-getting-started/"></a>
+</article>
+
+<article class="post-entry tag-entry"> 
+  <header class="entry-header">
+    <h2 class="entry-hint-parent">Spring Cloud 微服务入门
+    </h2>
+  </header>
+  <div class="entry-content">
+    <p>Spring Cloud 微服务入门，别被吓到 微服务到底是啥 第一次听&#34;微服务&#34;这个词的时候，我觉得好高大上。服务注册发现、熔断降级、链路追踪，一堆概念砸过来挺吓人的。但学了之后发现，核心思路其实没那么复杂。
+简单说，微服务就是把一个大应用拆成多个小服务，每个独立部署、独立运行。比如电商系统拆成用户服务、商品服务、订单服务、支付服务。
+为什么要拆？单体应用到后期改个小功能就得重新部署整个系统，代码耦合严重，团队协作也别扭。微服务之后，各团队负责自己的服务，独立开发独立上线。
+当然微服务不是银弹。小项目上微服务纯属自找麻烦，运维复杂度直接翻好几倍。但学习这套技术栈还是很有必要的，面试也经常问。
+注册中心：Nacos 服务拆了之后，A 想调 B，怎么知道 B 在哪？IP 端口写死在配置里？那 B 有多个实例呢？地址变了呢？
+注册中心解决这个问题。每个服务启动时把自己的地址注册上去，其他服务去查就行了。
+Nacos 是现在的主流选择（阿里开源），同时搞定服务注册和配置管理。
+spring: cloud: nacos: discovery: server-addr: localhost:8848 application: name: user-service 加上依赖、写好配置、启动，就注册好了。Nacos 控制台能看到所有注册的服务实例，很直观。
+我第一次跑通的时候还挺激动的，在控制台看到自己的服务出现了，有种打通&#34;任督二脉&#34;的感觉。
+网关：Gateway 微服务拆了之后，前端调哪个服务？总不能让前端记一堆服务地址。网关就是统一入口，所有请求先过网关，由网关路由到对应服务。
+spring: cloud: gateway: routes: - id: user-service uri: lb://user-service predicates: - Path=/api/user/** - id: order-service uri: lb://order-service predicates: - Path=/api/order/** /api/user/xxx 自动转发到 user-service，/api/order/xxx 转发到 order-service。lb:// 前缀表示从注册中心取地址，自带负载均衡。
+网关还能统一做鉴权、限流、日志。在网关校验 Token，下游服务就不用每个都重复写鉴权了。
+远程调用：OpenFeign 服务之间调用怎么搞？手写 RestTemplate 拼 URL？太折腾了。OpenFeign 让远程调用像调本地方法一样。
+@FeignClient(&#34;user-service&#34;) public interface UserClient { @GetMapping(&#34;/api/user/{id}&#34;) User getUser(@PathVariable Long id); } @Service public class OrderService { @Autowired private UserClient userClient; public Order createOrder(Long userId) { User user = userClient.getUser(userId); // 像调本地方法一样 // 创建订单... } } OpenFeign 根据服务名从注册中心找地址，自动发 HTTP 请求，还自带负载均衡。第一次用的时候觉得真方便，声明式调用太舒服了。
+...</p>
+  </div>
+  <footer class="entry-footer"><span title='2024-09-10 00:00:00 +0000 UTC'>September 10, 2024</span>&nbsp;·&nbsp;<span>1 min</span></footer>
+  <a class="entry-link" aria-label="post link to Spring Cloud 微服务入门" href="http://localhost:49494/posts/spring-cloud-intro/"></a>
+</article>
+
+<article class="post-entry tag-entry"> 
+  <header class="entry-header">
+    <h2 class="entry-hint-parent">策略模式替代 if-else
+    </h2>
+  </header>
+  <div class="entry-content">
+    <p>策略模式干掉 if-else，代码瞬间清爽 if-else 地狱 你写过这种代码吗：
+public double calculate(String type, double amount) { if (&#34;NORMAL&#34;.equals(type)) { return amount; } else if (&#34;VIP&#34;.equals(type)) { return amount * 0.9; } else if (&#34;SVIP&#34;.equals(type)) { return amount * 0.8; } else if (&#34;EMPLOYEE&#34;.equals(type)) { return amount * 0.7; } else if (&#34;PARTNER&#34;.equals(type)) { return amount * 0.6; } return amount; } 说实话，你的代码里有没有类似的？我之前实习的时候接手过一个项目，一个方法里二十多个 if-else，看得我头皮发麻。每次加个新类型就得在这坨代码里再加一个分支，改着改着就出 bug。
+这种代码的问题很明显：违反开闭原则，每次新增逻辑都要改已有代码。测试也麻烦，一个方法里分支太多，哪条路径没覆盖到都不好说。
+策略模式是什么 策略模式说白了就是：把每个 if 分支里的逻辑抽成单独的类，通过一个统一的接口来调用。
+核心三个角色：
+策略接口：定义算法规范 具体策略：每个类实现一种算法 上下文：持有策略引用，负责调用 // 策略接口 public interface PriceStrategy { double calculate(double amount); } // 具体策略 public class VipPriceStrategy implements PriceStrategy { @Override public double calculate(double amount) { return amount * 0.9; } } 就这么简单。你可能会想，这不是更啰嗦了吗？本来一个方法搞定的事，搞出一堆类。别急，往下看。
+...</p>
+  </div>
+  <footer class="entry-footer"><span title='2024-05-15 00:00:00 +0000 UTC'>May 15, 2024</span>&nbsp;·&nbsp;<span>2 min</span></footer>
+  <a class="entry-link" aria-label="post link to 策略模式替代 if-else" href="http://localhost:49494/posts/design-pattern-strategy/"></a>
+</article>
+
+<article class="post-entry tag-entry"> 
+  <header class="entry-header">
+    <h2 class="entry-hint-parent">MyBatis SQL 执行流程
+    </h2>
+  </header>
+  <div class="entry-content">
+    <p>MyBatis 一条 SQL 的执行之旅 从 Mapper 接口说起 用 MyBatis 写代码，日常就是定义一个 Mapper 接口，写个 XML 或注解，然后调用方法就完事了。但你有没有想过，你调 userMapper.selectById(1) 的时候，MyBatis 背后到底干了啥？
+我之前一直觉得这东西就是个黑盒，SQL 进去，对象出来，不用管就好。直到有次面试被问&#34;说说 MyBatis 的执行流程&#34;，我直接愣住了。回来之后认真翻了源码，发现整个流程其实挺清晰的，今天来捋一捋。
+简单说，你调 Mapper 方法，其实调的是一个 JDK 动态代理对象。MyBatis 在启动的时候会给每个 Mapper 接口生成代理，拦截方法调用，然后转到 SqlSession 去执行。
+// 你以为你在调接口方法 User user = userMapper.selectById(1); // 实际上等价于 User user = sqlSession.selectOne(&#34;com.example.mapper.UserMapper.selectById&#34;, 1); 所以 Mapper 接口本身没有实现类，全靠代理。这个设计挺巧妙的，让你写代码的时候感觉像在调普通方法。
+SqlSession 是什么 SqlSession 是 MyBatis 的核心接口，相当于一次数据库会话。它提供了 selectOne、selectList、insert、update、delete 这些方法。
+不过 SqlSession 自己不干活，它把事情委托给 Executor。你可以把 SqlSession 理解成一个门面，真正干活的是后面的 Executor。
+public class DefaultSqlSession implements SqlSession { private final Executor executor; @Override public &lt;T&gt; T selectOne(String statement, Object parameter) { List&lt;T&gt; list = this.selectList(statement, parameter); if (list.size() == 1) { return list.get(0); } // ... } } 话说回来，如果你用的是 Spring &#43; MyBatis，SqlSession 的创建和关闭都被 SqlSessionTemplate 管了，你基本不用操心。
+...</p>
+  </div>
+  <footer class="entry-footer"><span title='2024-03-05 00:00:00 +0000 UTC'>March 5, 2024</span>&nbsp;·&nbsp;<span>2 min</span></footer>
+  <a class="entry-link" aria-label="post link to MyBatis SQL 执行流程" href="http://localhost:49494/posts/mybatis-execution-flow/"></a>
+</article>
+
+<article class="post-entry tag-entry"> 
+  <header class="entry-header">
+    <h2 class="entry-hint-parent">Java Stream API 使用笔记
+    </h2>
+  </header>
+  <div class="entry-content">
+    <p>Stream API 用起来真香，但别乱用 自从学了 Stream API，写 Java 的风格变了不少。以前过滤加转换要写十几行 for 循环，现在一行链式搞定，确实香。
+但用了一段时间也踩了不少坑，特别是并行流和性能方面，今天来聊聊。
+基本操作过一遍 Stream 操作分两种：中间操作（返回新 Stream，可以链式调用）和终端操作（触发计算，产出结果）。
+List&lt;String&gt; names = students.stream() .filter(s -&gt; s.getScore() &gt; 80) // 过滤 .map(Student::getName) // 转换 .sorted() // 排序 .distinct() // 去重 .limit(10) // 取前10 .collect(Collectors.toList()); // 收集结果 几个常用的终端操作：
+// 收集到 Map Map&lt;Long, Student&gt; map = students.stream() .collect(Collectors.toMap(Student::getId, s -&gt; s)); // 分组 Map&lt;String, List&lt;Student&gt;&gt; grouped = students.stream() .collect(Collectors.groupingBy(Student::getClassName)); // 归约 int total = numbers.stream().reduce(0, Integer::sum); // 匹配和查找 boolean allMatch = stream.allMatch(predicate); Optional&lt;T&gt; first = stream.findFirst(); 几个实用的写法 toMap key 冲突处理
+...</p>
+  </div>
+  <footer class="entry-footer"><span title='2024-01-18 00:00:00 +0000 UTC'>January 18, 2024</span>&nbsp;·&nbsp;<span>2 min</span></footer>
+  <a class="entry-link" aria-label="post link to Java Stream API 使用笔记" href="http://localhost:49494/posts/java-stream-api/"></a>
+</article>
+
+<article class="post-entry tag-entry"> 
+  <header class="entry-header">
+    <h2 class="entry-hint-parent">Java 反射机制与性能
+    </h2>
+  </header>
+  <div class="entry-content">
+    <p>反射慢？慢多少你测过吗 “反射很慢，尽量别用。“这话你肯定听过。但到底慢多少？慢在哪？大部分人说不清楚，我之前也说不清楚，干脆自己测了一下。
+怎么获取 Class 对象 反射的入口是 Class 对象，三种方式：
+// 方式1：编译期就确定了 Class&lt;?&gt; clazz = String.class; // 方式2：从已有对象获取 Class&lt;?&gt; clazz = &#34;hello&#34;.getClass(); // 方式3：运行时按类名加载 Class&lt;?&gt; clazz = Class.forName(&#34;java.lang.String&#34;); 方式 1 和 2 编译期就确定类型了，方式 3 运行时按名字找，最灵活也最慢。
+拿到 Class 之后就能获取方法、字段、构造器：
+Method method = clazz.getDeclaredMethod(&#34;substring&#34;, int.class); Field[] fields = clazz.getDeclaredFields(); Object obj = clazz.getDeclaredConstructor().newInstance(); getDeclaredXxx 拿本类声明的（包括 private），getXxx 拿 public 的（包括继承的）。这个区别我之前搞混过，拿不到 private 字段 debug 了半天。
+Method.invoke 干了啥 Method method = clazz.getDeclaredMethod(&#34;length&#34;); Object result = method.invoke(&#34;hello&#34;); // 返回 5 private 方法要先 method.setAccessible(true) 开权限。
+invoke 底层干了几件事：
+检查访问权限 检查参数类型匹配 调用次数不到 15 次时走 JNI（native 实现） 超过 15 次后 JVM 动态生成字节码类来做调用 前 15 次用 native 是因为生成字节码本身有成本，调用少的话不划算。阈值可以通过 -Dsun.reflect.inflationThreshold 调。
+...</p>
+  </div>
+  <footer class="entry-footer"><span title='2023-10-25 00:00:00 +0000 UTC'>October 25, 2023</span>&nbsp;·&nbsp;<span>2 min</span></footer>
+  <a class="entry-link" aria-label="post link to Java 反射机制与性能" href="http://localhost:49494/posts/java-reflection/"></a>
+</article>
+
+<article class="post-entry tag-entry"> 
+  <header class="entry-header">
+    <h2 class="entry-hint-parent">Spring Boot 自动配置原理
+    </h2>
+  </header>
+  <div class="entry-content">
+    <p>Spring Boot 自动配置，看完你就不慌了 用 Spring Boot 写项目的时候，你有没有想过：我就加了个 spring-boot-starter-web 依赖，Tomcat 怎么就自己跑起来了？数据源我就配了个 URL，连接池怎么就自动用上 HikariCP 了？
+这背后全是自动配置在搞事情。
+@SpringBootApplication 背后藏了什么 启动类上那个 @SpringBootApplication，其实是个组合注解：
+@SpringBootConfiguration // 本质就是 @Configuration @EnableAutoConfiguration // 关键！开启自动配置 @ComponentScan // 包扫描 public @interface SpringBootApplication { } 重点是 @EnableAutoConfiguration。它里面用了 @Import(AutoConfigurationImportSelector.class)，这个 Selector 负责加载所有自动配置类。
+怎么加载？读 META-INF/spring.factories 文件。Spring Boot 3.x 改成了 META-INF/spring/org.springframework.boot.autoconfigure.AutoConfiguration.imports，但思路一样。
+spring.factories 是怎么回事 这个文件在每个 starter 的 jar 包里都有。去解压 spring-boot-autoconfigure 这个 jar，就能看到里面的 spring.factories，密密麻麻写了一堆配置类：
+org.springframework.boot.autoconfigure.EnableAutoConfiguration=\ org.springframework.boot.autoconfigure.web.servlet.WebMvcAutoConfiguration,\ org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration,\ org.springframework.boot.autoconfigure.data.redis.RedisAutoConfiguration,\ ... 启动的时候 Spring Boot 把这些类全加载进来。你可能想：这么多配置类全加载，不会很慢吗？别急，看下面。
+条件注解——按需加载的秘密 虽然列了上百个配置类，但不是每个都会生效。Spring Boot 用条件注解控制：
+注解 含义 @ConditionalOnClass classpath 里有某个类才生效 @ConditionalOnMissingClass classpath 里没某个类才生效 @ConditionalOnBean 容器里有某个 Bean 才生效 @ConditionalOnMissingBean 容器里没某个 Bean 才生效 @ConditionalOnProperty 配置文件里有某个属性才生效 举个例子，RedisAutoConfiguration 的源码大概这样：
+...</p>
+  </div>
+  <footer class="entry-footer"><span title='2023-09-05 00:00:00 +0000 UTC'>September 5, 2023</span>&nbsp;·&nbsp;<span>2 min</span></footer>
+  <a class="entry-link" aria-label="post link to Spring Boot 自动配置原理" href="http://localhost:49494/posts/springboot-auto-config/"></a>
+</article>
+
+<article class="post-entry tag-entry"> 
+  <header class="entry-header">
+    <h2 class="entry-hint-parent">Java 泛型常见问题
+    </h2>
+  </header>
+  <div class="entry-content">
+    <p>Java 泛型这几个坑你肯定踩过 Java 泛型这东西，看着简单用着顺手，直到踩坑才发现自己根本没搞懂。上周写作业一个泛型编译错误折腾了我一个多小时，气得把泛型重新学了一遍。
+类型擦除到底擦了啥 Java 的泛型是假泛型。编译之后泛型信息就没了，全变成 Object（或上界类型），这叫类型擦除。
+List&lt;String&gt; 和 List&lt;Integer&gt;，到了 JVM 眼里都是 List：
+List&lt;String&gt; strList = new ArrayList&lt;&gt;(); List&lt;Integer&gt; intList = new ArrayList&lt;&gt;(); System.out.println(strList.getClass() == intList.getClass()); // true 泛型只在编译期做类型检查，运行时完全不知道 T 是啥。
+所以这些事都做不了：
+new T(); // 不知道 T 是啥，没法 new new T[10]; // 不能创建泛型数组 T.class; // 拿不到 T 的 Class instanceof T; // 运行时不认识 T 想在泛型方法里创建实例？得把 Class&lt;T&gt; 传进去：
+public &lt;T&gt; T create(Class&lt;T&gt; clazz) throws Exception { return clazz.newInstance(); } 本质就是擦除之后 T 没了，你得自己把类型信息带进来。
+通配符 ? extends 和 ? super 这块是泛型里最让人头疼的部分。
+? extends T 表示&#34;T 或 T 的子类&#34;（上界通配符）：
+...</p>
+  </div>
+  <footer class="entry-footer"><span title='2023-08-12 00:00:00 +0000 UTC'>August 12, 2023</span>&nbsp;·&nbsp;<span>2 min</span></footer>
+  <a class="entry-link" aria-label="post link to Java 泛型常见问题" href="http://localhost:49494/posts/java-generics/"></a>
+</article>
+
+<article class="post-entry tag-entry"> 
+  <header class="entry-header">
+    <h2 class="entry-hint-parent">volatile 与 Java 内存模型
+    </h2>
+  </header>
+  <div class="entry-content">
+    <p>volatile 到底能保证什么 Java 内存模型简单说 聊 volatile 之前，得先说说 Java 内存模型（JMM）。放心，不讲太深，够理解 volatile 就行。
+JMM 规定了线程和内存之间的关系。简单理解：每个线程有自己的工作内存（你可以想象成 CPU 缓存），线程操作变量不是直接改主内存，而是先拷贝一份到工作内存，改完再写回去。
+这就埋下了隐患——线程 A 改了变量，线程 B 可能看不到，因为 B 还在用自己工作内存里的旧值。
+主内存: x = 0 线程A工作内存: x = 0 → x = 1 → 写回主内存 线程B工作内存: x = 0 → 还是0！没刷新！ 这就是可见性问题。
+可见性：volatile 的第一个保证 来看个经典例子：
+public class VisibilityDemo { private static boolean flag = true; public static void main(String[] args) throws InterruptedException { new Thread(() -&gt; { while (flag) { // 忙等待 } System.out.println(&#34;线程退出&#34;); }).start(); Thread.sleep(1000); flag = false; System.out.println(&#34;已设置 flag = false&#34;); } } 你觉得子线程能退出吗？答案是：不一定。JIT 编译器可能把 while(flag) 优化成 while(true)，因为它发现当前线程里没人改 flag。
+...</p>
+  </div>
+  <footer class="entry-footer"><span title='2023-07-20 00:00:00 +0000 UTC'>July 20, 2023</span>&nbsp;·&nbsp;<span>2 min</span></footer>
+  <a class="entry-link" aria-label="post link to volatile 与 Java 内存模型" href="http://localhost:49494/posts/java-memory-model-volatile/"></a>
+</article>
+<footer class="page-footer">
+  <nav class="pagination">
+    <a class="next" href="http://localhost:49494/tags/java/page/2/">Next&nbsp;&nbsp;»
+    </a>
+  </nav>
+</footer>
+    </main>
+    
+<footer class="footer">
+        <span>&copy; 2026 <a href="http://localhost:49494/">Weiming&#39;s Blog</a></span> · 
+
+    <span>
+        Powered by
+        <a href="https://gohugo.io/" rel="noopener noreferrer" target="_blank">Hugo</a> &
+        <a href="https://github.com/adityatelange/hugo-PaperMod/" rel="noopener" target="_blank">PaperMod</a>
+    </span>
+</footer>
+<a href="#top" aria-label="go to top" title="Go to Top (Alt + G)" class="top-link" id="top-link" accesskey="g">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 12 6" fill="currentColor">
+        <path d="M12 6H0l6-6z" />
+    </svg>
+</a>
+
+<script>
+    let menu = document.getElementById('menu');
+    if (menu) {
+        
+        const scrollPosition = localStorage.getItem("menu-scroll-position");
+        if (scrollPosition) {
+            menu.scrollLeft = parseInt(scrollPosition, 10);
+        }
+        
+        menu.onscroll = function () {
+            localStorage.setItem("menu-scroll-position", menu.scrollLeft);
+        }
+    }
+
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener("click", function (e) {
+            e.preventDefault();
+            var id = this.getAttribute("href").substr(1);
+            if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView({
+                    behavior: "smooth"
+                });
+            } else {
+                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView();
+            }
+            if (id === "top") {
+                history.replaceState(null, null, " ");
+            } else {
+                history.pushState(null, null, `#${id}`);
+            }
+        });
+    });
+
+</script>
+<script>
+    var mybutton = document.getElementById("top-link");
+    window.onscroll = function () {
+        if (document.body.scrollTop > 800 || document.documentElement.scrollTop > 800) {
+            mybutton.style.visibility = "visible";
+            mybutton.style.opacity = "1";
+        } else {
+            mybutton.style.visibility = "hidden";
+            mybutton.style.opacity = "0";
+        }
+    };
+
+</script>
+<script>
+    document.getElementById("theme-toggle").addEventListener("click", () => {
+        const html = document.querySelector("html");
+        if (html.dataset.theme === "dark") {
+            html.dataset.theme = 'light';
+            localStorage.setItem("pref-theme", 'light');
+        } else {
+            html.dataset.theme = 'dark';
+            localStorage.setItem("pref-theme", 'dark');
+        }
+    })
+
+</script>
+</body>
+
+</html>

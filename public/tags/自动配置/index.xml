@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:content="http://purl.org/rss/1.0/modules/content/">
+  <channel>
+    <title>自动配置 on Weiming&#39;s Blog</title>
+    <link>http://localhost:49494/tags/%E8%87%AA%E5%8A%A8%E9%85%8D%E7%BD%AE/</link>
+    <description>Recent content in 自动配置 on Weiming&#39;s Blog</description>
+    <generator>Hugo</generator>
+    <language>zh-cn</language>
+    <lastBuildDate>Tue, 05 Sep 2023 00:00:00 +0000</lastBuildDate>
+    <atom:link href="http://localhost:49494/tags/%E8%87%AA%E5%8A%A8%E9%85%8D%E7%BD%AE/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>Spring Boot 自动配置原理</title>
+      <link>http://localhost:49494/posts/springboot-auto-config/</link>
+      <pubDate>Tue, 05 Sep 2023 00:00:00 +0000</pubDate>
+      <guid>http://localhost:49494/posts/springboot-auto-config/</guid>
+      <description>&lt;h1 id=&#34;spring-boot-自动配置看完你就不慌了&#34;&gt;Spring Boot 自动配置，看完你就不慌了&lt;/h1&gt;
+&lt;p&gt;用 Spring Boot 写项目的时候，你有没有想过：我就加了个 &lt;code&gt;spring-boot-starter-web&lt;/code&gt; 依赖，Tomcat 怎么就自己跑起来了？数据源我就配了个 URL，连接池怎么就自动用上 HikariCP 了？&lt;/p&gt;
+&lt;p&gt;这背后全是自动配置在搞事情。&lt;/p&gt;
+&lt;h2 id=&#34;springbootapplication-背后藏了什么&#34;&gt;@SpringBootApplication 背后藏了什么&lt;/h2&gt;
+&lt;p&gt;启动类上那个 &lt;code&gt;@SpringBootApplication&lt;/code&gt;，其实是个组合注解：&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;&#34;&gt;&lt;code class=&#34;language-java&#34; data-lang=&#34;java&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#a6e22e&#34;&gt;@SpringBootConfiguration&lt;/span&gt;  &lt;span style=&#34;color:#75715e&#34;&gt;// 本质就是 @Configuration&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#a6e22e&#34;&gt;@EnableAutoConfiguration&lt;/span&gt;   &lt;span style=&#34;color:#75715e&#34;&gt;// 关键！开启自动配置&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#a6e22e&#34;&gt;@ComponentScan&lt;/span&gt;             &lt;span style=&#34;color:#75715e&#34;&gt;// 包扫描&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;public&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;@interface&lt;/span&gt; SpringBootApplication {
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;}
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;重点是 &lt;code&gt;@EnableAutoConfiguration&lt;/code&gt;。它里面用了 &lt;code&gt;@Import(AutoConfigurationImportSelector.class)&lt;/code&gt;，这个 Selector 负责加载所有自动配置类。&lt;/p&gt;
+&lt;p&gt;怎么加载？读 &lt;code&gt;META-INF/spring.factories&lt;/code&gt; 文件。Spring Boot 3.x 改成了 &lt;code&gt;META-INF/spring/org.springframework.boot.autoconfigure.AutoConfiguration.imports&lt;/code&gt;，但思路一样。&lt;/p&gt;
+&lt;h2 id=&#34;springfactories-是怎么回事&#34;&gt;spring.factories 是怎么回事&lt;/h2&gt;
+&lt;p&gt;这个文件在每个 starter 的 jar 包里都有。去解压 &lt;code&gt;spring-boot-autoconfigure&lt;/code&gt; 这个 jar，就能看到里面的 &lt;code&gt;spring.factories&lt;/code&gt;，密密麻麻写了一堆配置类：&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;&#34;&gt;&lt;code class=&#34;language-properties&#34; data-lang=&#34;properties&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#a6e22e&#34;&gt;org.springframework.boot.autoconfigure.EnableAutoConfiguration&lt;/span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;\
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;org.springframework.boot.autoconfigure.web.servlet.WebMvcAutoConfiguration,\
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration,\
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;org.springframework.boot.autoconfigure.data.redis.RedisAutoConfiguration,\
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;...&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;启动的时候 Spring Boot 把这些类全加载进来。你可能想：这么多配置类全加载，不会很慢吗？别急，看下面。&lt;/p&gt;
+&lt;h2 id=&#34;条件注解按需加载的秘密&#34;&gt;条件注解——按需加载的秘密&lt;/h2&gt;
+&lt;p&gt;虽然列了上百个配置类，但不是每个都会生效。Spring Boot 用条件注解控制：&lt;/p&gt;
+&lt;table&gt;
+  &lt;thead&gt;
+      &lt;tr&gt;
+          &lt;th&gt;注解&lt;/th&gt;
+          &lt;th&gt;含义&lt;/th&gt;
+      &lt;/tr&gt;
+  &lt;/thead&gt;
+  &lt;tbody&gt;
+      &lt;tr&gt;
+          &lt;td&gt;&lt;code&gt;@ConditionalOnClass&lt;/code&gt;&lt;/td&gt;
+          &lt;td&gt;classpath 里有某个类才生效&lt;/td&gt;
+      &lt;/tr&gt;
+      &lt;tr&gt;
+          &lt;td&gt;&lt;code&gt;@ConditionalOnMissingClass&lt;/code&gt;&lt;/td&gt;
+          &lt;td&gt;classpath 里没某个类才生效&lt;/td&gt;
+      &lt;/tr&gt;
+      &lt;tr&gt;
+          &lt;td&gt;&lt;code&gt;@ConditionalOnBean&lt;/code&gt;&lt;/td&gt;
+          &lt;td&gt;容器里有某个 Bean 才生效&lt;/td&gt;
+      &lt;/tr&gt;
+      &lt;tr&gt;
+          &lt;td&gt;&lt;code&gt;@ConditionalOnMissingBean&lt;/code&gt;&lt;/td&gt;
+          &lt;td&gt;容器里没某个 Bean 才生效&lt;/td&gt;
+      &lt;/tr&gt;
+      &lt;tr&gt;
+          &lt;td&gt;&lt;code&gt;@ConditionalOnProperty&lt;/code&gt;&lt;/td&gt;
+          &lt;td&gt;配置文件里有某个属性才生效&lt;/td&gt;
+      &lt;/tr&gt;
+  &lt;/tbody&gt;
+&lt;/table&gt;
+&lt;p&gt;举个例子，&lt;code&gt;RedisAutoConfiguration&lt;/code&gt; 的源码大概这样：&lt;/p&gt;</description>
+    </item>
+  </channel>
+</rss>

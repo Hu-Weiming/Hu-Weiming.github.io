@@ -1,5 +1,5 @@
 ---
-title: "用 Ollama 在本地跑大模型，真的可以"
+title: "Ollama 本地部署大模型"
 date: 2025-12-05
 categories: ["AI"]
 tags: ["AI", "Ollama", "本地部署"]

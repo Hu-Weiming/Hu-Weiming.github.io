@@ -1,5 +1,5 @@
 ---
-title: "MySQL 索引优化，别再全表扫描了"
+title: "MySQL 索引优化"
 date: 2024-06-15
 categories: ["数据库"]
 tags: ["MySQL", "索引", "性能优化"]

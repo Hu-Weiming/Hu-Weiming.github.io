@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:content="http://purl.org/rss/1.0/modules/content/">
+  <channel>
+    <title>ORM on Weiming&#39;s Blog</title>
+    <link>http://localhost:49494/tags/orm/</link>
+    <description>Recent content in ORM on Weiming&#39;s Blog</description>
+    <generator>Hugo</generator>
+    <language>zh-cn</language>
+    <lastBuildDate>Tue, 05 Mar 2024 00:00:00 +0000</lastBuildDate>
+    <atom:link href="http://localhost:49494/tags/orm/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>MyBatis SQL 执行流程</title>
+      <link>http://localhost:49494/posts/mybatis-execution-flow/</link>
+      <pubDate>Tue, 05 Mar 2024 00:00:00 +0000</pubDate>
+      <guid>http://localhost:49494/posts/mybatis-execution-flow/</guid>
+      <description>&lt;h1 id=&#34;mybatis-一条-sql-的执行之旅&#34;&gt;MyBatis 一条 SQL 的执行之旅&lt;/h1&gt;
+&lt;h2 id=&#34;从-mapper-接口说起&#34;&gt;从 Mapper 接口说起&lt;/h2&gt;
+&lt;p&gt;用 MyBatis 写代码，日常就是定义一个 Mapper 接口，写个 XML 或注解，然后调用方法就完事了。但你有没有想过，你调 &lt;code&gt;userMapper.selectById(1)&lt;/code&gt; 的时候，MyBatis 背后到底干了啥？&lt;/p&gt;
+&lt;p&gt;我之前一直觉得这东西就是个黑盒，SQL 进去，对象出来，不用管就好。直到有次面试被问&amp;quot;说说 MyBatis 的执行流程&amp;quot;，我直接愣住了。回来之后认真翻了源码，发现整个流程其实挺清晰的，今天来捋一捋。&lt;/p&gt;
+&lt;p&gt;简单说，你调 Mapper 方法，其实调的是一个 JDK 动态代理对象。MyBatis 在启动的时候会给每个 Mapper 接口生成代理，拦截方法调用，然后转到 SqlSession 去执行。&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;&#34;&gt;&lt;code class=&#34;language-java&#34; data-lang=&#34;java&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;// 你以为你在调接口方法&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;User user &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; userMapper.&lt;span style=&#34;color:#a6e22e&#34;&gt;selectById&lt;/span&gt;(1);
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;// 实际上等价于&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;User user &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; sqlSession.&lt;span style=&#34;color:#a6e22e&#34;&gt;selectOne&lt;/span&gt;(&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;com.example.mapper.UserMapper.selectById&amp;#34;&lt;/span&gt;, 1);
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;所以 Mapper 接口本身没有实现类，全靠代理。这个设计挺巧妙的，让你写代码的时候感觉像在调普通方法。&lt;/p&gt;
+&lt;h2 id=&#34;sqlsession-是什么&#34;&gt;SqlSession 是什么&lt;/h2&gt;
+&lt;p&gt;SqlSession 是 MyBatis 的核心接口，相当于一次数据库会话。它提供了 selectOne、selectList、insert、update、delete 这些方法。&lt;/p&gt;
+&lt;p&gt;不过 SqlSession 自己不干活，它把事情委托给 Executor。你可以把 SqlSession 理解成一个门面，真正干活的是后面的 Executor。&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;&#34;&gt;&lt;code class=&#34;language-java&#34; data-lang=&#34;java&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;public&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;class&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;DefaultSqlSession&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;implements&lt;/span&gt; SqlSession {
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;private&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;final&lt;/span&gt; Executor executor;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#a6e22e&#34;&gt;@Override&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;public&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;&lt;/span&gt;T&lt;span style=&#34;color:#f92672&#34;&gt;&amp;gt;&lt;/span&gt; T &lt;span style=&#34;color:#a6e22e&#34;&gt;selectOne&lt;/span&gt;(String statement, Object parameter) {
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        List&lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;&lt;/span&gt;T&lt;span style=&#34;color:#f92672&#34;&gt;&amp;gt;&lt;/span&gt; list &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;this&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;selectList&lt;/span&gt;(statement, parameter);
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        &lt;span style=&#34;color:#66d9ef&#34;&gt;if&lt;/span&gt; (list.&lt;span style=&#34;color:#a6e22e&#34;&gt;size&lt;/span&gt;() &lt;span style=&#34;color:#f92672&#34;&gt;==&lt;/span&gt; 1) {
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;            &lt;span style=&#34;color:#66d9ef&#34;&gt;return&lt;/span&gt; list.&lt;span style=&#34;color:#a6e22e&#34;&gt;get&lt;/span&gt;(0);
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        }
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        &lt;span style=&#34;color:#75715e&#34;&gt;// ...&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    }
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;}
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;话说回来，如果你用的是 Spring + MyBatis，SqlSession 的创建和关闭都被 SqlSessionTemplate 管了，你基本不用操心。&lt;/p&gt;</description>
+    </item>
+  </channel>
+</rss>

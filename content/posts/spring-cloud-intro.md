@@ -1,5 +1,5 @@
 ---
-title: "Spring Cloud 微服务入门，别被吓到"
+title: "Spring Cloud 微服务入门"
 date: 2024-09-10
 categories: ["Spring"]
 tags: ["Java", "Spring Cloud", "微服务"]

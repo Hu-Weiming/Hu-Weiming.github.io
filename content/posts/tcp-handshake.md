@@ -1,5 +1,5 @@
 ---
-title: "TCP 三次握手和四次挥手，画个图就懂了"
+title: "TCP 三次握手与四次挥手"
 date: 2023-04-15
 categories: ["计算机网络"]
 tags: ["网络", "TCP", "协议"]

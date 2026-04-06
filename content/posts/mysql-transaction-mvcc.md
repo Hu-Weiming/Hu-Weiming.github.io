@@ -1,5 +1,5 @@
 ---
-title: "MySQL 事务和 MVCC，面试必问"
+title: "MySQL 事务与 MVCC"
 date: 2024-08-20
 categories: ["数据库"]
 tags: ["MySQL", "事务", "MVCC"]

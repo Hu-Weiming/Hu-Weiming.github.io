@@ -1,5 +1,5 @@
 ---
-title: "MyBatis 一条 SQL 的执行之旅"
+title: "MyBatis SQL 执行流程"
 date: 2024-03-05
 categories: ["框架"]
 tags: ["Java", "MyBatis", "ORM"]

@@ -1,5 +1,5 @@
 ---
-title: "Prompt Engineering 实用技巧，我总结了这些"
+title: "Prompt Engineering 技巧整理"
 date: 2026-03-10
 categories: ["AI"]
 tags: ["AI", "Prompt", "LLM"]

@@ -1,5 +1,5 @@
 ---
-title: "AOP 这东西，说难不难说简单不简单"
+title: "Spring AOP 原理"
 date: 2023-06-15
 categories: ["Spring"]
 tags: ["Java", "Spring", "AOP"]

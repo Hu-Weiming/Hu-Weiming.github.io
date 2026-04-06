@@ -1,5 +1,5 @@
 ---
-title: "Redis 五种数据结构，各有各的妙用"
+title: "Redis 五种数据结构"
 date: 2024-02-20
 categories: ["中间件"]
 tags: ["Redis", "缓存", "数据结构"]

@@ -1,5 +1,5 @@
 ---
-title: "大模型入门：到底什么是 LLM"
+title: "大语言模型（LLM）入门"
 date: 2025-06-10
 categories: ["AI"]
 tags: ["AI", "LLM", "入门"]

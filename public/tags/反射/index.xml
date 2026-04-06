@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:content="http://purl.org/rss/1.0/modules/content/">
+  <channel>
+    <title>反射 on Weiming&#39;s Blog</title>
+    <link>http://localhost:49494/tags/%E5%8F%8D%E5%B0%84/</link>
+    <description>Recent content in 反射 on Weiming&#39;s Blog</description>
+    <generator>Hugo</generator>
+    <language>zh-cn</language>
+    <lastBuildDate>Wed, 25 Oct 2023 00:00:00 +0000</lastBuildDate>
+    <atom:link href="http://localhost:49494/tags/%E5%8F%8D%E5%B0%84/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>Java 反射机制与性能</title>
+      <link>http://localhost:49494/posts/java-reflection/</link>
+      <pubDate>Wed, 25 Oct 2023 00:00:00 +0000</pubDate>
+      <guid>http://localhost:49494/posts/java-reflection/</guid>
+      <description>&lt;h1 id=&#34;反射慢慢多少你测过吗&#34;&gt;反射慢？慢多少你测过吗&lt;/h1&gt;
+&lt;p&gt;&amp;ldquo;反射很慢，尽量别用。&amp;ldquo;这话你肯定听过。但到底慢多少？慢在哪？大部分人说不清楚，我之前也说不清楚，干脆自己测了一下。&lt;/p&gt;
+&lt;h2 id=&#34;怎么获取-class-对象&#34;&gt;怎么获取 Class 对象&lt;/h2&gt;
+&lt;p&gt;反射的入口是 Class 对象，三种方式：&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;&#34;&gt;&lt;code class=&#34;language-java&#34; data-lang=&#34;java&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;// 方式1：编译期就确定了&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;Class&lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;?&amp;gt;&lt;/span&gt; clazz &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; String.&lt;span style=&#34;color:#a6e22e&#34;&gt;class&lt;/span&gt;;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;// 方式2：从已有对象获取&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;Class&lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;?&amp;gt;&lt;/span&gt; clazz &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;hello&amp;#34;&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;getClass&lt;/span&gt;();
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;// 方式3：运行时按类名加载&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;Class&lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;?&amp;gt;&lt;/span&gt; clazz &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; Class.&lt;span style=&#34;color:#a6e22e&#34;&gt;forName&lt;/span&gt;(&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;java.lang.String&amp;#34;&lt;/span&gt;);
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;方式 1 和 2 编译期就确定类型了，方式 3 运行时按名字找，最灵活也最慢。&lt;/p&gt;
+&lt;p&gt;拿到 Class 之后就能获取方法、字段、构造器：&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;&#34;&gt;&lt;code class=&#34;language-java&#34; data-lang=&#34;java&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;Method method &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; clazz.&lt;span style=&#34;color:#a6e22e&#34;&gt;getDeclaredMethod&lt;/span&gt;(&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;substring&amp;#34;&lt;/span&gt;, &lt;span style=&#34;color:#66d9ef&#34;&gt;int&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;class&lt;/span&gt;);
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;Field&lt;span style=&#34;color:#f92672&#34;&gt;[]&lt;/span&gt; fields &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; clazz.&lt;span style=&#34;color:#a6e22e&#34;&gt;getDeclaredFields&lt;/span&gt;();
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;Object obj &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; clazz.&lt;span style=&#34;color:#a6e22e&#34;&gt;getDeclaredConstructor&lt;/span&gt;().&lt;span style=&#34;color:#a6e22e&#34;&gt;newInstance&lt;/span&gt;();
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;&lt;code&gt;getDeclaredXxx&lt;/code&gt; 拿本类声明的（包括 private），&lt;code&gt;getXxx&lt;/code&gt; 拿 public 的（包括继承的）。这个区别我之前搞混过，拿不到 private 字段 debug 了半天。&lt;/p&gt;
+&lt;h2 id=&#34;methodinvoke-干了啥&#34;&gt;Method.invoke 干了啥&lt;/h2&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;&#34;&gt;&lt;code class=&#34;language-java&#34; data-lang=&#34;java&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;Method method &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; clazz.&lt;span style=&#34;color:#a6e22e&#34;&gt;getDeclaredMethod&lt;/span&gt;(&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;length&amp;#34;&lt;/span&gt;);
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;Object result &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; method.&lt;span style=&#34;color:#a6e22e&#34;&gt;invoke&lt;/span&gt;(&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;hello&amp;#34;&lt;/span&gt;);  &lt;span style=&#34;color:#75715e&#34;&gt;// 返回 5&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;private 方法要先 &lt;code&gt;method.setAccessible(true)&lt;/code&gt; 开权限。&lt;/p&gt;
+&lt;p&gt;invoke 底层干了几件事：&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;检查访问权限&lt;/li&gt;
+&lt;li&gt;检查参数类型匹配&lt;/li&gt;
+&lt;li&gt;调用次数不到 15 次时走 JNI（native 实现）&lt;/li&gt;
+&lt;li&gt;超过 15 次后 JVM 动态生成字节码类来做调用&lt;/li&gt;
+&lt;/ol&gt;
+&lt;p&gt;前 15 次用 native 是因为生成字节码本身有成本，调用少的话不划算。阈值可以通过 &lt;code&gt;-Dsun.reflect.inflationThreshold&lt;/code&gt; 调。&lt;/p&gt;</description>
+    </item>
+  </channel>
+</rss>

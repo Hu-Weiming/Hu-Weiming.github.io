@@ -1,0 +1,571 @@
+<!DOCTYPE html>
+<html lang="en" dir="auto" data-theme="auto">
+
+<head><script src="/livereload.js?mindelay=10&amp;v=2&amp;port=49494&amp;path=livereload" data-no-instant defer></script><meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<meta name="robots" content="index, follow">
+<title>Spring Boot 自动配置原理 | Weiming&#39;s Blog</title>
+<meta name="keywords" content="Java, Spring Boot, 自动配置">
+<meta name="description" content="Spring Boot 自动配置，看完你就不慌了
+用 Spring Boot 写项目的时候，你有没有想过：我就加了个 spring-boot-starter-web 依赖，Tomcat 怎么就自己跑起来了？数据源我就配了个 URL，连接池怎么就自动用上 HikariCP 了？
+这背后全是自动配置在搞事情。
+@SpringBootApplication 背后藏了什么
+启动类上那个 @SpringBootApplication，其实是个组合注解：
+@SpringBootConfiguration  // 本质就是 @Configuration
+@EnableAutoConfiguration   // 关键！开启自动配置
+@ComponentScan             // 包扫描
+public @interface SpringBootApplication {
+}
+重点是 @EnableAutoConfiguration。它里面用了 @Import(AutoConfigurationImportSelector.class)，这个 Selector 负责加载所有自动配置类。
+怎么加载？读 META-INF/spring.factories 文件。Spring Boot 3.x 改成了 META-INF/spring/org.springframework.boot.autoconfigure.AutoConfiguration.imports，但思路一样。
+spring.factories 是怎么回事
+这个文件在每个 starter 的 jar 包里都有。去解压 spring-boot-autoconfigure 这个 jar，就能看到里面的 spring.factories，密密麻麻写了一堆配置类：
+org.springframework.boot.autoconfigure.EnableAutoConfiguration=\
+org.springframework.boot.autoconfigure.web.servlet.WebMvcAutoConfiguration,\
+org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration,\
+org.springframework.boot.autoconfigure.data.redis.RedisAutoConfiguration,\
+...
+启动的时候 Spring Boot 把这些类全加载进来。你可能想：这么多配置类全加载，不会很慢吗？别急，看下面。
+条件注解——按需加载的秘密
+虽然列了上百个配置类，但不是每个都会生效。Spring Boot 用条件注解控制：
+
+  
+      
+          注解
+          含义
+      
+  
+  
+      
+          @ConditionalOnClass
+          classpath 里有某个类才生效
+      
+      
+          @ConditionalOnMissingClass
+          classpath 里没某个类才生效
+      
+      
+          @ConditionalOnBean
+          容器里有某个 Bean 才生效
+      
+      
+          @ConditionalOnMissingBean
+          容器里没某个 Bean 才生效
+      
+      
+          @ConditionalOnProperty
+          配置文件里有某个属性才生效
+      
+  
+
+举个例子，RedisAutoConfiguration 的源码大概这样：">
+<meta name="author" content="">
+<link rel="canonical" href="http://localhost:49494/posts/springboot-auto-config/">
+<link crossorigin="anonymous" href="/assets/css/stylesheet.199042e659bc7245f5609d333d6c044eb554a0640849bb874e1dff8eb0f57209.css" integrity="sha256-GZBC5lm8ckX1YJ0zPWwETrVUoGQISbuHTh3/jrD1cgk=" rel="preload stylesheet" as="style">
+<link rel="icon" href="http://localhost:49494/favicon.ico">
+<link rel="icon" type="image/png" sizes="16x16" href="http://localhost:49494/favicon-16x16.png">
+<link rel="icon" type="image/png" sizes="32x32" href="http://localhost:49494/favicon-32x32.png">
+<link rel="apple-touch-icon" href="http://localhost:49494/apple-touch-icon.png">
+<link rel="mask-icon" href="http://localhost:49494/safari-pinned-tab.svg">
+<meta name="theme-color" content="#2e2e33">
+<meta name="msapplication-TileColor" content="#2e2e33">
+<link rel="alternate" hreflang="en" href="http://localhost:49494/posts/springboot-auto-config/">
+<noscript>
+    <style>
+        #theme-toggle,
+        .top-link {
+            display: none;
+        }
+
+    </style>
+    <style>
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --theme: rgb(29, 30, 32);
+                --entry: rgb(46, 46, 51);
+                --primary: rgb(218, 218, 219);
+                --secondary: rgb(155, 156, 157);
+                --tertiary: rgb(65, 66, 68);
+                --content: rgb(196, 196, 197);
+                --code-block-bg: rgb(46, 46, 51);
+                --code-bg: rgb(55, 56, 62);
+                --border: rgb(51, 51, 51);
+                color-scheme: dark;
+            }
+
+            .list {
+                background: var(--theme);
+            }
+
+            .toc {
+                background: var(--entry);
+            }
+        }
+
+        @media (prefers-color-scheme: light) {
+            .list::-webkit-scrollbar-thumb {
+                border-color: var(--code-bg);
+            }
+        }
+
+    </style>
+</noscript>
+<script>
+    if (localStorage.getItem("pref-theme") === "dark") {
+        document.querySelector("html").dataset.theme = 'dark';
+    } else if (localStorage.getItem("pref-theme") === "light") {
+       document.querySelector("html").dataset.theme = 'light';
+    } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        document.querySelector("html").dataset.theme = 'dark';
+    } else {
+        document.querySelector("html").dataset.theme = 'light';
+    }
+
+</script><meta property="og:url" content="http://localhost:49494/posts/springboot-auto-config/">
+  <meta property="og:site_name" content="Weiming&#39;s Blog">
+  <meta property="og:title" content="Spring Boot 自动配置原理">
+  <meta property="og:description" content="Spring Boot 自动配置，看完你就不慌了 用 Spring Boot 写项目的时候，你有没有想过：我就加了个 spring-boot-starter-web 依赖，Tomcat 怎么就自己跑起来了？数据源我就配了个 URL，连接池怎么就自动用上 HikariCP 了？
+这背后全是自动配置在搞事情。
+@SpringBootApplication 背后藏了什么 启动类上那个 @SpringBootApplication，其实是个组合注解：
+@SpringBootConfiguration // 本质就是 @Configuration @EnableAutoConfiguration // 关键！开启自动配置 @ComponentScan // 包扫描 public @interface SpringBootApplication { } 重点是 @EnableAutoConfiguration。它里面用了 @Import(AutoConfigurationImportSelector.class)，这个 Selector 负责加载所有自动配置类。
+怎么加载？读 META-INF/spring.factories 文件。Spring Boot 3.x 改成了 META-INF/spring/org.springframework.boot.autoconfigure.AutoConfiguration.imports，但思路一样。
+spring.factories 是怎么回事 这个文件在每个 starter 的 jar 包里都有。去解压 spring-boot-autoconfigure 这个 jar，就能看到里面的 spring.factories，密密麻麻写了一堆配置类：
+org.springframework.boot.autoconfigure.EnableAutoConfiguration=\ org.springframework.boot.autoconfigure.web.servlet.WebMvcAutoConfiguration,\ org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration,\ org.springframework.boot.autoconfigure.data.redis.RedisAutoConfiguration,\ ... 启动的时候 Spring Boot 把这些类全加载进来。你可能想：这么多配置类全加载，不会很慢吗？别急，看下面。
+条件注解——按需加载的秘密 虽然列了上百个配置类，但不是每个都会生效。Spring Boot 用条件注解控制：
+注解 含义 @ConditionalOnClass classpath 里有某个类才生效 @ConditionalOnMissingClass classpath 里没某个类才生效 @ConditionalOnBean 容器里有某个 Bean 才生效 @ConditionalOnMissingBean 容器里没某个 Bean 才生效 @ConditionalOnProperty 配置文件里有某个属性才生效 举个例子，RedisAutoConfiguration 的源码大概这样：">
+  <meta property="og:locale" content="zh_cn">
+  <meta property="og:type" content="article">
+    <meta property="article:section" content="posts">
+    <meta property="article:published_time" content="2023-09-05T00:00:00+00:00">
+    <meta property="article:modified_time" content="2023-09-05T00:00:00+00:00">
+    <meta property="article:tag" content="Java">
+    <meta property="article:tag" content="Spring Boot">
+    <meta property="article:tag" content="自动配置">
+
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:title" content="Spring Boot 自动配置原理">
+  <meta name="twitter:description" content="Spring Boot 自动配置，看完你就不慌了 用 Spring Boot 写项目的时候，你有没有想过：我就加了个 spring-boot-starter-web 依赖，Tomcat 怎么就自己跑起来了？数据源我就配了个 URL，连接池怎么就自动用上 HikariCP 了？
+这背后全是自动配置在搞事情。
+@SpringBootApplication 背后藏了什么 启动类上那个 @SpringBootApplication，其实是个组合注解：
+@SpringBootConfiguration // 本质就是 @Configuration @EnableAutoConfiguration // 关键！开启自动配置 @ComponentScan // 包扫描 public @interface SpringBootApplication { } 重点是 @EnableAutoConfiguration。它里面用了 @Import(AutoConfigurationImportSelector.class)，这个 Selector 负责加载所有自动配置类。
+怎么加载？读 META-INF/spring.factories 文件。Spring Boot 3.x 改成了 META-INF/spring/org.springframework.boot.autoconfigure.AutoConfiguration.imports，但思路一样。
+spring.factories 是怎么回事 这个文件在每个 starter 的 jar 包里都有。去解压 spring-boot-autoconfigure 这个 jar，就能看到里面的 spring.factories，密密麻麻写了一堆配置类：
+org.springframework.boot.autoconfigure.EnableAutoConfiguration=\ org.springframework.boot.autoconfigure.web.servlet.WebMvcAutoConfiguration,\ org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration,\ org.springframework.boot.autoconfigure.data.redis.RedisAutoConfiguration,\ ... 启动的时候 Spring Boot 把这些类全加载进来。你可能想：这么多配置类全加载，不会很慢吗？别急，看下面。
+条件注解——按需加载的秘密 虽然列了上百个配置类，但不是每个都会生效。Spring Boot 用条件注解控制：
+注解 含义 @ConditionalOnClass classpath 里有某个类才生效 @ConditionalOnMissingClass classpath 里没某个类才生效 @ConditionalOnBean 容器里有某个 Bean 才生效 @ConditionalOnMissingBean 容器里没某个 Bean 才生效 @ConditionalOnProperty 配置文件里有某个属性才生效 举个例子，RedisAutoConfiguration 的源码大概这样：">
+
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {
+      "@type": "ListItem",
+      "position":  1 ,
+      "name": "Posts",
+      "item": "http://localhost:49494/posts/"
+    }, 
+    {
+      "@type": "ListItem",
+      "position":  2 ,
+      "name": "Spring Boot 自动配置原理",
+      "item": "http://localhost:49494/posts/springboot-auto-config/"
+    }
+  ]
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "Spring Boot 自动配置原理",
+  "name": "Spring Boot 自动配置原理",
+  "description": "Spring Boot 自动配置，看完你就不慌了 用 Spring Boot 写项目的时候，你有没有想过：我就加了个 spring-boot-starter-web 依赖，Tomcat 怎么就自己跑起来了？数据源我就配了个 URL，连接池怎么就自动用上 HikariCP 了？\n这背后全是自动配置在搞事情。\n@SpringBootApplication 背后藏了什么 启动类上那个 @SpringBootApplication，其实是个组合注解：\n@SpringBootConfiguration // 本质就是 @Configuration @EnableAutoConfiguration // 关键！开启自动配置 @ComponentScan // 包扫描 public @interface SpringBootApplication { } 重点是 @EnableAutoConfiguration。它里面用了 @Import(AutoConfigurationImportSelector.class)，这个 Selector 负责加载所有自动配置类。\n怎么加载？读 META-INF/spring.factories 文件。Spring Boot 3.x 改成了 META-INF/spring/org.springframework.boot.autoconfigure.AutoConfiguration.imports，但思路一样。\nspring.factories 是怎么回事 这个文件在每个 starter 的 jar 包里都有。去解压 spring-boot-autoconfigure 这个 jar，就能看到里面的 spring.factories，密密麻麻写了一堆配置类：\norg.springframework.boot.autoconfigure.EnableAutoConfiguration=\\ org.springframework.boot.autoconfigure.web.servlet.WebMvcAutoConfiguration,\\ org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration,\\ org.springframework.boot.autoconfigure.data.redis.RedisAutoConfiguration,\\ ... 启动的时候 Spring Boot 把这些类全加载进来。你可能想：这么多配置类全加载，不会很慢吗？别急，看下面。\n条件注解——按需加载的秘密 虽然列了上百个配置类，但不是每个都会生效。Spring Boot 用条件注解控制：\n注解 含义 @ConditionalOnClass classpath 里有某个类才生效 @ConditionalOnMissingClass classpath 里没某个类才生效 @ConditionalOnBean 容器里有某个 Bean 才生效 @ConditionalOnMissingBean 容器里没某个 Bean 才生效 @ConditionalOnProperty 配置文件里有某个属性才生效 举个例子，RedisAutoConfiguration 的源码大概这样：\n",
+  "keywords": [
+    "Java", "Spring Boot", "自动配置"
+  ],
+  "articleBody": "Spring Boot 自动配置，看完你就不慌了 用 Spring Boot 写项目的时候，你有没有想过：我就加了个 spring-boot-starter-web 依赖，Tomcat 怎么就自己跑起来了？数据源我就配了个 URL，连接池怎么就自动用上 HikariCP 了？\n这背后全是自动配置在搞事情。\n@SpringBootApplication 背后藏了什么 启动类上那个 @SpringBootApplication，其实是个组合注解：\n@SpringBootConfiguration // 本质就是 @Configuration @EnableAutoConfiguration // 关键！开启自动配置 @ComponentScan // 包扫描 public @interface SpringBootApplication { } 重点是 @EnableAutoConfiguration。它里面用了 @Import(AutoConfigurationImportSelector.class)，这个 Selector 负责加载所有自动配置类。\n怎么加载？读 META-INF/spring.factories 文件。Spring Boot 3.x 改成了 META-INF/spring/org.springframework.boot.autoconfigure.AutoConfiguration.imports，但思路一样。\nspring.factories 是怎么回事 这个文件在每个 starter 的 jar 包里都有。去解压 spring-boot-autoconfigure 这个 jar，就能看到里面的 spring.factories，密密麻麻写了一堆配置类：\norg.springframework.boot.autoconfigure.EnableAutoConfiguration=\\ org.springframework.boot.autoconfigure.web.servlet.WebMvcAutoConfiguration,\\ org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration,\\ org.springframework.boot.autoconfigure.data.redis.RedisAutoConfiguration,\\ ... 启动的时候 Spring Boot 把这些类全加载进来。你可能想：这么多配置类全加载，不会很慢吗？别急，看下面。\n条件注解——按需加载的秘密 虽然列了上百个配置类，但不是每个都会生效。Spring Boot 用条件注解控制：\n注解 含义 @ConditionalOnClass classpath 里有某个类才生效 @ConditionalOnMissingClass classpath 里没某个类才生效 @ConditionalOnBean 容器里有某个 Bean 才生效 @ConditionalOnMissingBean 容器里没某个 Bean 才生效 @ConditionalOnProperty 配置文件里有某个属性才生效 举个例子，RedisAutoConfiguration 的源码大概这样：\n@Configuration @ConditionalOnClass(RedisOperations.class) @EnableConfigurationProperties(RedisProperties.class) public class RedisAutoConfiguration { @Bean @ConditionalOnMissingBean(name = \"redisTemplate\") public RedisTemplate\u003cObject, Object\u003e redisTemplate( RedisConnectionFactory factory) { RedisTemplate\u003cObject, Object\u003e template = new RedisTemplate\u003c\u003e(); template.setConnectionFactory(factory); return template; } } @ConditionalOnClass(RedisOperations.class) 表示只有引了 Redis 依赖，这个配置类才生效。@ConditionalOnMissingBean 表示你自己定义了 redisTemplate 的话，Spring Boot 就不会再创建一个。\n这就是\"约定大于配置\"——默认值都配好了，你不满意再覆盖。\n我之前遇到一个问题，项目里明明引了 Redis 依赖，但 RedisTemplate 注入失败。查了半天，发现是 spring-boot-starter-data-redis 版本跟 Spring Boot 不匹配，导致 RedisOperations 类没加载进来。条件注解一判断这类不存在，整个配置直接跳过。报错信息还是 “No qualifying bean”，很容易往错误方向排查。\n手撸一个自定义 Starter 理解了原理，自己写一个 Starter 也不难。我之前做课程项目的时候写过一个短信发送的 Starter，过程大概这样：\n1. 创建配置属性类\n@ConfigurationProperties(prefix = \"sms\") public class SmsProperties { private String accessKey; private String secretKey; private String signName; // getter setter... } 2. 写核心服务类\npublic class SmsService { private final SmsProperties properties; public SmsService(SmsProperties properties) { this.properties = properties; } public void send(String phone, String code, Map\u003cString, String\u003e params) { // 调用短信 API 发送 } } 3. 写自动配置类\n@Configuration @ConditionalOnClass(SmsService.class) @EnableConfigurationProperties(SmsProperties.class) public class SmsAutoConfiguration { @Bean @ConditionalOnMissingBean @ConditionalOnProperty(prefix = \"sms\", name = \"access-key\") public SmsService smsService(SmsProperties properties) { return new SmsService(properties); } } 4. 注册到 spring.factories\norg.springframework.boot.autoconfigure.EnableAutoConfiguration=\\ com.example.sms.SmsAutoConfiguration 别人引你的 starter，只需要在 application.yml 里配上 accessKey，SmsService 就自动可用了。\ndebug 小技巧 想看哪些自动配置生效了、哪些没生效？两个办法：\n启动时加 --debug 参数，或者配置 debug=true，日志会打印 ConditionEvaluationReport 引入 spring-boot-actuator，访问 /actuator/conditions 端点 排查\"为啥这个 Bean 没注入\"的时候特别好使，我经常用第一种。\n小结 Spring Boot 自动配置的核心链路：@EnableAutoConfiguration 触发 → 读 spring.factories 找配置类 → 条件注解控制生效。搞清楚这个，遇到 Bean 注入的问题就不慌了。\n",
+  "wordCount" : "271",
+  "inLanguage": "en",
+  "datePublished": "2023-09-05T00:00:00Z",
+  "dateModified": "2023-09-05T00:00:00Z",
+  "mainEntityOfPage": {
+    "@type": "WebPage",
+    "@id": "http://localhost:49494/posts/springboot-auto-config/"
+  },
+  "publisher": {
+    "@type": "Organization",
+    "name": "Weiming's Blog",
+    "logo": {
+      "@type": "ImageObject",
+      "url": "http://localhost:49494/favicon.ico"
+    }
+  }
+}
+</script>
+</head>
+<body id="top">
+    <header class="header">
+    <nav class="nav">
+        <div class="logo">
+            <a href="http://localhost:49494/" accesskey="h" title="Weiming&#39;s Blog (Alt + H)">Weiming&#39;s Blog</a>
+            <div class="logo-switches">
+                <button id="theme-toggle" accesskey="t" title="(Alt + T)" aria-label="Toggle theme">
+                    <svg id="moon" xmlns="http://www.w3.org/2000/svg" width="24" height="18" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                    </svg>
+                    <svg id="sun" xmlns="http://www.w3.org/2000/svg" width="24" height="18" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="5"></circle>
+                        <line x1="12" y1="1" x2="12" y2="3"></line>
+                        <line x1="12" y1="21" x2="12" y2="23"></line>
+                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                        <line x1="1" y1="12" x2="3" y2="12"></line>
+                        <line x1="21" y1="12" x2="23" y2="12"></line>
+                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                    </svg>
+                </button>
+            </div>
+        </div>
+        <ul id="menu">
+            <li>
+                <a href="http://localhost:49494/archives/" title="归档">
+                    <span>归档</span>
+                </a>
+            </li>
+            <li>
+                <a href="http://localhost:49494/categories/" title="分类">
+                    <span>分类</span>
+                </a>
+            </li>
+            <li>
+                <a href="http://localhost:49494/tags/" title="标签">
+                    <span>标签</span>
+                </a>
+            </li>
+            <li>
+                <a href="http://localhost:49494/about/" title="关于">
+                    <span>关于</span>
+                </a>
+            </li>
+        </ul>
+    </nav>
+</header>
+<main class="main">
+
+<article class="post-single">
+  <header class="post-header">
+    <div class="breadcrumbs"><a href="http://localhost:49494/">Home</a>&nbsp;»&nbsp;<a href="http://localhost:49494/posts/">Posts</a></div>
+    <h1 class="post-title entry-hint-parent">
+      Spring Boot 自动配置原理
+    </h1>
+    <div class="post-meta"><span title='2023-09-05 00:00:00 +0000 UTC'>September 5, 2023</span>&nbsp;·&nbsp;<span>2 min</span>
+
+</div>
+  </header> <div class="toc">
+    <details >
+        <summary accesskey="c" title="(Alt + C)">
+            <span class="details">Table of Contents</span>
+        </summary>
+
+        <div class="inner"><ul>
+                <li>
+                    <a href="#spring-boot-%e8%87%aa%e5%8a%a8%e9%85%8d%e7%bd%ae%e7%9c%8b%e5%ae%8c%e4%bd%a0%e5%b0%b1%e4%b8%8d%e6%85%8c%e4%ba%86" aria-label="Spring Boot 自动配置，看完你就不慌了">Spring Boot 自动配置，看完你就不慌了</a><ul>
+                        
+                <li>
+                    <a href="#springbootapplication-%e8%83%8c%e5%90%8e%e8%97%8f%e4%ba%86%e4%bb%80%e4%b9%88" aria-label="@SpringBootApplication 背后藏了什么">@SpringBootApplication 背后藏了什么</a></li>
+                <li>
+                    <a href="#springfactories-%e6%98%af%e6%80%8e%e4%b9%88%e5%9b%9e%e4%ba%8b" aria-label="spring.factories 是怎么回事">spring.factories 是怎么回事</a></li>
+                <li>
+                    <a href="#%e6%9d%a1%e4%bb%b6%e6%b3%a8%e8%a7%a3%e6%8c%89%e9%9c%80%e5%8a%a0%e8%bd%bd%e7%9a%84%e7%a7%98%e5%af%86" aria-label="条件注解——按需加载的秘密">条件注解——按需加载的秘密</a></li>
+                <li>
+                    <a href="#%e6%89%8b%e6%92%b8%e4%b8%80%e4%b8%aa%e8%87%aa%e5%ae%9a%e4%b9%89-starter" aria-label="手撸一个自定义 Starter">手撸一个自定义 Starter</a></li>
+                <li>
+                    <a href="#debug-%e5%b0%8f%e6%8a%80%e5%b7%a7" aria-label="debug 小技巧">debug 小技巧</a></li>
+                <li>
+                    <a href="#%e5%b0%8f%e7%bb%93" aria-label="小结">小结</a>
+                </li>
+            </ul>
+            </li>
+            </ul>
+        </div>
+    </details>
+</div>
+
+  <div class="post-content"><h1 id="spring-boot-自动配置看完你就不慌了">Spring Boot 自动配置，看完你就不慌了<a hidden class="anchor" aria-hidden="true" href="#spring-boot-自动配置看完你就不慌了">#</a></h1>
+<p>用 Spring Boot 写项目的时候，你有没有想过：我就加了个 <code>spring-boot-starter-web</code> 依赖，Tomcat 怎么就自己跑起来了？数据源我就配了个 URL，连接池怎么就自动用上 HikariCP 了？</p>
+<p>这背后全是自动配置在搞事情。</p>
+<h2 id="springbootapplication-背后藏了什么">@SpringBootApplication 背后藏了什么<a hidden class="anchor" aria-hidden="true" href="#springbootapplication-背后藏了什么">#</a></h2>
+<p>启动类上那个 <code>@SpringBootApplication</code>，其实是个组合注解：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#a6e22e">@SpringBootConfiguration</span>  <span style="color:#75715e">// 本质就是 @Configuration</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">@EnableAutoConfiguration</span>   <span style="color:#75715e">// 关键！开启自动配置</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">@ComponentScan</span>             <span style="color:#75715e">// 包扫描</span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">public</span> <span style="color:#a6e22e">@interface</span> SpringBootApplication {
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p>重点是 <code>@EnableAutoConfiguration</code>。它里面用了 <code>@Import(AutoConfigurationImportSelector.class)</code>，这个 Selector 负责加载所有自动配置类。</p>
+<p>怎么加载？读 <code>META-INF/spring.factories</code> 文件。Spring Boot 3.x 改成了 <code>META-INF/spring/org.springframework.boot.autoconfigure.AutoConfiguration.imports</code>，但思路一样。</p>
+<h2 id="springfactories-是怎么回事">spring.factories 是怎么回事<a hidden class="anchor" aria-hidden="true" href="#springfactories-是怎么回事">#</a></h2>
+<p>这个文件在每个 starter 的 jar 包里都有。去解压 <code>spring-boot-autoconfigure</code> 这个 jar，就能看到里面的 <code>spring.factories</code>，密密麻麻写了一堆配置类：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-properties" data-lang="properties"><span style="display:flex;"><span><span style="color:#a6e22e">org.springframework.boot.autoconfigure.EnableAutoConfiguration</span><span style="color:#f92672">=</span><span style="color:#e6db74">\
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">org.springframework.boot.autoconfigure.web.servlet.WebMvcAutoConfiguration,\
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration,\
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">org.springframework.boot.autoconfigure.data.redis.RedisAutoConfiguration,\
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">...</span>
+</span></span></code></pre></div><p>启动的时候 Spring Boot 把这些类全加载进来。你可能想：这么多配置类全加载，不会很慢吗？别急，看下面。</p>
+<h2 id="条件注解按需加载的秘密">条件注解——按需加载的秘密<a hidden class="anchor" aria-hidden="true" href="#条件注解按需加载的秘密">#</a></h2>
+<p>虽然列了上百个配置类，但不是每个都会生效。Spring Boot 用条件注解控制：</p>
+<table>
+  <thead>
+      <tr>
+          <th>注解</th>
+          <th>含义</th>
+      </tr>
+  </thead>
+  <tbody>
+      <tr>
+          <td><code>@ConditionalOnClass</code></td>
+          <td>classpath 里有某个类才生效</td>
+      </tr>
+      <tr>
+          <td><code>@ConditionalOnMissingClass</code></td>
+          <td>classpath 里没某个类才生效</td>
+      </tr>
+      <tr>
+          <td><code>@ConditionalOnBean</code></td>
+          <td>容器里有某个 Bean 才生效</td>
+      </tr>
+      <tr>
+          <td><code>@ConditionalOnMissingBean</code></td>
+          <td>容器里没某个 Bean 才生效</td>
+      </tr>
+      <tr>
+          <td><code>@ConditionalOnProperty</code></td>
+          <td>配置文件里有某个属性才生效</td>
+      </tr>
+  </tbody>
+</table>
+<p>举个例子，<code>RedisAutoConfiguration</code> 的源码大概这样：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#a6e22e">@Configuration</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">@ConditionalOnClass</span>(RedisOperations.<span style="color:#a6e22e">class</span>)
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">@EnableConfigurationProperties</span>(RedisProperties.<span style="color:#a6e22e">class</span>)
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">public</span> <span style="color:#66d9ef">class</span> <span style="color:#a6e22e">RedisAutoConfiguration</span> {
+</span></span><span style="display:flex;"><span>    
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">@Bean</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">@ConditionalOnMissingBean</span>(name <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;redisTemplate&#34;</span>)
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">public</span> RedisTemplate<span style="color:#f92672">&lt;</span>Object, Object<span style="color:#f92672">&gt;</span> <span style="color:#a6e22e">redisTemplate</span>(
+</span></span><span style="display:flex;"><span>            RedisConnectionFactory factory) {
+</span></span><span style="display:flex;"><span>        RedisTemplate<span style="color:#f92672">&lt;</span>Object, Object<span style="color:#f92672">&gt;</span> template <span style="color:#f92672">=</span> <span style="color:#66d9ef">new</span> RedisTemplate<span style="color:#f92672">&lt;&gt;</span>();
+</span></span><span style="display:flex;"><span>        template.<span style="color:#a6e22e">setConnectionFactory</span>(factory);
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">return</span> template;
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p><code>@ConditionalOnClass(RedisOperations.class)</code> 表示只有引了 Redis 依赖，这个配置类才生效。<code>@ConditionalOnMissingBean</code> 表示你自己定义了 redisTemplate 的话，Spring Boot 就不会再创建一个。</p>
+<p>这就是&quot;约定大于配置&quot;——默认值都配好了，你不满意再覆盖。</p>
+<p>我之前遇到一个问题，项目里明明引了 Redis 依赖，但 RedisTemplate 注入失败。查了半天，发现是 <code>spring-boot-starter-data-redis</code> 版本跟 Spring Boot 不匹配，导致 <code>RedisOperations</code> 类没加载进来。条件注解一判断这类不存在，整个配置直接跳过。报错信息还是 &ldquo;No qualifying bean&rdquo;，很容易往错误方向排查。</p>
+<h2 id="手撸一个自定义-starter">手撸一个自定义 Starter<a hidden class="anchor" aria-hidden="true" href="#手撸一个自定义-starter">#</a></h2>
+<p>理解了原理，自己写一个 Starter 也不难。我之前做课程项目的时候写过一个短信发送的 Starter，过程大概这样：</p>
+<p><strong>1. 创建配置属性类</strong></p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#a6e22e">@ConfigurationProperties</span>(prefix <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;sms&#34;</span>)
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">public</span> <span style="color:#66d9ef">class</span> <span style="color:#a6e22e">SmsProperties</span> {
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">private</span> String accessKey;
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">private</span> String secretKey;
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">private</span> String signName;
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e">// getter setter...</span>
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p><strong>2. 写核心服务类</strong></p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#66d9ef">public</span> <span style="color:#66d9ef">class</span> <span style="color:#a6e22e">SmsService</span> {
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">private</span> <span style="color:#66d9ef">final</span> SmsProperties properties;
+</span></span><span style="display:flex;"><span>    
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">public</span> <span style="color:#a6e22e">SmsService</span>(SmsProperties properties) {
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">this</span>.<span style="color:#a6e22e">properties</span> <span style="color:#f92672">=</span> properties;
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>    
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">public</span> <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">send</span>(String phone, String code, Map<span style="color:#f92672">&lt;</span>String, String<span style="color:#f92672">&gt;</span> params) {
+</span></span><span style="display:flex;"><span>        <span style="color:#75715e">// 调用短信 API 发送</span>
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p><strong>3. 写自动配置类</strong></p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#a6e22e">@Configuration</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">@ConditionalOnClass</span>(SmsService.<span style="color:#a6e22e">class</span>)
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">@EnableConfigurationProperties</span>(SmsProperties.<span style="color:#a6e22e">class</span>)
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">public</span> <span style="color:#66d9ef">class</span> <span style="color:#a6e22e">SmsAutoConfiguration</span> {
+</span></span><span style="display:flex;"><span>    
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">@Bean</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">@ConditionalOnMissingBean</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">@ConditionalOnProperty</span>(prefix <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;sms&#34;</span>, name <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;access-key&#34;</span>)
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">public</span> SmsService <span style="color:#a6e22e">smsService</span>(SmsProperties properties) {
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">return</span> <span style="color:#66d9ef">new</span> SmsService(properties);
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p><strong>4. 注册到 spring.factories</strong></p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-properties" data-lang="properties"><span style="display:flex;"><span><span style="color:#a6e22e">org.springframework.boot.autoconfigure.EnableAutoConfiguration</span><span style="color:#f92672">=</span><span style="color:#e6db74">\
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">com.example.sms.SmsAutoConfiguration</span>
+</span></span></code></pre></div><p>别人引你的 starter，只需要在 <code>application.yml</code> 里配上 accessKey，SmsService 就自动可用了。</p>
+<h2 id="debug-小技巧">debug 小技巧<a hidden class="anchor" aria-hidden="true" href="#debug-小技巧">#</a></h2>
+<p>想看哪些自动配置生效了、哪些没生效？两个办法：</p>
+<ol>
+<li>启动时加 <code>--debug</code> 参数，或者配置 <code>debug=true</code>，日志会打印 ConditionEvaluationReport</li>
+<li>引入 <code>spring-boot-actuator</code>，访问 <code>/actuator/conditions</code> 端点</li>
+</ol>
+<p>排查&quot;为啥这个 Bean 没注入&quot;的时候特别好使，我经常用第一种。</p>
+<h2 id="小结">小结<a hidden class="anchor" aria-hidden="true" href="#小结">#</a></h2>
+<p>Spring Boot 自动配置的核心链路：<code>@EnableAutoConfiguration</code> 触发 → 读 <code>spring.factories</code> 找配置类 → 条件注解控制生效。搞清楚这个，遇到 Bean 注入的问题就不慌了。</p>
+
+
+  </div>
+
+  <footer class="post-footer">
+    <ul class="post-tags">
+      <li><a href="http://localhost:49494/tags/java/">Java</a></li>
+      <li><a href="http://localhost:49494/tags/spring-boot/">Spring Boot</a></li>
+      <li><a href="http://localhost:49494/tags/%E8%87%AA%E5%8A%A8%E9%85%8D%E7%BD%AE/">自动配置</a></li>
+    </ul>
+<nav class="paginav">
+  <a class="prev" href="http://localhost:49494/posts/java-reflection/">
+    <span class="title">« Prev</span>
+    <br>
+    <span>Java 反射机制与性能</span>
+  </a>
+  <a class="next" href="http://localhost:49494/posts/java-generics/">
+    <span class="title">Next »</span>
+    <br>
+    <span>Java 泛型常见问题</span>
+  </a>
+</nav>
+
+  </footer>
+</article>
+    </main>
+    
+<footer class="footer">
+        <span>&copy; 2026 <a href="http://localhost:49494/">Weiming&#39;s Blog</a></span> · 
+
+    <span>
+        Powered by
+        <a href="https://gohugo.io/" rel="noopener noreferrer" target="_blank">Hugo</a> &
+        <a href="https://github.com/adityatelange/hugo-PaperMod/" rel="noopener" target="_blank">PaperMod</a>
+    </span>
+</footer>
+<a href="#top" aria-label="go to top" title="Go to Top (Alt + G)" class="top-link" id="top-link" accesskey="g">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 12 6" fill="currentColor">
+        <path d="M12 6H0l6-6z" />
+    </svg>
+</a>
+
+<script>
+    let menu = document.getElementById('menu');
+    if (menu) {
+        
+        const scrollPosition = localStorage.getItem("menu-scroll-position");
+        if (scrollPosition) {
+            menu.scrollLeft = parseInt(scrollPosition, 10);
+        }
+        
+        menu.onscroll = function () {
+            localStorage.setItem("menu-scroll-position", menu.scrollLeft);
+        }
+    }
+
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener("click", function (e) {
+            e.preventDefault();
+            var id = this.getAttribute("href").substr(1);
+            if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView({
+                    behavior: "smooth"
+                });
+            } else {
+                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView();
+            }
+            if (id === "top") {
+                history.replaceState(null, null, " ");
+            } else {
+                history.pushState(null, null, `#${id}`);
+            }
+        });
+    });
+
+</script>
+<script>
+    var mybutton = document.getElementById("top-link");
+    window.onscroll = function () {
+        if (document.body.scrollTop > 800 || document.documentElement.scrollTop > 800) {
+            mybutton.style.visibility = "visible";
+            mybutton.style.opacity = "1";
+        } else {
+            mybutton.style.visibility = "hidden";
+            mybutton.style.opacity = "0";
+        }
+    };
+
+</script>
+<script>
+    document.getElementById("theme-toggle").addEventListener("click", () => {
+        const html = document.querySelector("html");
+        if (html.dataset.theme === "dark") {
+            html.dataset.theme = 'light';
+            localStorage.setItem("pref-theme", 'light');
+        } else {
+            html.dataset.theme = 'dark';
+            localStorage.setItem("pref-theme", 'dark');
+        }
+    })
+
+</script>
+<script>
+    document.querySelectorAll('pre > code').forEach((codeblock) => {
+        const container = codeblock.parentNode.parentNode;
+
+        const copybutton = document.createElement('button');
+        copybutton.classList.add('copy-code');
+        copybutton.innerHTML = 'copy';
+
+        function copyingDone() {
+            copybutton.innerHTML = 'copied!';
+            setTimeout(() => {
+                copybutton.innerHTML = 'copy';
+            }, 2000);
+        }
+
+        copybutton.addEventListener('click', (cb) => {
+            if ('clipboard' in navigator) {
+                navigator.clipboard.writeText(codeblock.textContent);
+                copyingDone();
+                return;
+            }
+
+            const range = document.createRange();
+            range.selectNodeContents(codeblock);
+            const selection = window.getSelection();
+            selection.removeAllRanges();
+            selection.addRange(range);
+            try {
+                document.execCommand('copy');
+                copyingDone();
+            } catch (e) { };
+            selection.removeRange(range);
+        });
+
+        if (container.classList.contains("highlight")) {
+            container.appendChild(copybutton);
+        } else if (container.parentNode.firstChild == container) {
+            
+        } else if (codeblock.parentNode.parentNode.parentNode.parentNode.parentNode.nodeName == "TABLE") {
+            
+            codeblock.parentNode.parentNode.parentNode.parentNode.parentNode.appendChild(copybutton);
+        } else {
+            
+            codeblock.parentNode.appendChild(copybutton);
+        }
+    });
+</script>
+</body>
+
+</html>

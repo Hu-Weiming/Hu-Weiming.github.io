@@ -1,5 +1,5 @@
 ---
-title: "Stream API 用起来真香，但别乱用"
+title: "Java Stream API 使用笔记"
 date: 2024-01-18
 categories: ["Java基础"]
 tags: ["Java", "Stream", "函数式编程"]

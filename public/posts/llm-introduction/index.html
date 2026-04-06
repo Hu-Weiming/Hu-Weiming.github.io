@@ -1,0 +1,459 @@
+<!DOCTYPE html>
+<html lang="en" dir="auto" data-theme="auto">
+
+<head><script src="/livereload.js?mindelay=10&amp;v=2&amp;port=49494&amp;path=livereload" data-no-instant defer></script><meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<meta name="robots" content="index, follow">
+<title>大语言模型（LLM）入门 | Weiming&#39;s Blog</title>
+<meta name="keywords" content="AI, LLM, 入门">
+<meta name="description" content="大模型入门：到底什么是 LLM
+Transformer 到底是什么
+最近到处都在聊大模型、AI，感觉不了解点 LLM 都不好意思说自己学计算机的。但说实话，一开始我也是一头雾水。GPT、Transformer、Token，这些词满天飞，搜了好多资料才慢慢理出头绪。
+LLM，Large Language Model，大语言模型。说白了就是一个超大的神经网络，用海量文本训练出来的，学会了&quot;语言&quot;这件事。你给它一段文字，它能接着往下写——本质上就是在预测下一个 Token。
+底层架构叫 Transformer。2017 年 Google 那篇 &ldquo;Attention is All You Need&rdquo; 提出的，改变了整个 NLP 领域。
+
+Transformer 的核心是注意力机制（Attention）。不用纠结数学细节，可以这么理解：模型处理一个词的时候，会&quot;看&quot;句子里所有其他词，判断谁跟它关系更密切。比如&quot;我去银行取钱&quot;，处理&quot;银行&quot;时模型注意到&quot;取钱&quot;，就知道这是金融机构不是河岸。
+之前的 RNN/LSTM 按顺序一个词一个词处理，长文本又慢效果又差。Transformer 可以并行处理所有位置，效率高太多了。这也是大模型能做到几百亿参数的关键原因。
+预训练和微调
+大模型训练分两个阶段。
+预训练：拿海量文本数据（网页、书籍、代码、论文……），让模型学习预测下一个词。就这么简单的目标，在足够大的数据量和模型规模上，涌现出了各种能力——写代码、翻译、推理，都是&quot;学&quot;出来的。
+微调：预训练完的模型像一个&quot;什么都懂但不听话&quot;的人。微调让它更符合人类期望。常见方法是 RLHF（基于人类反馈的强化学习）——人类给模型的回答打分，模型根据反馈调整行为。
+ChatGPT 之所以好用，很大功劳在微调阶段。没经过微调的 base model，你问它问题它不会好好回答，只会一直&quot;接龙&quot;下去。
+Token 和上下文窗口
+大模型不按&quot;字&quot;处理文本，而是按 Token。一个 Token 大概对应一个常见的词或子词片段。英文里一个单词通常 1-2 个 Token，中文一个字大概 1-2 个 Token。
+上下文窗口（Context Window）是模型一次能处理的最大 Token 数。GPT-4 是 128K，Claude 支持到 200K。窗口越大，模型能&quot;看到&quot;的内容越多。
+上下文窗口很重要——模型只能&quot;看到&quot;窗口以内的内容。跟它聊天聊久了，早期的对话超出窗口就被&quot;遗忘&quot;了。
+Token 数也直接关系到使用成本。API 按 Token 收费，input 和 output 分开计价。所以写 Prompt 的时候别废话太多，能省就省。">
+<meta name="author" content="">
+<link rel="canonical" href="http://localhost:49494/posts/llm-introduction/">
+<link crossorigin="anonymous" href="/assets/css/stylesheet.199042e659bc7245f5609d333d6c044eb554a0640849bb874e1dff8eb0f57209.css" integrity="sha256-GZBC5lm8ckX1YJ0zPWwETrVUoGQISbuHTh3/jrD1cgk=" rel="preload stylesheet" as="style">
+<link rel="icon" href="http://localhost:49494/favicon.ico">
+<link rel="icon" type="image/png" sizes="16x16" href="http://localhost:49494/favicon-16x16.png">
+<link rel="icon" type="image/png" sizes="32x32" href="http://localhost:49494/favicon-32x32.png">
+<link rel="apple-touch-icon" href="http://localhost:49494/apple-touch-icon.png">
+<link rel="mask-icon" href="http://localhost:49494/safari-pinned-tab.svg">
+<meta name="theme-color" content="#2e2e33">
+<meta name="msapplication-TileColor" content="#2e2e33">
+<link rel="alternate" hreflang="en" href="http://localhost:49494/posts/llm-introduction/">
+<noscript>
+    <style>
+        #theme-toggle,
+        .top-link {
+            display: none;
+        }
+
+    </style>
+    <style>
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --theme: rgb(29, 30, 32);
+                --entry: rgb(46, 46, 51);
+                --primary: rgb(218, 218, 219);
+                --secondary: rgb(155, 156, 157);
+                --tertiary: rgb(65, 66, 68);
+                --content: rgb(196, 196, 197);
+                --code-block-bg: rgb(46, 46, 51);
+                --code-bg: rgb(55, 56, 62);
+                --border: rgb(51, 51, 51);
+                color-scheme: dark;
+            }
+
+            .list {
+                background: var(--theme);
+            }
+
+            .toc {
+                background: var(--entry);
+            }
+        }
+
+        @media (prefers-color-scheme: light) {
+            .list::-webkit-scrollbar-thumb {
+                border-color: var(--code-bg);
+            }
+        }
+
+    </style>
+</noscript>
+<script>
+    if (localStorage.getItem("pref-theme") === "dark") {
+        document.querySelector("html").dataset.theme = 'dark';
+    } else if (localStorage.getItem("pref-theme") === "light") {
+       document.querySelector("html").dataset.theme = 'light';
+    } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        document.querySelector("html").dataset.theme = 'dark';
+    } else {
+        document.querySelector("html").dataset.theme = 'light';
+    }
+
+</script><meta property="og:url" content="http://localhost:49494/posts/llm-introduction/">
+  <meta property="og:site_name" content="Weiming&#39;s Blog">
+  <meta property="og:title" content="大语言模型（LLM）入门">
+  <meta property="og:description" content="大模型入门：到底什么是 LLM Transformer 到底是什么 最近到处都在聊大模型、AI，感觉不了解点 LLM 都不好意思说自己学计算机的。但说实话，一开始我也是一头雾水。GPT、Transformer、Token，这些词满天飞，搜了好多资料才慢慢理出头绪。
+LLM，Large Language Model，大语言模型。说白了就是一个超大的神经网络，用海量文本训练出来的，学会了&#34;语言&#34;这件事。你给它一段文字，它能接着往下写——本质上就是在预测下一个 Token。
+底层架构叫 Transformer。2017 年 Google 那篇 “Attention is All You Need” 提出的，改变了整个 NLP 领域。
+Transformer 的核心是注意力机制（Attention）。不用纠结数学细节，可以这么理解：模型处理一个词的时候，会&#34;看&#34;句子里所有其他词，判断谁跟它关系更密切。比如&#34;我去银行取钱&#34;，处理&#34;银行&#34;时模型注意到&#34;取钱&#34;，就知道这是金融机构不是河岸。
+之前的 RNN/LSTM 按顺序一个词一个词处理，长文本又慢效果又差。Transformer 可以并行处理所有位置，效率高太多了。这也是大模型能做到几百亿参数的关键原因。
+预训练和微调 大模型训练分两个阶段。
+预训练：拿海量文本数据（网页、书籍、代码、论文……），让模型学习预测下一个词。就这么简单的目标，在足够大的数据量和模型规模上，涌现出了各种能力——写代码、翻译、推理，都是&#34;学&#34;出来的。
+微调：预训练完的模型像一个&#34;什么都懂但不听话&#34;的人。微调让它更符合人类期望。常见方法是 RLHF（基于人类反馈的强化学习）——人类给模型的回答打分，模型根据反馈调整行为。
+ChatGPT 之所以好用，很大功劳在微调阶段。没经过微调的 base model，你问它问题它不会好好回答，只会一直&#34;接龙&#34;下去。
+Token 和上下文窗口 大模型不按&#34;字&#34;处理文本，而是按 Token。一个 Token 大概对应一个常见的词或子词片段。英文里一个单词通常 1-2 个 Token，中文一个字大概 1-2 个 Token。
+上下文窗口（Context Window）是模型一次能处理的最大 Token 数。GPT-4 是 128K，Claude 支持到 200K。窗口越大，模型能&#34;看到&#34;的内容越多。
+上下文窗口很重要——模型只能&#34;看到&#34;窗口以内的内容。跟它聊天聊久了，早期的对话超出窗口就被&#34;遗忘&#34;了。
+Token 数也直接关系到使用成本。API 按 Token 收费，input 和 output 分开计价。所以写 Prompt 的时候别废话太多，能省就省。">
+  <meta property="og:locale" content="zh_cn">
+  <meta property="og:type" content="article">
+    <meta property="article:section" content="posts">
+    <meta property="article:published_time" content="2025-06-10T00:00:00+00:00">
+    <meta property="article:modified_time" content="2025-06-10T00:00:00+00:00">
+    <meta property="article:tag" content="AI">
+    <meta property="article:tag" content="LLM">
+    <meta property="article:tag" content="入门">
+
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:title" content="大语言模型（LLM）入门">
+  <meta name="twitter:description" content="大模型入门：到底什么是 LLM Transformer 到底是什么 最近到处都在聊大模型、AI，感觉不了解点 LLM 都不好意思说自己学计算机的。但说实话，一开始我也是一头雾水。GPT、Transformer、Token，这些词满天飞，搜了好多资料才慢慢理出头绪。
+LLM，Large Language Model，大语言模型。说白了就是一个超大的神经网络，用海量文本训练出来的，学会了&#34;语言&#34;这件事。你给它一段文字，它能接着往下写——本质上就是在预测下一个 Token。
+底层架构叫 Transformer。2017 年 Google 那篇 “Attention is All You Need” 提出的，改变了整个 NLP 领域。
+Transformer 的核心是注意力机制（Attention）。不用纠结数学细节，可以这么理解：模型处理一个词的时候，会&#34;看&#34;句子里所有其他词，判断谁跟它关系更密切。比如&#34;我去银行取钱&#34;，处理&#34;银行&#34;时模型注意到&#34;取钱&#34;，就知道这是金融机构不是河岸。
+之前的 RNN/LSTM 按顺序一个词一个词处理，长文本又慢效果又差。Transformer 可以并行处理所有位置，效率高太多了。这也是大模型能做到几百亿参数的关键原因。
+预训练和微调 大模型训练分两个阶段。
+预训练：拿海量文本数据（网页、书籍、代码、论文……），让模型学习预测下一个词。就这么简单的目标，在足够大的数据量和模型规模上，涌现出了各种能力——写代码、翻译、推理，都是&#34;学&#34;出来的。
+微调：预训练完的模型像一个&#34;什么都懂但不听话&#34;的人。微调让它更符合人类期望。常见方法是 RLHF（基于人类反馈的强化学习）——人类给模型的回答打分，模型根据反馈调整行为。
+ChatGPT 之所以好用，很大功劳在微调阶段。没经过微调的 base model，你问它问题它不会好好回答，只会一直&#34;接龙&#34;下去。
+Token 和上下文窗口 大模型不按&#34;字&#34;处理文本，而是按 Token。一个 Token 大概对应一个常见的词或子词片段。英文里一个单词通常 1-2 个 Token，中文一个字大概 1-2 个 Token。
+上下文窗口（Context Window）是模型一次能处理的最大 Token 数。GPT-4 是 128K，Claude 支持到 200K。窗口越大，模型能&#34;看到&#34;的内容越多。
+上下文窗口很重要——模型只能&#34;看到&#34;窗口以内的内容。跟它聊天聊久了，早期的对话超出窗口就被&#34;遗忘&#34;了。
+Token 数也直接关系到使用成本。API 按 Token 收费，input 和 output 分开计价。所以写 Prompt 的时候别废话太多，能省就省。">
+
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {
+      "@type": "ListItem",
+      "position":  1 ,
+      "name": "Posts",
+      "item": "http://localhost:49494/posts/"
+    }, 
+    {
+      "@type": "ListItem",
+      "position":  2 ,
+      "name": "大语言模型（LLM）入门",
+      "item": "http://localhost:49494/posts/llm-introduction/"
+    }
+  ]
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "大语言模型（LLM）入门",
+  "name": "大语言模型（LLM）入门",
+  "description": "大模型入门：到底什么是 LLM Transformer 到底是什么 最近到处都在聊大模型、AI，感觉不了解点 LLM 都不好意思说自己学计算机的。但说实话，一开始我也是一头雾水。GPT、Transformer、Token，这些词满天飞，搜了好多资料才慢慢理出头绪。\nLLM，Large Language Model，大语言模型。说白了就是一个超大的神经网络，用海量文本训练出来的，学会了\u0026quot;语言\u0026quot;这件事。你给它一段文字，它能接着往下写——本质上就是在预测下一个 Token。\n底层架构叫 Transformer。2017 年 Google 那篇 \u0026ldquo;Attention is All You Need\u0026rdquo; 提出的，改变了整个 NLP 领域。\nTransformer 的核心是注意力机制（Attention）。不用纠结数学细节，可以这么理解：模型处理一个词的时候，会\u0026quot;看\u0026quot;句子里所有其他词，判断谁跟它关系更密切。比如\u0026quot;我去银行取钱\u0026quot;，处理\u0026quot;银行\u0026quot;时模型注意到\u0026quot;取钱\u0026quot;，就知道这是金融机构不是河岸。\n之前的 RNN/LSTM 按顺序一个词一个词处理，长文本又慢效果又差。Transformer 可以并行处理所有位置，效率高太多了。这也是大模型能做到几百亿参数的关键原因。\n预训练和微调 大模型训练分两个阶段。\n预训练：拿海量文本数据（网页、书籍、代码、论文……），让模型学习预测下一个词。就这么简单的目标，在足够大的数据量和模型规模上，涌现出了各种能力——写代码、翻译、推理，都是\u0026quot;学\u0026quot;出来的。\n微调：预训练完的模型像一个\u0026quot;什么都懂但不听话\u0026quot;的人。微调让它更符合人类期望。常见方法是 RLHF（基于人类反馈的强化学习）——人类给模型的回答打分，模型根据反馈调整行为。\nChatGPT 之所以好用，很大功劳在微调阶段。没经过微调的 base model，你问它问题它不会好好回答，只会一直\u0026quot;接龙\u0026quot;下去。\nToken 和上下文窗口 大模型不按\u0026quot;字\u0026quot;处理文本，而是按 Token。一个 Token 大概对应一个常见的词或子词片段。英文里一个单词通常 1-2 个 Token，中文一个字大概 1-2 个 Token。\n上下文窗口（Context Window）是模型一次能处理的最大 Token 数。GPT-4 是 128K，Claude 支持到 200K。窗口越大，模型能\u0026quot;看到\u0026quot;的内容越多。\n上下文窗口很重要——模型只能\u0026quot;看到\u0026quot;窗口以内的内容。跟它聊天聊久了，早期的对话超出窗口就被\u0026quot;遗忘\u0026quot;了。\nToken 数也直接关系到使用成本。API 按 Token 收费，input 和 output 分开计价。所以写 Prompt 的时候别废话太多，能省就省。\n",
+  "keywords": [
+    "AI", "LLM", "入门"
+  ],
+  "articleBody": "大模型入门：到底什么是 LLM Transformer 到底是什么 最近到处都在聊大模型、AI，感觉不了解点 LLM 都不好意思说自己学计算机的。但说实话，一开始我也是一头雾水。GPT、Transformer、Token，这些词满天飞，搜了好多资料才慢慢理出头绪。\nLLM，Large Language Model，大语言模型。说白了就是一个超大的神经网络，用海量文本训练出来的，学会了\"语言\"这件事。你给它一段文字，它能接着往下写——本质上就是在预测下一个 Token。\n底层架构叫 Transformer。2017 年 Google 那篇 “Attention is All You Need” 提出的，改变了整个 NLP 领域。\nTransformer 的核心是注意力机制（Attention）。不用纠结数学细节，可以这么理解：模型处理一个词的时候，会\"看\"句子里所有其他词，判断谁跟它关系更密切。比如\"我去银行取钱\"，处理\"银行\"时模型注意到\"取钱\"，就知道这是金融机构不是河岸。\n之前的 RNN/LSTM 按顺序一个词一个词处理，长文本又慢效果又差。Transformer 可以并行处理所有位置，效率高太多了。这也是大模型能做到几百亿参数的关键原因。\n预训练和微调 大模型训练分两个阶段。\n预训练：拿海量文本数据（网页、书籍、代码、论文……），让模型学习预测下一个词。就这么简单的目标，在足够大的数据量和模型规模上，涌现出了各种能力——写代码、翻译、推理，都是\"学\"出来的。\n微调：预训练完的模型像一个\"什么都懂但不听话\"的人。微调让它更符合人类期望。常见方法是 RLHF（基于人类反馈的强化学习）——人类给模型的回答打分，模型根据反馈调整行为。\nChatGPT 之所以好用，很大功劳在微调阶段。没经过微调的 base model，你问它问题它不会好好回答，只会一直\"接龙\"下去。\nToken 和上下文窗口 大模型不按\"字\"处理文本，而是按 Token。一个 Token 大概对应一个常见的词或子词片段。英文里一个单词通常 1-2 个 Token，中文一个字大概 1-2 个 Token。\n上下文窗口（Context Window）是模型一次能处理的最大 Token 数。GPT-4 是 128K，Claude 支持到 200K。窗口越大，模型能\"看到\"的内容越多。\n上下文窗口很重要——模型只能\"看到\"窗口以内的内容。跟它聊天聊久了，早期的对话超出窗口就被\"遗忘\"了。\nToken 数也直接关系到使用成本。API 按 Token 收费，input 和 output 分开计价。所以写 Prompt 的时候别废话太多，能省就省。\n常见模型对比 现在主流的大模型，简单聊一下各自的特点：\nGPT 系列（OpenAI）：GPT-4o 综合能力很强，几乎是目前的标杆。API 收费，国内直接访问不了。\nClaude 系列（Anthropic）：Claude 4 / Claude 3.5 Sonnet，长文本处理很强，写代码也好使。上下文窗口大是一个优势。\nLlama 系列（Meta）：开源模型的代表，Llama 3 出来之后效果相当不错。可以本地跑，适合研究和二次开发。\nQwen 系列（阿里通义千问）：国产开源模型里比较能打的。Qwen2.5 各种尺寸都有，7B 的小模型在笔记本上都能跑起来。\n我个人的使用感受：日常用 GPT 或 Claude 都行。想折腾本地部署就选 Llama 或 Qwen。具体选哪个看场景和预算。\n大模型能干什么，不能干什么 能干的事太多了：写代码、翻译、摘要总结、问答、头脑风暴、文案创作……我现在写作业都习惯先让大模型解释一下概念，比搜 CSDN 效率高多了。\n但短板也明显：\n会胡说八道（幻觉问题）：模型不是真\"知道\"答案，而是在\"生成\"看起来合理的文本。它可能编造不存在的论文、写出有 bug 的代码。用的时候一定要验证。 知识有截止日期：训练数据有时间限制，最近发生的事它不知道。 复杂推理容易翻车：简单逻辑还行，复杂数学或多步推理就容易出错。 没有真正的\"理解\"：它是统计模式匹配，不是真的理解世界。虽然表现看起来像懂了，但本质不同。 话说回来，大模型的进化速度太快了。半年前的短板可能现在已经改善了不少。作为 CS 学生，我觉得了解大模型是必要的，不管以后做不做 AI 方向。这东西正在改变整个软件行业的开发方式，不能视而不见。\n",
+  "wordCount" : "115",
+  "inLanguage": "en",
+  "datePublished": "2025-06-10T00:00:00Z",
+  "dateModified": "2025-06-10T00:00:00Z",
+  "mainEntityOfPage": {
+    "@type": "WebPage",
+    "@id": "http://localhost:49494/posts/llm-introduction/"
+  },
+  "publisher": {
+    "@type": "Organization",
+    "name": "Weiming's Blog",
+    "logo": {
+      "@type": "ImageObject",
+      "url": "http://localhost:49494/favicon.ico"
+    }
+  }
+}
+</script>
+</head>
+<body id="top">
+    <header class="header">
+    <nav class="nav">
+        <div class="logo">
+            <a href="http://localhost:49494/" accesskey="h" title="Weiming&#39;s Blog (Alt + H)">Weiming&#39;s Blog</a>
+            <div class="logo-switches">
+                <button id="theme-toggle" accesskey="t" title="(Alt + T)" aria-label="Toggle theme">
+                    <svg id="moon" xmlns="http://www.w3.org/2000/svg" width="24" height="18" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                    </svg>
+                    <svg id="sun" xmlns="http://www.w3.org/2000/svg" width="24" height="18" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="5"></circle>
+                        <line x1="12" y1="1" x2="12" y2="3"></line>
+                        <line x1="12" y1="21" x2="12" y2="23"></line>
+                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                        <line x1="1" y1="12" x2="3" y2="12"></line>
+                        <line x1="21" y1="12" x2="23" y2="12"></line>
+                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                    </svg>
+                </button>
+            </div>
+        </div>
+        <ul id="menu">
+            <li>
+                <a href="http://localhost:49494/archives/" title="归档">
+                    <span>归档</span>
+                </a>
+            </li>
+            <li>
+                <a href="http://localhost:49494/categories/" title="分类">
+                    <span>分类</span>
+                </a>
+            </li>
+            <li>
+                <a href="http://localhost:49494/tags/" title="标签">
+                    <span>标签</span>
+                </a>
+            </li>
+            <li>
+                <a href="http://localhost:49494/about/" title="关于">
+                    <span>关于</span>
+                </a>
+            </li>
+        </ul>
+    </nav>
+</header>
+<main class="main">
+
+<article class="post-single">
+  <header class="post-header">
+    <div class="breadcrumbs"><a href="http://localhost:49494/">Home</a>&nbsp;»&nbsp;<a href="http://localhost:49494/posts/">Posts</a></div>
+    <h1 class="post-title entry-hint-parent">
+      大语言模型（LLM）入门
+    </h1>
+    <div class="post-meta"><span title='2025-06-10 00:00:00 +0000 UTC'>June 10, 2025</span>&nbsp;·&nbsp;<span>1 min</span>
+
+</div>
+  </header> <div class="toc">
+    <details >
+        <summary accesskey="c" title="(Alt + C)">
+            <span class="details">Table of Contents</span>
+        </summary>
+
+        <div class="inner"><ul>
+                <li>
+                    <a href="#%e5%a4%a7%e6%a8%a1%e5%9e%8b%e5%85%a5%e9%97%a8%e5%88%b0%e5%ba%95%e4%bb%80%e4%b9%88%e6%98%af-llm" aria-label="大模型入门：到底什么是 LLM">大模型入门：到底什么是 LLM</a><ul>
+                        
+                <li>
+                    <a href="#transformer-%e5%88%b0%e5%ba%95%e6%98%af%e4%bb%80%e4%b9%88" aria-label="Transformer 到底是什么">Transformer 到底是什么</a></li>
+                <li>
+                    <a href="#%e9%a2%84%e8%ae%ad%e7%bb%83%e5%92%8c%e5%be%ae%e8%b0%83" aria-label="预训练和微调">预训练和微调</a></li>
+                <li>
+                    <a href="#token-%e5%92%8c%e4%b8%8a%e4%b8%8b%e6%96%87%e7%aa%97%e5%8f%a3" aria-label="Token 和上下文窗口">Token 和上下文窗口</a></li>
+                <li>
+                    <a href="#%e5%b8%b8%e8%a7%81%e6%a8%a1%e5%9e%8b%e5%af%b9%e6%af%94" aria-label="常见模型对比">常见模型对比</a></li>
+                <li>
+                    <a href="#%e5%a4%a7%e6%a8%a1%e5%9e%8b%e8%83%bd%e5%b9%b2%e4%bb%80%e4%b9%88%e4%b8%8d%e8%83%bd%e5%b9%b2%e4%bb%80%e4%b9%88" aria-label="大模型能干什么，不能干什么">大模型能干什么，不能干什么</a>
+                </li>
+            </ul>
+            </li>
+            </ul>
+        </div>
+    </details>
+</div>
+
+  <div class="post-content"><h1 id="大模型入门到底什么是-llm">大模型入门：到底什么是 LLM<a hidden class="anchor" aria-hidden="true" href="#大模型入门到底什么是-llm">#</a></h1>
+<h2 id="transformer-到底是什么">Transformer 到底是什么<a hidden class="anchor" aria-hidden="true" href="#transformer-到底是什么">#</a></h2>
+<p>最近到处都在聊大模型、AI，感觉不了解点 LLM 都不好意思说自己学计算机的。但说实话，一开始我也是一头雾水。GPT、Transformer、Token，这些词满天飞，搜了好多资料才慢慢理出头绪。</p>
+<p>LLM，Large Language Model，大语言模型。说白了就是一个超大的神经网络，用海量文本训练出来的，学会了&quot;语言&quot;这件事。你给它一段文字，它能接着往下写——本质上就是在预测下一个 Token。</p>
+<p>底层架构叫 Transformer。2017 年 Google 那篇 &ldquo;Attention is All You Need&rdquo; 提出的，改变了整个 NLP 领域。</p>
+<p><img alt="Transformer 架构" loading="lazy" src="https://upload.wikimedia.org/wikipedia/commons/thumb/8/8f/The-Transformer-model-architecture.png/440px-The-Transformer-model-architecture.png"></p>
+<p>Transformer 的核心是注意力机制（Attention）。不用纠结数学细节，可以这么理解：模型处理一个词的时候，会&quot;看&quot;句子里所有其他词，判断谁跟它关系更密切。比如&quot;我去银行取钱&quot;，处理&quot;银行&quot;时模型注意到&quot;取钱&quot;，就知道这是金融机构不是河岸。</p>
+<p>之前的 RNN/LSTM 按顺序一个词一个词处理，长文本又慢效果又差。Transformer 可以并行处理所有位置，效率高太多了。这也是大模型能做到几百亿参数的关键原因。</p>
+<h2 id="预训练和微调">预训练和微调<a hidden class="anchor" aria-hidden="true" href="#预训练和微调">#</a></h2>
+<p>大模型训练分两个阶段。</p>
+<p><strong>预训练</strong>：拿海量文本数据（网页、书籍、代码、论文……），让模型学习预测下一个词。就这么简单的目标，在足够大的数据量和模型规模上，涌现出了各种能力——写代码、翻译、推理，都是&quot;学&quot;出来的。</p>
+<p><strong>微调</strong>：预训练完的模型像一个&quot;什么都懂但不听话&quot;的人。微调让它更符合人类期望。常见方法是 RLHF（基于人类反馈的强化学习）——人类给模型的回答打分，模型根据反馈调整行为。</p>
+<p>ChatGPT 之所以好用，很大功劳在微调阶段。没经过微调的 base model，你问它问题它不会好好回答，只会一直&quot;接龙&quot;下去。</p>
+<h2 id="token-和上下文窗口">Token 和上下文窗口<a hidden class="anchor" aria-hidden="true" href="#token-和上下文窗口">#</a></h2>
+<p>大模型不按&quot;字&quot;处理文本，而是按 Token。一个 Token 大概对应一个常见的词或子词片段。英文里一个单词通常 1-2 个 Token，中文一个字大概 1-2 个 Token。</p>
+<p>上下文窗口（Context Window）是模型一次能处理的最大 Token 数。GPT-4 是 128K，Claude 支持到 200K。窗口越大，模型能&quot;看到&quot;的内容越多。</p>
+<p>上下文窗口很重要——模型只能&quot;看到&quot;窗口以内的内容。跟它聊天聊久了，早期的对话超出窗口就被&quot;遗忘&quot;了。</p>
+<p>Token 数也直接关系到使用成本。API 按 Token 收费，input 和 output 分开计价。所以写 Prompt 的时候别废话太多，能省就省。</p>
+<h2 id="常见模型对比">常见模型对比<a hidden class="anchor" aria-hidden="true" href="#常见模型对比">#</a></h2>
+<p>现在主流的大模型，简单聊一下各自的特点：</p>
+<p><strong>GPT 系列</strong>（OpenAI）：GPT-4o 综合能力很强，几乎是目前的标杆。API 收费，国内直接访问不了。</p>
+<p><strong>Claude 系列</strong>（Anthropic）：Claude 4 / Claude 3.5 Sonnet，长文本处理很强，写代码也好使。上下文窗口大是一个优势。</p>
+<p><strong>Llama 系列</strong>（Meta）：开源模型的代表，Llama 3 出来之后效果相当不错。可以本地跑，适合研究和二次开发。</p>
+<p><strong>Qwen 系列</strong>（阿里通义千问）：国产开源模型里比较能打的。Qwen2.5 各种尺寸都有，7B 的小模型在笔记本上都能跑起来。</p>
+<p>我个人的使用感受：日常用 GPT 或 Claude 都行。想折腾本地部署就选 Llama 或 Qwen。具体选哪个看场景和预算。</p>
+<h2 id="大模型能干什么不能干什么">大模型能干什么，不能干什么<a hidden class="anchor" aria-hidden="true" href="#大模型能干什么不能干什么">#</a></h2>
+<p>能干的事太多了：写代码、翻译、摘要总结、问答、头脑风暴、文案创作……我现在写作业都习惯先让大模型解释一下概念，比搜 CSDN 效率高多了。</p>
+<p>但短板也明显：</p>
+<ul>
+<li><strong>会胡说八道</strong>（幻觉问题）：模型不是真&quot;知道&quot;答案，而是在&quot;生成&quot;看起来合理的文本。它可能编造不存在的论文、写出有 bug 的代码。用的时候一定要验证。</li>
+<li><strong>知识有截止日期</strong>：训练数据有时间限制，最近发生的事它不知道。</li>
+<li><strong>复杂推理容易翻车</strong>：简单逻辑还行，复杂数学或多步推理就容易出错。</li>
+<li><strong>没有真正的&quot;理解&quot;</strong>：它是统计模式匹配，不是真的理解世界。虽然表现看起来像懂了，但本质不同。</li>
+</ul>
+<p>话说回来，大模型的进化速度太快了。半年前的短板可能现在已经改善了不少。作为 CS 学生，我觉得了解大模型是必要的，不管以后做不做 AI 方向。这东西正在改变整个软件行业的开发方式，不能视而不见。</p>
+
+
+  </div>
+
+  <footer class="post-footer">
+    <ul class="post-tags">
+      <li><a href="http://localhost:49494/tags/ai/">AI</a></li>
+      <li><a href="http://localhost:49494/tags/llm/">LLM</a></li>
+      <li><a href="http://localhost:49494/tags/%E5%85%A5%E9%97%A8/">入门</a></li>
+    </ul>
+<nav class="paginav">
+  <a class="prev" href="http://localhost:49494/posts/langchain4j-getting-started/">
+    <span class="title">« Prev</span>
+    <br>
+    <span>LangChain4j 入门</span>
+  </a>
+  <a class="next" href="http://localhost:49494/posts/spring-cloud-intro/">
+    <span class="title">Next »</span>
+    <br>
+    <span>Spring Cloud 微服务入门</span>
+  </a>
+</nav>
+
+  </footer>
+</article>
+    </main>
+    
+<footer class="footer">
+        <span>&copy; 2026 <a href="http://localhost:49494/">Weiming&#39;s Blog</a></span> · 
+
+    <span>
+        Powered by
+        <a href="https://gohugo.io/" rel="noopener noreferrer" target="_blank">Hugo</a> &
+        <a href="https://github.com/adityatelange/hugo-PaperMod/" rel="noopener" target="_blank">PaperMod</a>
+    </span>
+</footer>
+<a href="#top" aria-label="go to top" title="Go to Top (Alt + G)" class="top-link" id="top-link" accesskey="g">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 12 6" fill="currentColor">
+        <path d="M12 6H0l6-6z" />
+    </svg>
+</a>
+
+<script>
+    let menu = document.getElementById('menu');
+    if (menu) {
+        
+        const scrollPosition = localStorage.getItem("menu-scroll-position");
+        if (scrollPosition) {
+            menu.scrollLeft = parseInt(scrollPosition, 10);
+        }
+        
+        menu.onscroll = function () {
+            localStorage.setItem("menu-scroll-position", menu.scrollLeft);
+        }
+    }
+
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener("click", function (e) {
+            e.preventDefault();
+            var id = this.getAttribute("href").substr(1);
+            if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView({
+                    behavior: "smooth"
+                });
+            } else {
+                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView();
+            }
+            if (id === "top") {
+                history.replaceState(null, null, " ");
+            } else {
+                history.pushState(null, null, `#${id}`);
+            }
+        });
+    });
+
+</script>
+<script>
+    var mybutton = document.getElementById("top-link");
+    window.onscroll = function () {
+        if (document.body.scrollTop > 800 || document.documentElement.scrollTop > 800) {
+            mybutton.style.visibility = "visible";
+            mybutton.style.opacity = "1";
+        } else {
+            mybutton.style.visibility = "hidden";
+            mybutton.style.opacity = "0";
+        }
+    };
+
+</script>
+<script>
+    document.getElementById("theme-toggle").addEventListener("click", () => {
+        const html = document.querySelector("html");
+        if (html.dataset.theme === "dark") {
+            html.dataset.theme = 'light';
+            localStorage.setItem("pref-theme", 'light');
+        } else {
+            html.dataset.theme = 'dark';
+            localStorage.setItem("pref-theme", 'dark');
+        }
+    })
+
+</script>
+<script>
+    document.querySelectorAll('pre > code').forEach((codeblock) => {
+        const container = codeblock.parentNode.parentNode;
+
+        const copybutton = document.createElement('button');
+        copybutton.classList.add('copy-code');
+        copybutton.innerHTML = 'copy';
+
+        function copyingDone() {
+            copybutton.innerHTML = 'copied!';
+            setTimeout(() => {
+                copybutton.innerHTML = 'copy';
+            }, 2000);
+        }
+
+        copybutton.addEventListener('click', (cb) => {
+            if ('clipboard' in navigator) {
+                navigator.clipboard.writeText(codeblock.textContent);
+                copyingDone();
+                return;
+            }
+
+            const range = document.createRange();
+            range.selectNodeContents(codeblock);
+            const selection = window.getSelection();
+            selection.removeAllRanges();
+            selection.addRange(range);
+            try {
+                document.execCommand('copy');
+                copyingDone();
+            } catch (e) { };
+            selection.removeRange(range);
+        });
+
+        if (container.classList.contains("highlight")) {
+            container.appendChild(copybutton);
+        } else if (container.parentNode.firstChild == container) {
+            
+        } else if (codeblock.parentNode.parentNode.parentNode.parentNode.parentNode.nodeName == "TABLE") {
+            
+            codeblock.parentNode.parentNode.parentNode.parentNode.parentNode.appendChild(copybutton);
+        } else {
+            
+            codeblock.parentNode.appendChild(copybutton);
+        }
+    });
+</script>
+</body>
+
+</html>

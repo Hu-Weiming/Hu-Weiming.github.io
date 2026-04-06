@@ -1,5 +1,5 @@
 ---
-title: "RAG 检索增强生成，让大模型不再胡说八道"
+title: "RAG 检索增强生成实践"
 date: 2025-10-15
 categories: ["AI"]
 tags: ["AI", "RAG", "向量数据库"]

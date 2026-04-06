@@ -1,5 +1,5 @@
 ---
-title: "Redis 分布式锁踩坑记"
+title: "Redis 分布式锁笔记"
 date: 2024-04-10
 categories: ["中间件"]
 tags: ["Redis", "分布式", "锁"]

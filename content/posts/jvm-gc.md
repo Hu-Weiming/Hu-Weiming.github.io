@@ -1,5 +1,5 @@
 ---
-title: "JVM 垃圾回收看这篇就够了"
+title: "JVM 垃圾回收机制"
 date: 2023-05-08
 categories: ["Java基础"]
 tags: ["Java", "JVM", "GC"]

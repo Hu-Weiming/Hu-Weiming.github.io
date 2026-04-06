@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:content="http://purl.org/rss/1.0/modules/content/">
+  <channel>
+    <title>中间件 on Weiming&#39;s Blog</title>
+    <link>http://localhost:49494/categories/%E4%B8%AD%E9%97%B4%E4%BB%B6/</link>
+    <description>Recent content in 中间件 on Weiming&#39;s Blog</description>
+    <generator>Hugo</generator>
+    <language>zh-cn</language>
+    <lastBuildDate>Wed, 10 Apr 2024 00:00:00 +0000</lastBuildDate>
+    <atom:link href="http://localhost:49494/categories/%E4%B8%AD%E9%97%B4%E4%BB%B6/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>Redis 分布式锁笔记</title>
+      <link>http://localhost:49494/posts/redis-distributed-lock/</link>
+      <pubDate>Wed, 10 Apr 2024 00:00:00 +0000</pubDate>
+      <guid>http://localhost:49494/posts/redis-distributed-lock/</guid>
+      <description>&lt;h1 id=&#34;redis-分布式锁踩坑记&#34;&gt;Redis 分布式锁踩坑记&lt;/h1&gt;
+&lt;p&gt;分布式锁这个东西，面试必问，实际开发也经常用。我做课程项目的时候在这上面栽了好几个跟头，今天把踩过的坑总结一下。&lt;/p&gt;
+&lt;h2 id=&#34;最简单的实现setnx&#34;&gt;最简单的实现：SETNX&lt;/h2&gt;
+&lt;p&gt;分布式锁的核心思路很简单：大家抢同一个 key，谁抢到谁执行。&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;SETNX lock:order:1001 &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;locked&amp;#34;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;DEL lock:order:1001
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;Java 代码：&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;&#34;&gt;&lt;code class=&#34;language-java&#34; data-lang=&#34;java&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;Boolean locked &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; redisTemplate.&lt;span style=&#34;color:#a6e22e&#34;&gt;opsForValue&lt;/span&gt;()
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    .&lt;span style=&#34;color:#a6e22e&#34;&gt;setIfAbsent&lt;/span&gt;(&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;lock:order:&amp;#34;&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;+&lt;/span&gt; orderId, &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;1&amp;#34;&lt;/span&gt;);
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;if&lt;/span&gt; (Boolean.&lt;span style=&#34;color:#a6e22e&#34;&gt;TRUE&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;equals&lt;/span&gt;(locked)) {
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;try&lt;/span&gt; {
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        doSomething();
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    } &lt;span style=&#34;color:#66d9ef&#34;&gt;finally&lt;/span&gt; {
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        redisTemplate.&lt;span style=&#34;color:#a6e22e&#34;&gt;delete&lt;/span&gt;(&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;lock:order:&amp;#34;&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;+&lt;/span&gt; orderId);
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    }
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;}
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;看起来没问题？坑大了。&lt;/p&gt;
+&lt;h2 id=&#34;过期时间的坑&#34;&gt;过期时间的坑&lt;/h2&gt;
+&lt;p&gt;假设拿到锁之后服务器挂了，&lt;code&gt;finally&lt;/code&gt; 里的 &lt;code&gt;delete&lt;/code&gt; 没执行到——死锁。&lt;/p&gt;
+&lt;p&gt;所以得加过期时间：&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;&#34;&gt;&lt;code class=&#34;language-java&#34; data-lang=&#34;java&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;Boolean locked &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; redisTemplate.&lt;span style=&#34;color:#a6e22e&#34;&gt;opsForValue&lt;/span&gt;()
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    .&lt;span style=&#34;color:#a6e22e&#34;&gt;setIfAbsent&lt;/span&gt;(&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;lock:order:&amp;#34;&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;+&lt;/span&gt; orderId, &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;1&amp;#34;&lt;/span&gt;, 30, TimeUnit.&lt;span style=&#34;color:#a6e22e&#34;&gt;SECONDS&lt;/span&gt;);
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;注意一定要用 &lt;code&gt;SET key value EX seconds NX&lt;/code&gt; 原子命令。别先 SETNX 再 EXPIRE，中间挂了还是死锁。我第一次写就犯了这个错。&lt;/p&gt;
+&lt;p&gt;但过期时间带来新问题：业务执行时间超过锁的过期时间咋办？锁过期了，别的线程拿到锁，两个线程同时在跑。&lt;/p&gt;
+&lt;p&gt;还有个更隐蔽的坑：A 的锁过期了，B 拿到锁，然后 A 执行完去 DEL，删的其实是 B 的锁。&lt;/p&gt;
+&lt;p&gt;解决误删要给 value 加唯一标识，删前先检查：&lt;/p&gt;</description>
+    </item>
+    <item>
+      <title>Redis 五种数据结构</title>
+      <link>http://localhost:49494/posts/redis-data-structures/</link>
+      <pubDate>Tue, 20 Feb 2024 00:00:00 +0000</pubDate>
+      <guid>http://localhost:49494/posts/redis-data-structures/</guid>
+      <description>&lt;h1 id=&#34;redis-五种数据结构各有各的妙用&#34;&gt;Redis 五种数据结构，各有各的妙用&lt;/h1&gt;
+&lt;p&gt;Redis 谁都用过吧？但我发现很多人（包括之前的我）用 Redis 就只会 &lt;code&gt;SET&lt;/code&gt; 和 &lt;code&gt;GET&lt;/code&gt;，把它当个 key-value 缓存使。其实 Redis 有五种基本数据结构，每种都有自己的应用场景，选对了效率翻倍，选错了可能还不如不用。&lt;/p&gt;
+&lt;h2 id=&#34;string最简单但别小看它&#34;&gt;String——最简单但别小看它&lt;/h2&gt;
+&lt;p&gt;String 是最基础的数据类型。一个 key 对应一个 value，value 最大 512MB。&lt;/p&gt;
+&lt;p&gt;常见用法：&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;SET user:token:1001 &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;abc123&amp;#34;&lt;/span&gt; EX &lt;span style=&#34;color:#ae81ff&#34;&gt;3600&lt;/span&gt;   &lt;span style=&#34;color:#75715e&#34;&gt;# 存 token，1小时过期&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;GET user:token:1001                      &lt;span style=&#34;color:#75715e&#34;&gt;# 取 token&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;INCR article:view:2001                   &lt;span style=&#34;color:#75715e&#34;&gt;# 文章浏览量 +1&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;INCRBY inventory:sku:3001 -1            &lt;span style=&#34;color:#75715e&#34;&gt;# 库存 -1&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;底层编码有三种：&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;strong&gt;int&lt;/strong&gt;：值是整数且小于 2^63，直接存数字&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;embstr&lt;/strong&gt;：字符串长度 &amp;lt;= 44 字节，一次内存分配&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;raw&lt;/strong&gt;：字符串长度 &amp;gt; 44 字节，两次内存分配&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;实际项目里 String 最常用的就是缓存和计数器。我之前做选课系统的时候用 &lt;code&gt;INCR&lt;/code&gt; 做并发计数，原子操作不用加锁，很方便。&lt;/p&gt;
+&lt;h2 id=&#34;hash存对象就用它&#34;&gt;Hash——存对象就用它&lt;/h2&gt;
+&lt;p&gt;Hash 适合存结构化数据：&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;HSET user:1001 name &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;张三&amp;#34;&lt;/span&gt; age &lt;span style=&#34;color:#ae81ff&#34;&gt;21&lt;/span&gt; major &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;计算机&amp;#34;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;HGET user:1001 name        &lt;span style=&#34;color:#75715e&#34;&gt;# 取单个字段&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;HGETALL user:1001          &lt;span style=&#34;color:#75715e&#34;&gt;# 取所有字段&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;你可能会想，用 String 存 JSON 也能存对象啊，为啥要用 Hash？&lt;/p&gt;</description>
+    </item>
+  </channel>
+</rss>

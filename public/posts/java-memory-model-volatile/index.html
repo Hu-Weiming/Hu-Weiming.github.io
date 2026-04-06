@@ -1,0 +1,540 @@
+<!DOCTYPE html>
+<html lang="en" dir="auto" data-theme="auto">
+
+<head><script src="/livereload.js?mindelay=10&amp;v=2&amp;port=49494&amp;path=livereload" data-no-instant defer></script><meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<meta name="robots" content="index, follow">
+<title>volatile 与 Java 内存模型 | Weiming&#39;s Blog</title>
+<meta name="keywords" content="Java, JMM, 并发">
+<meta name="description" content="volatile 到底能保证什么
+Java 内存模型简单说
+聊 volatile 之前，得先说说 Java 内存模型（JMM）。放心，不讲太深，够理解 volatile 就行。
+JMM 规定了线程和内存之间的关系。简单理解：每个线程有自己的工作内存（你可以想象成 CPU 缓存），线程操作变量不是直接改主内存，而是先拷贝一份到工作内存，改完再写回去。
+这就埋下了隐患——线程 A 改了变量，线程 B 可能看不到，因为 B 还在用自己工作内存里的旧值。
+主内存:  x = 0
+线程A工作内存: x = 0  →  x = 1  →  写回主内存
+线程B工作内存: x = 0  →  还是0！没刷新！
+这就是可见性问题。
+可见性：volatile 的第一个保证
+来看个经典例子：
+public class VisibilityDemo {
+    private static boolean flag = true;
+    
+    public static void main(String[] args) throws InterruptedException {
+        new Thread(() -&gt; {
+            while (flag) {
+                // 忙等待
+            }
+            System.out.println(&#34;线程退出&#34;);
+        }).start();
+        
+        Thread.sleep(1000);
+        flag = false;
+        System.out.println(&#34;已设置 flag = false&#34;);
+    }
+}
+你觉得子线程能退出吗？答案是：不一定。JIT 编译器可能把 while(flag) 优化成 while(true)，因为它发现当前线程里没人改 flag。">
+<meta name="author" content="">
+<link rel="canonical" href="http://localhost:49494/posts/java-memory-model-volatile/">
+<link crossorigin="anonymous" href="/assets/css/stylesheet.199042e659bc7245f5609d333d6c044eb554a0640849bb874e1dff8eb0f57209.css" integrity="sha256-GZBC5lm8ckX1YJ0zPWwETrVUoGQISbuHTh3/jrD1cgk=" rel="preload stylesheet" as="style">
+<link rel="icon" href="http://localhost:49494/favicon.ico">
+<link rel="icon" type="image/png" sizes="16x16" href="http://localhost:49494/favicon-16x16.png">
+<link rel="icon" type="image/png" sizes="32x32" href="http://localhost:49494/favicon-32x32.png">
+<link rel="apple-touch-icon" href="http://localhost:49494/apple-touch-icon.png">
+<link rel="mask-icon" href="http://localhost:49494/safari-pinned-tab.svg">
+<meta name="theme-color" content="#2e2e33">
+<meta name="msapplication-TileColor" content="#2e2e33">
+<link rel="alternate" hreflang="en" href="http://localhost:49494/posts/java-memory-model-volatile/">
+<noscript>
+    <style>
+        #theme-toggle,
+        .top-link {
+            display: none;
+        }
+
+    </style>
+    <style>
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --theme: rgb(29, 30, 32);
+                --entry: rgb(46, 46, 51);
+                --primary: rgb(218, 218, 219);
+                --secondary: rgb(155, 156, 157);
+                --tertiary: rgb(65, 66, 68);
+                --content: rgb(196, 196, 197);
+                --code-block-bg: rgb(46, 46, 51);
+                --code-bg: rgb(55, 56, 62);
+                --border: rgb(51, 51, 51);
+                color-scheme: dark;
+            }
+
+            .list {
+                background: var(--theme);
+            }
+
+            .toc {
+                background: var(--entry);
+            }
+        }
+
+        @media (prefers-color-scheme: light) {
+            .list::-webkit-scrollbar-thumb {
+                border-color: var(--code-bg);
+            }
+        }
+
+    </style>
+</noscript>
+<script>
+    if (localStorage.getItem("pref-theme") === "dark") {
+        document.querySelector("html").dataset.theme = 'dark';
+    } else if (localStorage.getItem("pref-theme") === "light") {
+       document.querySelector("html").dataset.theme = 'light';
+    } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        document.querySelector("html").dataset.theme = 'dark';
+    } else {
+        document.querySelector("html").dataset.theme = 'light';
+    }
+
+</script><meta property="og:url" content="http://localhost:49494/posts/java-memory-model-volatile/">
+  <meta property="og:site_name" content="Weiming&#39;s Blog">
+  <meta property="og:title" content="volatile 与 Java 内存模型">
+  <meta property="og:description" content="volatile 到底能保证什么 Java 内存模型简单说 聊 volatile 之前，得先说说 Java 内存模型（JMM）。放心，不讲太深，够理解 volatile 就行。
+JMM 规定了线程和内存之间的关系。简单理解：每个线程有自己的工作内存（你可以想象成 CPU 缓存），线程操作变量不是直接改主内存，而是先拷贝一份到工作内存，改完再写回去。
+这就埋下了隐患——线程 A 改了变量，线程 B 可能看不到，因为 B 还在用自己工作内存里的旧值。
+主内存: x = 0 线程A工作内存: x = 0 → x = 1 → 写回主内存 线程B工作内存: x = 0 → 还是0！没刷新！ 这就是可见性问题。
+可见性：volatile 的第一个保证 来看个经典例子：
+public class VisibilityDemo { private static boolean flag = true; public static void main(String[] args) throws InterruptedException { new Thread(() -&gt; { while (flag) { // 忙等待 } System.out.println(&#34;线程退出&#34;); }).start(); Thread.sleep(1000); flag = false; System.out.println(&#34;已设置 flag = false&#34;); } } 你觉得子线程能退出吗？答案是：不一定。JIT 编译器可能把 while(flag) 优化成 while(true)，因为它发现当前线程里没人改 flag。">
+  <meta property="og:locale" content="zh_cn">
+  <meta property="og:type" content="article">
+    <meta property="article:section" content="posts">
+    <meta property="article:published_time" content="2023-07-20T00:00:00+00:00">
+    <meta property="article:modified_time" content="2023-07-20T00:00:00+00:00">
+    <meta property="article:tag" content="Java">
+    <meta property="article:tag" content="JMM">
+    <meta property="article:tag" content="并发">
+
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:title" content="volatile 与 Java 内存模型">
+  <meta name="twitter:description" content="volatile 到底能保证什么 Java 内存模型简单说 聊 volatile 之前，得先说说 Java 内存模型（JMM）。放心，不讲太深，够理解 volatile 就行。
+JMM 规定了线程和内存之间的关系。简单理解：每个线程有自己的工作内存（你可以想象成 CPU 缓存），线程操作变量不是直接改主内存，而是先拷贝一份到工作内存，改完再写回去。
+这就埋下了隐患——线程 A 改了变量，线程 B 可能看不到，因为 B 还在用自己工作内存里的旧值。
+主内存: x = 0 线程A工作内存: x = 0 → x = 1 → 写回主内存 线程B工作内存: x = 0 → 还是0！没刷新！ 这就是可见性问题。
+可见性：volatile 的第一个保证 来看个经典例子：
+public class VisibilityDemo { private static boolean flag = true; public static void main(String[] args) throws InterruptedException { new Thread(() -&gt; { while (flag) { // 忙等待 } System.out.println(&#34;线程退出&#34;); }).start(); Thread.sleep(1000); flag = false; System.out.println(&#34;已设置 flag = false&#34;); } } 你觉得子线程能退出吗？答案是：不一定。JIT 编译器可能把 while(flag) 优化成 while(true)，因为它发现当前线程里没人改 flag。">
+
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {
+      "@type": "ListItem",
+      "position":  1 ,
+      "name": "Posts",
+      "item": "http://localhost:49494/posts/"
+    }, 
+    {
+      "@type": "ListItem",
+      "position":  2 ,
+      "name": "volatile 与 Java 内存模型",
+      "item": "http://localhost:49494/posts/java-memory-model-volatile/"
+    }
+  ]
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "volatile 与 Java 内存模型",
+  "name": "volatile 与 Java 内存模型",
+  "description": "volatile 到底能保证什么 Java 内存模型简单说 聊 volatile 之前，得先说说 Java 内存模型（JMM）。放心，不讲太深，够理解 volatile 就行。\nJMM 规定了线程和内存之间的关系。简单理解：每个线程有自己的工作内存（你可以想象成 CPU 缓存），线程操作变量不是直接改主内存，而是先拷贝一份到工作内存，改完再写回去。\n这就埋下了隐患——线程 A 改了变量，线程 B 可能看不到，因为 B 还在用自己工作内存里的旧值。\n主内存: x = 0 线程A工作内存: x = 0 → x = 1 → 写回主内存 线程B工作内存: x = 0 → 还是0！没刷新！ 这就是可见性问题。\n可见性：volatile 的第一个保证 来看个经典例子：\npublic class VisibilityDemo { private static boolean flag = true; public static void main(String[] args) throws InterruptedException { new Thread(() -\u0026gt; { while (flag) { // 忙等待 } System.out.println(\u0026#34;线程退出\u0026#34;); }).start(); Thread.sleep(1000); flag = false; System.out.println(\u0026#34;已设置 flag = false\u0026#34;); } } 你觉得子线程能退出吗？答案是：不一定。JIT 编译器可能把 while(flag) 优化成 while(true)，因为它发现当前线程里没人改 flag。\n",
+  "keywords": [
+    "Java", "JMM", "并发"
+  ],
+  "articleBody": "volatile 到底能保证什么 Java 内存模型简单说 聊 volatile 之前，得先说说 Java 内存模型（JMM）。放心，不讲太深，够理解 volatile 就行。\nJMM 规定了线程和内存之间的关系。简单理解：每个线程有自己的工作内存（你可以想象成 CPU 缓存），线程操作变量不是直接改主内存，而是先拷贝一份到工作内存，改完再写回去。\n这就埋下了隐患——线程 A 改了变量，线程 B 可能看不到，因为 B 还在用自己工作内存里的旧值。\n主内存: x = 0 线程A工作内存: x = 0 → x = 1 → 写回主内存 线程B工作内存: x = 0 → 还是0！没刷新！ 这就是可见性问题。\n可见性：volatile 的第一个保证 来看个经典例子：\npublic class VisibilityDemo { private static boolean flag = true; public static void main(String[] args) throws InterruptedException { new Thread(() -\u003e { while (flag) { // 忙等待 } System.out.println(\"线程退出\"); }).start(); Thread.sleep(1000); flag = false; System.out.println(\"已设置 flag = false\"); } } 你觉得子线程能退出吗？答案是：不一定。JIT 编译器可能把 while(flag) 优化成 while(true)，因为它发现当前线程里没人改 flag。\n我当时学并发的时候写了这个 demo，在本地跑真的不退出，挺震撼的。加上 volatile 就好了：\nprivate static volatile boolean flag = true; volatile 保证了可见性：一个线程修改了 volatile 变量，其他线程能立刻看到最新值。\n有序性：volatile 的第二个保证 Java 编译器和处理器为了优化性能，可能会对指令重排序。单线程下重排不影响结果（as-if-serial 语义），但多线程下就可能出事。\n经典例子：\nint a = 0; boolean flag = false; // 线程A a = 1; // 语句1 flag = true; // 语句2 // 线程B if (flag) { int b = a; // 期望 b = 1，但可能是 0 } 线程 A 里语句 1 和语句 2 可能被重排，先执行 flag = true，再执行 a = 1。线程 B 看到 flag 为 true 了，但 a 还是 0。\nvolatile 能禁止特定的重排序。对 volatile 变量的写操作，会保证写之前的操作不会被重排到写之后。\nhappens-before 规则 JMM 用 happens-before 关系来描述操作间的内存可见性。如果 A happens-before B，那 A 的结果对 B 可见。\n跟 volatile 相关的规则：对一个 volatile 变量的写 happens-before 后续对它的读。\n加上传递性就够用了：\na = 1 happens-before flag = true（程序顺序规则） flag = true happens-before 线程 B 读 flag（volatile 规则） 所以 a = 1 happens-before 线程 B 读 a（传递性） happens-before 这个概念比较抽象，但理解它对搞懂并发很关键。\n底层实现：内存屏障 volatile 在底层通过内存屏障（Memory Barrier）实现。\n写 volatile 时，JVM 在写之前插入 StoreStore 屏障，写之后插入 StoreLoad 屏障。读 volatile 时，读之后插入 LoadLoad 和 LoadStore 屏障。\nStoreStore：保证写 volatile 之前的写操作先完成 StoreLoad：保证写 volatile 对其他处理器可见（最重的屏障） LoadLoad：保证读 volatile 之后的读不会重排到前面 LoadStore：保证读 volatile 之后的写不会重排到前面 在 x86 架构上，其实只有 StoreLoad 需要真正的屏障指令，其他的硬件本身就保证了。所以 x86 上 volatile 的性能开销没那么夸张。\nDCL 单例中 volatile 的作用 双重检查锁单例为什么需要 volatile？来看代码：\npublic class Singleton { private static volatile Singleton instance; public static Singleton getInstance() { if (instance == null) { synchronized (Singleton.class) { if (instance == null) { instance = new Singleton(); // 关键 } } } return instance; } } instance = new Singleton() 在字节码层面大概三步：\n分配内存空间 调用构造方法初始化 把引用赋值给 instance 不加 volatile 的话，步骤 2 和 3 可能被重排成 3、2。线程 B 在第一个 if 判断时看到 instance 不为 null，直接返回了一个还没初始化完的对象。用了就 NPE 或者各种诡异 bug。\n加了 volatile，禁止了这个重排序，赋值一定在初始化之后。\n顺便说一句，这个坑在 Java 5 之前是没法靠 volatile 解决的。Java 5（JSR-133）增强了 volatile 语义之后，DCL 才真正安全了。\nvolatile 不能保证原子性 很多人以为 volatile 就是线程安全的，这是个常见误区。volatile 只保证可见性和有序性，不保证原子性。\nprivate static volatile int count = 0; // 10个线程各执行1000次 count++; // 这不是原子操作！ count++ 实际上是读-改-写三步。就算 volatile 保证每次读到最新值，两个线程还是可能同时读到同一个值，然后各自加 1 写回，等于少加了一次。\n要原子性，用 AtomicInteger 或者加锁：\nprivate static AtomicInteger count = new AtomicInteger(0); count.incrementAndGet(); // CAS，原子操作 总结一下 volatile 能保证：\n可见性：修改后其他线程立刻可见 有序性：禁止指令重排 volatile 不能保证：\n原子性：复合操作还是不安全 适用场景：状态标志位、DCL 中防止重排序、一写多读。多写场景还是得上锁或用原子类。\n其实吧，volatile 这个关键字看着简单，背后涉及的东西不少。但只要抓住\"可见性 + 有序性\"这两个点，再理解 happens-before 和内存屏障，就差不多了。面试够用，写代码也不会踩坑。\n",
+  "wordCount" : "400",
+  "inLanguage": "en",
+  "datePublished": "2023-07-20T00:00:00Z",
+  "dateModified": "2023-07-20T00:00:00Z",
+  "mainEntityOfPage": {
+    "@type": "WebPage",
+    "@id": "http://localhost:49494/posts/java-memory-model-volatile/"
+  },
+  "publisher": {
+    "@type": "Organization",
+    "name": "Weiming's Blog",
+    "logo": {
+      "@type": "ImageObject",
+      "url": "http://localhost:49494/favicon.ico"
+    }
+  }
+}
+</script>
+</head>
+<body id="top">
+    <header class="header">
+    <nav class="nav">
+        <div class="logo">
+            <a href="http://localhost:49494/" accesskey="h" title="Weiming&#39;s Blog (Alt + H)">Weiming&#39;s Blog</a>
+            <div class="logo-switches">
+                <button id="theme-toggle" accesskey="t" title="(Alt + T)" aria-label="Toggle theme">
+                    <svg id="moon" xmlns="http://www.w3.org/2000/svg" width="24" height="18" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                    </svg>
+                    <svg id="sun" xmlns="http://www.w3.org/2000/svg" width="24" height="18" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="5"></circle>
+                        <line x1="12" y1="1" x2="12" y2="3"></line>
+                        <line x1="12" y1="21" x2="12" y2="23"></line>
+                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                        <line x1="1" y1="12" x2="3" y2="12"></line>
+                        <line x1="21" y1="12" x2="23" y2="12"></line>
+                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                    </svg>
+                </button>
+            </div>
+        </div>
+        <ul id="menu">
+            <li>
+                <a href="http://localhost:49494/archives/" title="归档">
+                    <span>归档</span>
+                </a>
+            </li>
+            <li>
+                <a href="http://localhost:49494/categories/" title="分类">
+                    <span>分类</span>
+                </a>
+            </li>
+            <li>
+                <a href="http://localhost:49494/tags/" title="标签">
+                    <span>标签</span>
+                </a>
+            </li>
+            <li>
+                <a href="http://localhost:49494/about/" title="关于">
+                    <span>关于</span>
+                </a>
+            </li>
+        </ul>
+    </nav>
+</header>
+<main class="main">
+
+<article class="post-single">
+  <header class="post-header">
+    <div class="breadcrumbs"><a href="http://localhost:49494/">Home</a>&nbsp;»&nbsp;<a href="http://localhost:49494/posts/">Posts</a></div>
+    <h1 class="post-title entry-hint-parent">
+      volatile 与 Java 内存模型
+    </h1>
+    <div class="post-meta"><span title='2023-07-20 00:00:00 +0000 UTC'>July 20, 2023</span>&nbsp;·&nbsp;<span>2 min</span>
+
+</div>
+  </header> <div class="toc">
+    <details >
+        <summary accesskey="c" title="(Alt + C)">
+            <span class="details">Table of Contents</span>
+        </summary>
+
+        <div class="inner"><ul>
+                <li>
+                    <a href="#volatile-%e5%88%b0%e5%ba%95%e8%83%bd%e4%bf%9d%e8%af%81%e4%bb%80%e4%b9%88" aria-label="volatile 到底能保证什么">volatile 到底能保证什么</a><ul>
+                        
+                <li>
+                    <a href="#java-%e5%86%85%e5%ad%98%e6%a8%a1%e5%9e%8b%e7%ae%80%e5%8d%95%e8%af%b4" aria-label="Java 内存模型简单说">Java 内存模型简单说</a></li>
+                <li>
+                    <a href="#%e5%8f%af%e8%a7%81%e6%80%a7volatile-%e7%9a%84%e7%ac%ac%e4%b8%80%e4%b8%aa%e4%bf%9d%e8%af%81" aria-label="可见性：volatile 的第一个保证">可见性：volatile 的第一个保证</a></li>
+                <li>
+                    <a href="#%e6%9c%89%e5%ba%8f%e6%80%a7volatile-%e7%9a%84%e7%ac%ac%e4%ba%8c%e4%b8%aa%e4%bf%9d%e8%af%81" aria-label="有序性：volatile 的第二个保证">有序性：volatile 的第二个保证</a></li>
+                <li>
+                    <a href="#happens-before-%e8%a7%84%e5%88%99" aria-label="happens-before 规则">happens-before 规则</a></li>
+                <li>
+                    <a href="#%e5%ba%95%e5%b1%82%e5%ae%9e%e7%8e%b0%e5%86%85%e5%ad%98%e5%b1%8f%e9%9a%9c" aria-label="底层实现：内存屏障">底层实现：内存屏障</a></li>
+                <li>
+                    <a href="#dcl-%e5%8d%95%e4%be%8b%e4%b8%ad-volatile-%e7%9a%84%e4%bd%9c%e7%94%a8" aria-label="DCL 单例中 volatile 的作用">DCL 单例中 volatile 的作用</a></li>
+                <li>
+                    <a href="#volatile-%e4%b8%8d%e8%83%bd%e4%bf%9d%e8%af%81%e5%8e%9f%e5%ad%90%e6%80%a7" aria-label="volatile 不能保证原子性">volatile 不能保证原子性</a></li>
+                <li>
+                    <a href="#%e6%80%bb%e7%bb%93%e4%b8%80%e4%b8%8b" aria-label="总结一下">总结一下</a>
+                </li>
+            </ul>
+            </li>
+            </ul>
+        </div>
+    </details>
+</div>
+
+  <div class="post-content"><h1 id="volatile-到底能保证什么">volatile 到底能保证什么<a hidden class="anchor" aria-hidden="true" href="#volatile-到底能保证什么">#</a></h1>
+<h2 id="java-内存模型简单说">Java 内存模型简单说<a hidden class="anchor" aria-hidden="true" href="#java-内存模型简单说">#</a></h2>
+<p>聊 volatile 之前，得先说说 Java 内存模型（JMM）。放心，不讲太深，够理解 volatile 就行。</p>
+<p>JMM 规定了线程和内存之间的关系。简单理解：每个线程有自己的工作内存（你可以想象成 CPU 缓存），线程操作变量不是直接改主内存，而是先拷贝一份到工作内存，改完再写回去。</p>
+<p>这就埋下了隐患——线程 A 改了变量，线程 B 可能看不到，因为 B 还在用自己工作内存里的旧值。</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-fallback" data-lang="fallback"><span style="display:flex;"><span>主内存:  x = 0
+</span></span><span style="display:flex;"><span>线程A工作内存: x = 0  →  x = 1  →  写回主内存
+</span></span><span style="display:flex;"><span>线程B工作内存: x = 0  →  还是0！没刷新！
+</span></span></code></pre></div><p>这就是可见性问题。</p>
+<h2 id="可见性volatile-的第一个保证">可见性：volatile 的第一个保证<a hidden class="anchor" aria-hidden="true" href="#可见性volatile-的第一个保证">#</a></h2>
+<p>来看个经典例子：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#66d9ef">public</span> <span style="color:#66d9ef">class</span> <span style="color:#a6e22e">VisibilityDemo</span> {
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">private</span> <span style="color:#66d9ef">static</span> <span style="color:#66d9ef">boolean</span> flag <span style="color:#f92672">=</span> <span style="color:#66d9ef">true</span>;
+</span></span><span style="display:flex;"><span>    
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">public</span> <span style="color:#66d9ef">static</span> <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">main</span>(String<span style="color:#f92672">[]</span> args) <span style="color:#66d9ef">throws</span> InterruptedException {
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">new</span> Thread(() <span style="color:#f92672">-&gt;</span> {
+</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">while</span> (flag) {
+</span></span><span style="display:flex;"><span>                <span style="color:#75715e">// 忙等待</span>
+</span></span><span style="display:flex;"><span>            }
+</span></span><span style="display:flex;"><span>            System.<span style="color:#a6e22e">out</span>.<span style="color:#a6e22e">println</span>(<span style="color:#e6db74">&#34;线程退出&#34;</span>);
+</span></span><span style="display:flex;"><span>        }).<span style="color:#a6e22e">start</span>();
+</span></span><span style="display:flex;"><span>        
+</span></span><span style="display:flex;"><span>        Thread.<span style="color:#a6e22e">sleep</span>(1000);
+</span></span><span style="display:flex;"><span>        flag <span style="color:#f92672">=</span> <span style="color:#66d9ef">false</span>;
+</span></span><span style="display:flex;"><span>        System.<span style="color:#a6e22e">out</span>.<span style="color:#a6e22e">println</span>(<span style="color:#e6db74">&#34;已设置 flag = false&#34;</span>);
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p>你觉得子线程能退出吗？答案是：不一定。JIT 编译器可能把 <code>while(flag)</code> 优化成 <code>while(true)</code>，因为它发现当前线程里没人改 flag。</p>
+<p>我当时学并发的时候写了这个 demo，在本地跑真的不退出，挺震撼的。加上 volatile 就好了：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#66d9ef">private</span> <span style="color:#66d9ef">static</span> <span style="color:#66d9ef">volatile</span> <span style="color:#66d9ef">boolean</span> flag <span style="color:#f92672">=</span> <span style="color:#66d9ef">true</span>;
+</span></span></code></pre></div><p>volatile 保证了可见性：一个线程修改了 volatile 变量，其他线程能立刻看到最新值。</p>
+<h2 id="有序性volatile-的第二个保证">有序性：volatile 的第二个保证<a hidden class="anchor" aria-hidden="true" href="#有序性volatile-的第二个保证">#</a></h2>
+<p>Java 编译器和处理器为了优化性能，可能会对指令重排序。单线程下重排不影响结果（as-if-serial 语义），但多线程下就可能出事。</p>
+<p>经典例子：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#66d9ef">int</span> a <span style="color:#f92672">=</span> 0;
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">boolean</span> flag <span style="color:#f92672">=</span> <span style="color:#66d9ef">false</span>;
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">// 线程A</span>
+</span></span><span style="display:flex;"><span>a <span style="color:#f92672">=</span> 1;         <span style="color:#75715e">// 语句1</span>
+</span></span><span style="display:flex;"><span>flag <span style="color:#f92672">=</span> <span style="color:#66d9ef">true</span>;   <span style="color:#75715e">// 语句2</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">// 线程B</span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">if</span> (flag) {
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">int</span> b <span style="color:#f92672">=</span> a; <span style="color:#75715e">// 期望 b = 1，但可能是 0</span>
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p>线程 A 里语句 1 和语句 2 可能被重排，先执行 <code>flag = true</code>，再执行 <code>a = 1</code>。线程 B 看到 flag 为 true 了，但 a 还是 0。</p>
+<p>volatile 能禁止特定的重排序。对 volatile 变量的写操作，会保证写之前的操作不会被重排到写之后。</p>
+<h2 id="happens-before-规则">happens-before 规则<a hidden class="anchor" aria-hidden="true" href="#happens-before-规则">#</a></h2>
+<p>JMM 用 happens-before 关系来描述操作间的内存可见性。如果 A happens-before B，那 A 的结果对 B 可见。</p>
+<p>跟 volatile 相关的规则：<strong>对一个 volatile 变量的写 happens-before 后续对它的读</strong>。</p>
+<p>加上传递性就够用了：</p>
+<ul>
+<li><code>a = 1</code> happens-before <code>flag = true</code>（程序顺序规则）</li>
+<li><code>flag = true</code> happens-before 线程 B 读 flag（volatile 规则）</li>
+<li>所以 <code>a = 1</code> happens-before 线程 B 读 a（传递性）</li>
+</ul>
+<p>happens-before 这个概念比较抽象，但理解它对搞懂并发很关键。</p>
+<h2 id="底层实现内存屏障">底层实现：内存屏障<a hidden class="anchor" aria-hidden="true" href="#底层实现内存屏障">#</a></h2>
+<p>volatile 在底层通过内存屏障（Memory Barrier）实现。</p>
+<p>写 volatile 时，JVM 在写之前插入 StoreStore 屏障，写之后插入 StoreLoad 屏障。读 volatile 时，读之后插入 LoadLoad 和 LoadStore 屏障。</p>
+<ul>
+<li><strong>StoreStore</strong>：保证写 volatile 之前的写操作先完成</li>
+<li><strong>StoreLoad</strong>：保证写 volatile 对其他处理器可见（最重的屏障）</li>
+<li><strong>LoadLoad</strong>：保证读 volatile 之后的读不会重排到前面</li>
+<li><strong>LoadStore</strong>：保证读 volatile 之后的写不会重排到前面</li>
+</ul>
+<p>在 x86 架构上，其实只有 StoreLoad 需要真正的屏障指令，其他的硬件本身就保证了。所以 x86 上 volatile 的性能开销没那么夸张。</p>
+<h2 id="dcl-单例中-volatile-的作用">DCL 单例中 volatile 的作用<a hidden class="anchor" aria-hidden="true" href="#dcl-单例中-volatile-的作用">#</a></h2>
+<p>双重检查锁单例为什么需要 volatile？来看代码：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#66d9ef">public</span> <span style="color:#66d9ef">class</span> <span style="color:#a6e22e">Singleton</span> {
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">private</span> <span style="color:#66d9ef">static</span> <span style="color:#66d9ef">volatile</span> Singleton instance;
+</span></span><span style="display:flex;"><span>    
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">public</span> <span style="color:#66d9ef">static</span> Singleton <span style="color:#a6e22e">getInstance</span>() {
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">if</span> (instance <span style="color:#f92672">==</span> <span style="color:#66d9ef">null</span>) {
+</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">synchronized</span> (Singleton.<span style="color:#a6e22e">class</span>) {
+</span></span><span style="display:flex;"><span>                <span style="color:#66d9ef">if</span> (instance <span style="color:#f92672">==</span> <span style="color:#66d9ef">null</span>) {
+</span></span><span style="display:flex;"><span>                    instance <span style="color:#f92672">=</span> <span style="color:#66d9ef">new</span> Singleton(); <span style="color:#75715e">// 关键</span>
+</span></span><span style="display:flex;"><span>                }
+</span></span><span style="display:flex;"><span>            }
+</span></span><span style="display:flex;"><span>        }
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">return</span> instance;
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p><code>instance = new Singleton()</code> 在字节码层面大概三步：</p>
+<ol>
+<li>分配内存空间</li>
+<li>调用构造方法初始化</li>
+<li>把引用赋值给 instance</li>
+</ol>
+<p>不加 volatile 的话，步骤 2 和 3 可能被重排成 3、2。线程 B 在第一个 if 判断时看到 instance 不为 null，直接返回了一个还没初始化完的对象。用了就 NPE 或者各种诡异 bug。</p>
+<p>加了 volatile，禁止了这个重排序，赋值一定在初始化之后。</p>
+<p>顺便说一句，这个坑在 Java 5 之前是没法靠 volatile 解决的。Java 5（JSR-133）增强了 volatile 语义之后，DCL 才真正安全了。</p>
+<h2 id="volatile-不能保证原子性">volatile 不能保证原子性<a hidden class="anchor" aria-hidden="true" href="#volatile-不能保证原子性">#</a></h2>
+<p>很多人以为 volatile 就是线程安全的，这是个常见误区。volatile 只保证可见性和有序性，<strong>不保证原子性</strong>。</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#66d9ef">private</span> <span style="color:#66d9ef">static</span> <span style="color:#66d9ef">volatile</span> <span style="color:#66d9ef">int</span> count <span style="color:#f92672">=</span> 0;
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">// 10个线程各执行1000次</span>
+</span></span><span style="display:flex;"><span>count<span style="color:#f92672">++</span>;  <span style="color:#75715e">// 这不是原子操作！</span>
+</span></span></code></pre></div><p><code>count++</code> 实际上是读-改-写三步。就算 volatile 保证每次读到最新值，两个线程还是可能同时读到同一个值，然后各自加 1 写回，等于少加了一次。</p>
+<p>要原子性，用 <code>AtomicInteger</code> 或者加锁：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#66d9ef">private</span> <span style="color:#66d9ef">static</span> AtomicInteger count <span style="color:#f92672">=</span> <span style="color:#66d9ef">new</span> AtomicInteger(0);
+</span></span><span style="display:flex;"><span>count.<span style="color:#a6e22e">incrementAndGet</span>(); <span style="color:#75715e">// CAS，原子操作</span>
+</span></span></code></pre></div><h2 id="总结一下">总结一下<a hidden class="anchor" aria-hidden="true" href="#总结一下">#</a></h2>
+<p>volatile 能保证：</p>
+<ul>
+<li><strong>可见性</strong>：修改后其他线程立刻可见</li>
+<li><strong>有序性</strong>：禁止指令重排</li>
+</ul>
+<p>volatile 不能保证：</p>
+<ul>
+<li><strong>原子性</strong>：复合操作还是不安全</li>
+</ul>
+<p>适用场景：状态标志位、DCL 中防止重排序、一写多读。多写场景还是得上锁或用原子类。</p>
+<p>其实吧，volatile 这个关键字看着简单，背后涉及的东西不少。但只要抓住&quot;可见性 + 有序性&quot;这两个点，再理解 happens-before 和内存屏障，就差不多了。面试够用，写代码也不会踩坑。</p>
+
+
+  </div>
+
+  <footer class="post-footer">
+    <ul class="post-tags">
+      <li><a href="http://localhost:49494/tags/java/">Java</a></li>
+      <li><a href="http://localhost:49494/tags/jmm/">JMM</a></li>
+      <li><a href="http://localhost:49494/tags/%E5%B9%B6%E5%8F%91/">并发</a></li>
+    </ul>
+<nav class="paginav">
+  <a class="prev" href="http://localhost:49494/posts/java-generics/">
+    <span class="title">« Prev</span>
+    <br>
+    <span>Java 泛型常见问题</span>
+  </a>
+  <a class="next" href="http://localhost:49494/posts/spring-aop-explained/">
+    <span class="title">Next »</span>
+    <br>
+    <span>Spring AOP 原理</span>
+  </a>
+</nav>
+
+  </footer>
+</article>
+    </main>
+    
+<footer class="footer">
+        <span>&copy; 2026 <a href="http://localhost:49494/">Weiming&#39;s Blog</a></span> · 
+
+    <span>
+        Powered by
+        <a href="https://gohugo.io/" rel="noopener noreferrer" target="_blank">Hugo</a> &
+        <a href="https://github.com/adityatelange/hugo-PaperMod/" rel="noopener" target="_blank">PaperMod</a>
+    </span>
+</footer>
+<a href="#top" aria-label="go to top" title="Go to Top (Alt + G)" class="top-link" id="top-link" accesskey="g">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 12 6" fill="currentColor">
+        <path d="M12 6H0l6-6z" />
+    </svg>
+</a>
+
+<script>
+    let menu = document.getElementById('menu');
+    if (menu) {
+        
+        const scrollPosition = localStorage.getItem("menu-scroll-position");
+        if (scrollPosition) {
+            menu.scrollLeft = parseInt(scrollPosition, 10);
+        }
+        
+        menu.onscroll = function () {
+            localStorage.setItem("menu-scroll-position", menu.scrollLeft);
+        }
+    }
+
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener("click", function (e) {
+            e.preventDefault();
+            var id = this.getAttribute("href").substr(1);
+            if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView({
+                    behavior: "smooth"
+                });
+            } else {
+                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView();
+            }
+            if (id === "top") {
+                history.replaceState(null, null, " ");
+            } else {
+                history.pushState(null, null, `#${id}`);
+            }
+        });
+    });
+
+</script>
+<script>
+    var mybutton = document.getElementById("top-link");
+    window.onscroll = function () {
+        if (document.body.scrollTop > 800 || document.documentElement.scrollTop > 800) {
+            mybutton.style.visibility = "visible";
+            mybutton.style.opacity = "1";
+        } else {
+            mybutton.style.visibility = "hidden";
+            mybutton.style.opacity = "0";
+        }
+    };
+
+</script>
+<script>
+    document.getElementById("theme-toggle").addEventListener("click", () => {
+        const html = document.querySelector("html");
+        if (html.dataset.theme === "dark") {
+            html.dataset.theme = 'light';
+            localStorage.setItem("pref-theme", 'light');
+        } else {
+            html.dataset.theme = 'dark';
+            localStorage.setItem("pref-theme", 'dark');
+        }
+    })
+
+</script>
+<script>
+    document.querySelectorAll('pre > code').forEach((codeblock) => {
+        const container = codeblock.parentNode.parentNode;
+
+        const copybutton = document.createElement('button');
+        copybutton.classList.add('copy-code');
+        copybutton.innerHTML = 'copy';
+
+        function copyingDone() {
+            copybutton.innerHTML = 'copied!';
+            setTimeout(() => {
+                copybutton.innerHTML = 'copy';
+            }, 2000);
+        }
+
+        copybutton.addEventListener('click', (cb) => {
+            if ('clipboard' in navigator) {
+                navigator.clipboard.writeText(codeblock.textContent);
+                copyingDone();
+                return;
+            }
+
+            const range = document.createRange();
+            range.selectNodeContents(codeblock);
+            const selection = window.getSelection();
+            selection.removeAllRanges();
+            selection.addRange(range);
+            try {
+                document.execCommand('copy');
+                copyingDone();
+            } catch (e) { };
+            selection.removeRange(range);
+        });
+
+        if (container.classList.contains("highlight")) {
+            container.appendChild(copybutton);
+        } else if (container.parentNode.firstChild == container) {
+            
+        } else if (codeblock.parentNode.parentNode.parentNode.parentNode.parentNode.nodeName == "TABLE") {
+            
+            codeblock.parentNode.parentNode.parentNode.parentNode.parentNode.appendChild(copybutton);
+        } else {
+            
+            codeblock.parentNode.appendChild(copybutton);
+        }
+    });
+</script>
+</body>
+
+</html>

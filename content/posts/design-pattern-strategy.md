@@ -1,5 +1,5 @@
 ---
-title: "策略模式干掉 if-else，代码瞬间清爽"
+title: "策略模式替代 if-else"
 date: 2024-05-15
 categories: ["设计模式"]
 tags: ["Java", "设计模式", "策略模式"]

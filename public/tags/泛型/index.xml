@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:content="http://purl.org/rss/1.0/modules/content/">
+  <channel>
+    <title>泛型 on Weiming&#39;s Blog</title>
+    <link>http://localhost:49494/tags/%E6%B3%9B%E5%9E%8B/</link>
+    <description>Recent content in 泛型 on Weiming&#39;s Blog</description>
+    <generator>Hugo</generator>
+    <language>zh-cn</language>
+    <lastBuildDate>Sat, 12 Aug 2023 00:00:00 +0000</lastBuildDate>
+    <atom:link href="http://localhost:49494/tags/%E6%B3%9B%E5%9E%8B/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>Java 泛型常见问题</title>
+      <link>http://localhost:49494/posts/java-generics/</link>
+      <pubDate>Sat, 12 Aug 2023 00:00:00 +0000</pubDate>
+      <guid>http://localhost:49494/posts/java-generics/</guid>
+      <description>&lt;h1 id=&#34;java-泛型这几个坑你肯定踩过&#34;&gt;Java 泛型这几个坑你肯定踩过&lt;/h1&gt;
+&lt;p&gt;Java 泛型这东西，看着简单用着顺手，直到踩坑才发现自己根本没搞懂。上周写作业一个泛型编译错误折腾了我一个多小时，气得把泛型重新学了一遍。&lt;/p&gt;
+&lt;h2 id=&#34;类型擦除到底擦了啥&#34;&gt;类型擦除到底擦了啥&lt;/h2&gt;
+&lt;p&gt;Java 的泛型是假泛型。编译之后泛型信息就没了，全变成 Object（或上界类型），这叫类型擦除。&lt;/p&gt;
+&lt;p&gt;&lt;code&gt;List&amp;lt;String&amp;gt;&lt;/code&gt; 和 &lt;code&gt;List&amp;lt;Integer&amp;gt;&lt;/code&gt;，到了 JVM 眼里都是 &lt;code&gt;List&lt;/code&gt;：&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;&#34;&gt;&lt;code class=&#34;language-java&#34; data-lang=&#34;java&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;List&lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;&lt;/span&gt;String&lt;span style=&#34;color:#f92672&#34;&gt;&amp;gt;&lt;/span&gt; strList &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;new&lt;/span&gt; ArrayList&lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;&amp;gt;&lt;/span&gt;();
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;List&lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;&lt;/span&gt;Integer&lt;span style=&#34;color:#f92672&#34;&gt;&amp;gt;&lt;/span&gt; intList &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;new&lt;/span&gt; ArrayList&lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;&amp;gt;&lt;/span&gt;();
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;System.&lt;span style=&#34;color:#a6e22e&#34;&gt;out&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;println&lt;/span&gt;(strList.&lt;span style=&#34;color:#a6e22e&#34;&gt;getClass&lt;/span&gt;() &lt;span style=&#34;color:#f92672&#34;&gt;==&lt;/span&gt; intList.&lt;span style=&#34;color:#a6e22e&#34;&gt;getClass&lt;/span&gt;());  &lt;span style=&#34;color:#75715e&#34;&gt;// true&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;泛型只在编译期做类型检查，运行时完全不知道 T 是啥。&lt;/p&gt;
+&lt;p&gt;所以这些事都做不了：&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;&#34;&gt;&lt;code class=&#34;language-java&#34; data-lang=&#34;java&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;new&lt;/span&gt; T();              &lt;span style=&#34;color:#75715e&#34;&gt;// 不知道 T 是啥，没法 new&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;new&lt;/span&gt; T&lt;span style=&#34;color:#f92672&#34;&gt;[&lt;/span&gt;10&lt;span style=&#34;color:#f92672&#34;&gt;]&lt;/span&gt;;            &lt;span style=&#34;color:#75715e&#34;&gt;// 不能创建泛型数组&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;T.&lt;span style=&#34;color:#a6e22e&#34;&gt;class&lt;/span&gt;;              &lt;span style=&#34;color:#75715e&#34;&gt;// 拿不到 T 的 Class&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;instanceof&lt;/span&gt; T;         &lt;span style=&#34;color:#75715e&#34;&gt;// 运行时不认识 T&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;想在泛型方法里创建实例？得把 &lt;code&gt;Class&amp;lt;T&amp;gt;&lt;/code&gt; 传进去：&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;&#34;&gt;&lt;code class=&#34;language-java&#34; data-lang=&#34;java&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;public&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;&lt;/span&gt;T&lt;span style=&#34;color:#f92672&#34;&gt;&amp;gt;&lt;/span&gt; T &lt;span style=&#34;color:#a6e22e&#34;&gt;create&lt;/span&gt;(Class&lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;&lt;/span&gt;T&lt;span style=&#34;color:#f92672&#34;&gt;&amp;gt;&lt;/span&gt; clazz) &lt;span style=&#34;color:#66d9ef&#34;&gt;throws&lt;/span&gt; Exception {
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;return&lt;/span&gt; clazz.&lt;span style=&#34;color:#a6e22e&#34;&gt;newInstance&lt;/span&gt;();
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;}
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;本质就是擦除之后 T 没了，你得自己把类型信息带进来。&lt;/p&gt;
+&lt;h2 id=&#34;通配符--extends-和--super&#34;&gt;通配符 ? extends 和 ? super&lt;/h2&gt;
+&lt;p&gt;这块是泛型里最让人头疼的部分。&lt;/p&gt;
+&lt;p&gt;&lt;code&gt;? extends T&lt;/code&gt; 表示&amp;quot;T 或 T 的子类&amp;quot;（上界通配符）：&lt;/p&gt;</description>
+    </item>
+  </channel>
+</rss>

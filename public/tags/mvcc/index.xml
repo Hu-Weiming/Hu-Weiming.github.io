@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:content="http://purl.org/rss/1.0/modules/content/">
+  <channel>
+    <title>MVCC on Weiming&#39;s Blog</title>
+    <link>http://localhost:49494/tags/mvcc/</link>
+    <description>Recent content in MVCC on Weiming&#39;s Blog</description>
+    <generator>Hugo</generator>
+    <language>zh-cn</language>
+    <lastBuildDate>Tue, 20 Aug 2024 00:00:00 +0000</lastBuildDate>
+    <atom:link href="http://localhost:49494/tags/mvcc/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>MySQL 事务与 MVCC</title>
+      <link>http://localhost:49494/posts/mysql-transaction-mvcc/</link>
+      <pubDate>Tue, 20 Aug 2024 00:00:00 +0000</pubDate>
+      <guid>http://localhost:49494/posts/mysql-transaction-mvcc/</guid>
+      <description>&lt;h1 id=&#34;mysql-事务和-mvcc面试必问&#34;&gt;MySQL 事务和 MVCC，面试必问&lt;/h1&gt;
+&lt;p&gt;事务和 MVCC 是 MySQL 面试里出场率最高的话题，没有之一。我准备秋招的时候翻来覆去看了好几遍，现在总算能说清楚了。&lt;/p&gt;
+&lt;h2 id=&#34;acid-四大特性&#34;&gt;ACID 四大特性&lt;/h2&gt;
+&lt;p&gt;事务四个特性，关键是理解怎么实现的：&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;strong&gt;A（原子性）&lt;/strong&gt;：要么全做要么全不做。靠 undo log，出错就回滚。&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;C（一致性）&lt;/strong&gt;：数据从一个合法状态到另一个合法状态。这其实是目标，靠其他三个保证。&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;I（隔离性）&lt;/strong&gt;：并发事务互不干扰。靠 MVCC + 锁。&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;D（持久性）&lt;/strong&gt;：提交后数据不丢。靠 redo log。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;面试光背定义没意思，面试官想听实现原理。比如为啥用 redo log？直接刷数据页是随机 IO，写 redo log 是顺序 IO，快得多。先写日志，宕机了根据 redo log 恢复就行。这叫 WAL（Write-Ahead Logging）。&lt;/p&gt;
+&lt;h2 id=&#34;四种隔离级别&#34;&gt;四种隔离级别&lt;/h2&gt;
+&lt;table&gt;
+  &lt;thead&gt;
+      &lt;tr&gt;
+          &lt;th&gt;隔离级别&lt;/th&gt;
+          &lt;th&gt;脏读&lt;/th&gt;
+          &lt;th&gt;不可重复读&lt;/th&gt;
+          &lt;th&gt;幻读&lt;/th&gt;
+      &lt;/tr&gt;
+  &lt;/thead&gt;
+  &lt;tbody&gt;
+      &lt;tr&gt;
+          &lt;td&gt;Read Uncommitted&lt;/td&gt;
+          &lt;td&gt;可能&lt;/td&gt;
+          &lt;td&gt;可能&lt;/td&gt;
+          &lt;td&gt;可能&lt;/td&gt;
+      &lt;/tr&gt;
+      &lt;tr&gt;
+          &lt;td&gt;Read Committed (RC)&lt;/td&gt;
+          &lt;td&gt;不可能&lt;/td&gt;
+          &lt;td&gt;可能&lt;/td&gt;
+          &lt;td&gt;可能&lt;/td&gt;
+      &lt;/tr&gt;
+      &lt;tr&gt;
+          &lt;td&gt;Repeatable Read (RR)&lt;/td&gt;
+          &lt;td&gt;不可能&lt;/td&gt;
+          &lt;td&gt;不可能&lt;/td&gt;
+          &lt;td&gt;可能&lt;/td&gt;
+      &lt;/tr&gt;
+      &lt;tr&gt;
+          &lt;td&gt;Serializable&lt;/td&gt;
+          &lt;td&gt;不可能&lt;/td&gt;
+          &lt;td&gt;不可能&lt;/td&gt;
+          &lt;td&gt;不可能&lt;/td&gt;
+      &lt;/tr&gt;
+  &lt;/tbody&gt;
+&lt;/table&gt;
+&lt;p&gt;InnoDB 默认 &lt;strong&gt;Repeatable Read&lt;/strong&gt;。有意思的是，InnoDB 的 RR 很大程度上也解决了幻读（通过 MVCC + 间隙锁）。&lt;/p&gt;</description>
+    </item>
+  </channel>
+</rss>

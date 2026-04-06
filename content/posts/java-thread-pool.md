@@ -1,5 +1,5 @@
 ---
-title: "线程池这玩意，用不好真的会出事"
+title: "Java 线程池原理与实践"
 date: 2023-02-10
 categories: ["Java基础"]
 tags: ["Java", "并发", "线程池"]

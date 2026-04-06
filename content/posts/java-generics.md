@@ -1,5 +1,5 @@
 ---
-title: "Java 泛型这几个坑你肯定踩过"
+title: "Java 泛型常见问题"
 date: 2023-08-12
 categories: ["Java基础"]
 tags: ["Java", "泛型"]

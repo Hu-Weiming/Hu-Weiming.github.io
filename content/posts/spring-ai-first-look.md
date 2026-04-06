@@ -1,5 +1,5 @@
 ---
-title: "Spring AI 初探：Spring 生态的 AI 新成员"
+title: "Spring AI 初探"
 date: 2026-01-20
 categories: ["AI"]
 tags: ["AI", "Spring AI", "Java"]

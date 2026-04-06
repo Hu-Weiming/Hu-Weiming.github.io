@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="en" dir="auto" data-theme="auto">
+
+<head><script src="/livereload.js?mindelay=10&amp;v=2&amp;port=49494&amp;path=livereload" data-no-instant defer></script><meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<meta name="robots" content="index, follow">
+<title>并发 | Weiming&#39;s Blog</title>
+<meta name="keywords" content="">
+<meta name="description" content="">
+<meta name="author" content="">
+<link rel="canonical" href="http://localhost:49494/tags/%E5%B9%B6%E5%8F%91/">
+<link crossorigin="anonymous" href="/assets/css/stylesheet.199042e659bc7245f5609d333d6c044eb554a0640849bb874e1dff8eb0f57209.css" integrity="sha256-GZBC5lm8ckX1YJ0zPWwETrVUoGQISbuHTh3/jrD1cgk=" rel="preload stylesheet" as="style">
+<link rel="icon" href="http://localhost:49494/favicon.ico">
+<link rel="icon" type="image/png" sizes="16x16" href="http://localhost:49494/favicon-16x16.png">
+<link rel="icon" type="image/png" sizes="32x32" href="http://localhost:49494/favicon-32x32.png">
+<link rel="apple-touch-icon" href="http://localhost:49494/apple-touch-icon.png">
+<link rel="mask-icon" href="http://localhost:49494/safari-pinned-tab.svg">
+<meta name="theme-color" content="#2e2e33">
+<meta name="msapplication-TileColor" content="#2e2e33">
+<link rel="alternate" type="application/rss+xml" href="http://localhost:49494/tags/%E5%B9%B6%E5%8F%91/index.xml" title="rss">
+<link rel="alternate" hreflang="en" href="http://localhost:49494/tags/%E5%B9%B6%E5%8F%91/">
+<noscript>
+    <style>
+        #theme-toggle,
+        .top-link {
+            display: none;
+        }
+
+    </style>
+    <style>
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --theme: rgb(29, 30, 32);
+                --entry: rgb(46, 46, 51);
+                --primary: rgb(218, 218, 219);
+                --secondary: rgb(155, 156, 157);
+                --tertiary: rgb(65, 66, 68);
+                --content: rgb(196, 196, 197);
+                --code-block-bg: rgb(46, 46, 51);
+                --code-bg: rgb(55, 56, 62);
+                --border: rgb(51, 51, 51);
+                color-scheme: dark;
+            }
+
+            .list {
+                background: var(--theme);
+            }
+
+            .toc {
+                background: var(--entry);
+            }
+        }
+
+        @media (prefers-color-scheme: light) {
+            .list::-webkit-scrollbar-thumb {
+                border-color: var(--code-bg);
+            }
+        }
+
+    </style>
+</noscript>
+<script>
+    if (localStorage.getItem("pref-theme") === "dark") {
+        document.querySelector("html").dataset.theme = 'dark';
+    } else if (localStorage.getItem("pref-theme") === "light") {
+       document.querySelector("html").dataset.theme = 'light';
+    } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        document.querySelector("html").dataset.theme = 'dark';
+    } else {
+        document.querySelector("html").dataset.theme = 'light';
+    }
+
+</script><meta property="og:url" content="http://localhost:49494/tags/%E5%B9%B6%E5%8F%91/">
+  <meta property="og:site_name" content="Weiming&#39;s Blog">
+  <meta property="og:title" content="并发">
+  <meta property="og:locale" content="zh_cn">
+  <meta property="og:type" content="website">
+
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:title" content="并发">
+
+</head>
+<body class="list" id="top">
+    <header class="header">
+    <nav class="nav">
+        <div class="logo">
+            <a href="http://localhost:49494/" accesskey="h" title="Weiming&#39;s Blog (Alt + H)">Weiming&#39;s Blog</a>
+            <div class="logo-switches">
+                <button id="theme-toggle" accesskey="t" title="(Alt + T)" aria-label="Toggle theme">
+                    <svg id="moon" xmlns="http://www.w3.org/2000/svg" width="24" height="18" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                    </svg>
+                    <svg id="sun" xmlns="http://www.w3.org/2000/svg" width="24" height="18" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="5"></circle>
+                        <line x1="12" y1="1" x2="12" y2="3"></line>
+                        <line x1="12" y1="21" x2="12" y2="23"></line>
+                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                        <line x1="1" y1="12" x2="3" y2="12"></line>
+                        <line x1="21" y1="12" x2="23" y2="12"></line>
+                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                    </svg>
+                </button>
+            </div>
+        </div>
+        <ul id="menu">
+            <li>
+                <a href="http://localhost:49494/archives/" title="归档">
+                    <span>归档</span>
+                </a>
+            </li>
+            <li>
+                <a href="http://localhost:49494/categories/" title="分类">
+                    <span>分类</span>
+                </a>
+            </li>
+            <li>
+                <a href="http://localhost:49494/tags/" title="标签">
+                    <span>标签</span>
+                </a>
+            </li>
+            <li>
+                <a href="http://localhost:49494/about/" title="关于">
+                    <span>关于</span>
+                </a>
+            </li>
+        </ul>
+    </nav>
+</header>
+<main class="main"> 
+<header class="page-header"><div class="breadcrumbs"><a href="http://localhost:49494/">Home</a>&nbsp;»&nbsp;<a href="http://localhost:49494/tags/">Tags</a></div>
+  <h1>
+    并发
+  </h1>
+</header>
+
+<article class="post-entry tag-entry"> 
+  <header class="entry-header">
+    <h2 class="entry-hint-parent">volatile 与 Java 内存模型
+    </h2>
+  </header>
+  <div class="entry-content">
+    <p>volatile 到底能保证什么 Java 内存模型简单说 聊 volatile 之前，得先说说 Java 内存模型（JMM）。放心，不讲太深，够理解 volatile 就行。
+JMM 规定了线程和内存之间的关系。简单理解：每个线程有自己的工作内存（你可以想象成 CPU 缓存），线程操作变量不是直接改主内存，而是先拷贝一份到工作内存，改完再写回去。
+这就埋下了隐患——线程 A 改了变量，线程 B 可能看不到，因为 B 还在用自己工作内存里的旧值。
+主内存: x = 0 线程A工作内存: x = 0 → x = 1 → 写回主内存 线程B工作内存: x = 0 → 还是0！没刷新！ 这就是可见性问题。
+可见性：volatile 的第一个保证 来看个经典例子：
+public class VisibilityDemo { private static boolean flag = true; public static void main(String[] args) throws InterruptedException { new Thread(() -&gt; { while (flag) { // 忙等待 } System.out.println(&#34;线程退出&#34;); }).start(); Thread.sleep(1000); flag = false; System.out.println(&#34;已设置 flag = false&#34;); } } 你觉得子线程能退出吗？答案是：不一定。JIT 编译器可能把 while(flag) 优化成 while(true)，因为它发现当前线程里没人改 flag。
+...</p>
+  </div>
+  <footer class="entry-footer"><span title='2023-07-20 00:00:00 +0000 UTC'>July 20, 2023</span>&nbsp;·&nbsp;<span>2 min</span></footer>
+  <a class="entry-link" aria-label="post link to volatile 与 Java 内存模型" href="http://localhost:49494/posts/java-memory-model-volatile/"></a>
+</article>
+
+<article class="post-entry tag-entry"> 
+  <header class="entry-header">
+    <h2 class="entry-hint-parent">Java 线程池原理与实践
+    </h2>
+  </header>
+  <div class="entry-content">
+    <p>线程池这玩意，用不好真的会出事 上周实验室项目出了个线上问题，排查了一下午发现是线程池配置不对导致的 OOM。这事让我意识到，线程池看着简单，用不好是真会出事的。
+为什么要用线程池 你可能觉得，new 一个 Thread 跑任务不就完了？能跑，但有几个问题：
+创建线程有开销，操作系统要分配栈内存、做系统调用 任务量大的时候无限创建线程，系统资源扛不住 线程太多 CPU 光忙着上下文切换，正经活干不了 线程池的思路很简单：提前创建好一批线程，任务来了从池子里拿线程执行，执行完放回去复用。
+核心参数搞清楚 ThreadPoolExecutor 的构造方法有 7 个参数，面试最爱问：
+public ThreadPoolExecutor( int corePoolSize, // 核心线程数 int maximumPoolSize, // 最大线程数 long keepAliveTime, // 非核心线程存活时间 TimeUnit unit, // 时间单位 BlockingQueue&lt;Runnable&gt; workQueue, // 任务队列 ThreadFactory threadFactory, // 线程工厂 RejectedExecutionHandler handler // 拒绝策略 ) 任务提交的执行流程：
+当前线程数 &lt; corePoolSize，直接创建新线程执行 当前线程数 &gt;= corePoolSize，任务放进 workQueue 排队 workQueue 满了，且线程数 &lt; maximumPoolSize，创建非核心线程 线程数到了 maximumPoolSize 队列也满了，触发拒绝策略 注意这个顺序——是队列满了才创建超过核心数的线程。我之前一直以为先涨线程数再放队列，看源码才发现搞反了。
+四种拒绝策略 线程池扛不住的时候，拒绝策略决定怎么处理新来的任务：
+AbortPolicy（默认）：直接抛 RejectedExecutionException。简单粗暴，至少你知道任务被拒了。 CallerRunsPolicy：让提交任务的线程自己跑。妙处在于调用方忙着执行就没空提交新的，天然限流。 DiscardPolicy：默默丢掉，不抛异常。很危险，你完全不知道任务丢了。 DiscardOldestPolicy：丢掉队列最老的任务，然后重试提交。 实际项目用得最多的是 AbortPolicy 和 CallerRunsPolicy。DiscardPolicy 千万别用，出了问题排查不出来。
+...</p>
+  </div>
+  <footer class="entry-footer"><span title='2023-02-10 00:00:00 +0000 UTC'>February 10, 2023</span>&nbsp;·&nbsp;<span>1 min</span></footer>
+  <a class="entry-link" aria-label="post link to Java 线程池原理与实践" href="http://localhost:49494/posts/java-thread-pool/"></a>
+</article>
+
+<article class="post-entry tag-entry"> 
+  <header class="entry-header">
+    <h2 class="entry-hint-parent">ConcurrentHashMap 线程安全原理
+    </h2>
+  </header>
+  <div class="entry-content">
+    <p>ConcurrentHashMap 到底怎么保证线程安全的 上篇写了 HashMap，有同学私信问我 ConcurrentHashMap 和 HashMap 有什么区别。其实吧，区别大了去了，JDK8 的 ConcurrentHashMap 基本是重写的，跟 JDK7 完全两个思路。
+花了差不多一周把源码理清楚，这篇来聊聊它到底怎么在并发场景下保证线程安全。
+JDK7 的 Segment 分段锁 先说 JDK7 的方案，面试还是会问。
+JDK7 的 ConcurrentHashMap 内部有一个 Segment 数组，每个 Segment 继承了 ReentrantLock，里面维护一个 HashEntry 数组。
+简单说就是把整个 Map 分成好几段，每段有自己的锁。操作某个 key 时，先定位到它所在的 Segment，再锁那个 Segment。不同 Segment 之间互不影响，可以并发操作。
+默认 16 个 Segment，理论上最多 16 个线程同时写入。
+这个设计比给整个 Map 加一把大锁好很多，但也有局限——Segment 个数初始化之后就固定了，而且结构比较复杂。
+JDK8 彻底重写了 JDK8 抛弃了 Segment，结构改成跟 HashMap 一样的 Node&lt;K,V&gt;[] 数组。线程安全靠 CAS &#43; synchronized，粒度细到了每个桶。
+transient volatile Node&lt;K,V&gt;[] table; 注意 volatile。table 引用是 volatile 的，保证扩容时新数组对其他线程可见。每个 Node 的 val 和 next 也是 volatile 的，保证读操作不需要加锁。
+...</p>
+  </div>
+  <footer class="entry-footer"><span title='2022-11-20 00:00:00 +0000 UTC'>November 20, 2022</span>&nbsp;·&nbsp;<span>2 min</span></footer>
+  <a class="entry-link" aria-label="post link to ConcurrentHashMap 线程安全原理" href="http://localhost:49494/posts/concurrenthashmap-deep-dive/"></a>
+</article>
+    </main>
+    
+<footer class="footer">
+        <span>&copy; 2026 <a href="http://localhost:49494/">Weiming&#39;s Blog</a></span> · 
+
+    <span>
+        Powered by
+        <a href="https://gohugo.io/" rel="noopener noreferrer" target="_blank">Hugo</a> &
+        <a href="https://github.com/adityatelange/hugo-PaperMod/" rel="noopener" target="_blank">PaperMod</a>
+    </span>
+</footer>
+<a href="#top" aria-label="go to top" title="Go to Top (Alt + G)" class="top-link" id="top-link" accesskey="g">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 12 6" fill="currentColor">
+        <path d="M12 6H0l6-6z" />
+    </svg>
+</a>
+
+<script>
+    let menu = document.getElementById('menu');
+    if (menu) {
+        
+        const scrollPosition = localStorage.getItem("menu-scroll-position");
+        if (scrollPosition) {
+            menu.scrollLeft = parseInt(scrollPosition, 10);
+        }
+        
+        menu.onscroll = function () {
+            localStorage.setItem("menu-scroll-position", menu.scrollLeft);
+        }
+    }
+
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener("click", function (e) {
+            e.preventDefault();
+            var id = this.getAttribute("href").substr(1);
+            if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView({
+                    behavior: "smooth"
+                });
+            } else {
+                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView();
+            }
+            if (id === "top") {
+                history.replaceState(null, null, " ");
+            } else {
+                history.pushState(null, null, `#${id}`);
+            }
+        });
+    });
+
+</script>
+<script>
+    var mybutton = document.getElementById("top-link");
+    window.onscroll = function () {
+        if (document.body.scrollTop > 800 || document.documentElement.scrollTop > 800) {
+            mybutton.style.visibility = "visible";
+            mybutton.style.opacity = "1";
+        } else {
+            mybutton.style.visibility = "hidden";
+            mybutton.style.opacity = "0";
+        }
+    };
+
+</script>
+<script>
+    document.getElementById("theme-toggle").addEventListener("click", () => {
+        const html = document.querySelector("html");
+        if (html.dataset.theme === "dark") {
+            html.dataset.theme = 'light';
+            localStorage.setItem("pref-theme", 'light');
+        } else {
+            html.dataset.theme = 'dark';
+            localStorage.setItem("pref-theme", 'dark');
+        }
+    })
+
+</script>
+</body>
+
+</html>

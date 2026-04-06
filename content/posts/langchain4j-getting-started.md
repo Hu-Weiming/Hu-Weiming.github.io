@@ -1,5 +1,5 @@
 ---
-title: "LangChain4j 初体验：Java 也能玩 LLM"
+title: "LangChain4j 入门"
 date: 2025-08-20
 categories: ["AI"]
 tags: ["AI", "LangChain4j", "Java"]

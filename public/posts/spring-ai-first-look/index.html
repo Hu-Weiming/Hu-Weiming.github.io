@@ -1,0 +1,522 @@
+<!DOCTYPE html>
+<html lang="en" dir="auto" data-theme="auto">
+
+<head><script src="/livereload.js?mindelay=10&amp;v=2&amp;port=49494&amp;path=livereload" data-no-instant defer></script><meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<meta name="robots" content="index, follow">
+<title>Spring AI 初探 | Weiming&#39;s Blog</title>
+<meta name="keywords" content="AI, Spring AI, Java">
+<meta name="description" content="Spring AI 初探：Spring 生态的 AI 新成员
+Spring AI 是什么
+Spring 官方终于下场做 AI 框架了。Spring AI 是 Spring 生态里的新成员，目标是让 Java/Spring 开发者能方便地集成各种 AI 能力。
+之前 Java 圈搞 AI 开发主要靠 LangChain4j，现在 Spring 官方也入局了，竞争挺有意思的。
+Spring AI 的风格很&quot;Spring&quot;：自动配置、Starter 依赖、注解驱动。用过 Spring Boot 的人上手会非常自然。
+ChatClient：核心 API
+ChatClient 是 Spring AI 最核心的接口，设计思路类似 RestTemplate / WebClient。
+先加依赖（以 OpenAI 为例）：
+&lt;dependency&gt;
+    &lt;groupId&gt;org.springframework.ai&lt;/groupId&gt;
+    &lt;artifactId&gt;spring-ai-openai-spring-boot-starter&lt;/artifactId&gt;
+&lt;/dependency&gt;
+配置：
+spring:
+  ai:
+    openai:
+      api-key: ${OPENAI_API_KEY}
+      chat:
+        options:
+          model: gpt-4o-mini
+使用起来：
+@RestController
+public class ChatController {
+    private final ChatClient chatClient;
+    
+    public ChatController(ChatClient.Builder builder) {
+        this.chatClient = builder.build();
+    }
+    
+    @GetMapping(&#34;/chat&#34;)
+    public String chat(@RequestParam String message) {
+        return chatClient.prompt()
+                .user(message)
+                .call()
+                .content();
+    }
+}
+链式调用写起来很流畅：.prompt().user(message).call().content()。想要流式输出？把 .call() 换成 .stream() 就行。">
+<meta name="author" content="">
+<link rel="canonical" href="http://localhost:49494/posts/spring-ai-first-look/">
+<link crossorigin="anonymous" href="/assets/css/stylesheet.199042e659bc7245f5609d333d6c044eb554a0640849bb874e1dff8eb0f57209.css" integrity="sha256-GZBC5lm8ckX1YJ0zPWwETrVUoGQISbuHTh3/jrD1cgk=" rel="preload stylesheet" as="style">
+<link rel="icon" href="http://localhost:49494/favicon.ico">
+<link rel="icon" type="image/png" sizes="16x16" href="http://localhost:49494/favicon-16x16.png">
+<link rel="icon" type="image/png" sizes="32x32" href="http://localhost:49494/favicon-32x32.png">
+<link rel="apple-touch-icon" href="http://localhost:49494/apple-touch-icon.png">
+<link rel="mask-icon" href="http://localhost:49494/safari-pinned-tab.svg">
+<meta name="theme-color" content="#2e2e33">
+<meta name="msapplication-TileColor" content="#2e2e33">
+<link rel="alternate" hreflang="en" href="http://localhost:49494/posts/spring-ai-first-look/">
+<noscript>
+    <style>
+        #theme-toggle,
+        .top-link {
+            display: none;
+        }
+
+    </style>
+    <style>
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --theme: rgb(29, 30, 32);
+                --entry: rgb(46, 46, 51);
+                --primary: rgb(218, 218, 219);
+                --secondary: rgb(155, 156, 157);
+                --tertiary: rgb(65, 66, 68);
+                --content: rgb(196, 196, 197);
+                --code-block-bg: rgb(46, 46, 51);
+                --code-bg: rgb(55, 56, 62);
+                --border: rgb(51, 51, 51);
+                color-scheme: dark;
+            }
+
+            .list {
+                background: var(--theme);
+            }
+
+            .toc {
+                background: var(--entry);
+            }
+        }
+
+        @media (prefers-color-scheme: light) {
+            .list::-webkit-scrollbar-thumb {
+                border-color: var(--code-bg);
+            }
+        }
+
+    </style>
+</noscript>
+<script>
+    if (localStorage.getItem("pref-theme") === "dark") {
+        document.querySelector("html").dataset.theme = 'dark';
+    } else if (localStorage.getItem("pref-theme") === "light") {
+       document.querySelector("html").dataset.theme = 'light';
+    } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        document.querySelector("html").dataset.theme = 'dark';
+    } else {
+        document.querySelector("html").dataset.theme = 'light';
+    }
+
+</script><meta property="og:url" content="http://localhost:49494/posts/spring-ai-first-look/">
+  <meta property="og:site_name" content="Weiming&#39;s Blog">
+  <meta property="og:title" content="Spring AI 初探">
+  <meta property="og:description" content="Spring AI 初探：Spring 生态的 AI 新成员 Spring AI 是什么 Spring 官方终于下场做 AI 框架了。Spring AI 是 Spring 生态里的新成员，目标是让 Java/Spring 开发者能方便地集成各种 AI 能力。
+之前 Java 圈搞 AI 开发主要靠 LangChain4j，现在 Spring 官方也入局了，竞争挺有意思的。
+Spring AI 的风格很&#34;Spring&#34;：自动配置、Starter 依赖、注解驱动。用过 Spring Boot 的人上手会非常自然。
+ChatClient：核心 API ChatClient 是 Spring AI 最核心的接口，设计思路类似 RestTemplate / WebClient。
+先加依赖（以 OpenAI 为例）：
+&lt;dependency&gt; &lt;groupId&gt;org.springframework.ai&lt;/groupId&gt; &lt;artifactId&gt;spring-ai-openai-spring-boot-starter&lt;/artifactId&gt; &lt;/dependency&gt; 配置：
+spring: ai: openai: api-key: ${OPENAI_API_KEY} chat: options: model: gpt-4o-mini 使用起来：
+@RestController public class ChatController { private final ChatClient chatClient; public ChatController(ChatClient.Builder builder) { this.chatClient = builder.build(); } @GetMapping(&#34;/chat&#34;) public String chat(@RequestParam String message) { return chatClient.prompt() .user(message) .call() .content(); } } 链式调用写起来很流畅：.prompt().user(message).call().content()。想要流式输出？把 .call() 换成 .stream() 就行。">
+  <meta property="og:locale" content="zh_cn">
+  <meta property="og:type" content="article">
+    <meta property="article:section" content="posts">
+    <meta property="article:published_time" content="2026-01-20T00:00:00+00:00">
+    <meta property="article:modified_time" content="2026-01-20T00:00:00+00:00">
+    <meta property="article:tag" content="AI">
+    <meta property="article:tag" content="Spring AI">
+    <meta property="article:tag" content="Java">
+
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:title" content="Spring AI 初探">
+  <meta name="twitter:description" content="Spring AI 初探：Spring 生态的 AI 新成员 Spring AI 是什么 Spring 官方终于下场做 AI 框架了。Spring AI 是 Spring 生态里的新成员，目标是让 Java/Spring 开发者能方便地集成各种 AI 能力。
+之前 Java 圈搞 AI 开发主要靠 LangChain4j，现在 Spring 官方也入局了，竞争挺有意思的。
+Spring AI 的风格很&#34;Spring&#34;：自动配置、Starter 依赖、注解驱动。用过 Spring Boot 的人上手会非常自然。
+ChatClient：核心 API ChatClient 是 Spring AI 最核心的接口，设计思路类似 RestTemplate / WebClient。
+先加依赖（以 OpenAI 为例）：
+&lt;dependency&gt; &lt;groupId&gt;org.springframework.ai&lt;/groupId&gt; &lt;artifactId&gt;spring-ai-openai-spring-boot-starter&lt;/artifactId&gt; &lt;/dependency&gt; 配置：
+spring: ai: openai: api-key: ${OPENAI_API_KEY} chat: options: model: gpt-4o-mini 使用起来：
+@RestController public class ChatController { private final ChatClient chatClient; public ChatController(ChatClient.Builder builder) { this.chatClient = builder.build(); } @GetMapping(&#34;/chat&#34;) public String chat(@RequestParam String message) { return chatClient.prompt() .user(message) .call() .content(); } } 链式调用写起来很流畅：.prompt().user(message).call().content()。想要流式输出？把 .call() 换成 .stream() 就行。">
+
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {
+      "@type": "ListItem",
+      "position":  1 ,
+      "name": "Posts",
+      "item": "http://localhost:49494/posts/"
+    }, 
+    {
+      "@type": "ListItem",
+      "position":  2 ,
+      "name": "Spring AI 初探",
+      "item": "http://localhost:49494/posts/spring-ai-first-look/"
+    }
+  ]
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "Spring AI 初探",
+  "name": "Spring AI 初探",
+  "description": "Spring AI 初探：Spring 生态的 AI 新成员 Spring AI 是什么 Spring 官方终于下场做 AI 框架了。Spring AI 是 Spring 生态里的新成员，目标是让 Java/Spring 开发者能方便地集成各种 AI 能力。\n之前 Java 圈搞 AI 开发主要靠 LangChain4j，现在 Spring 官方也入局了，竞争挺有意思的。\nSpring AI 的风格很\u0026quot;Spring\u0026quot;：自动配置、Starter 依赖、注解驱动。用过 Spring Boot 的人上手会非常自然。\nChatClient：核心 API ChatClient 是 Spring AI 最核心的接口，设计思路类似 RestTemplate / WebClient。\n先加依赖（以 OpenAI 为例）：\n\u0026lt;dependency\u0026gt; \u0026lt;groupId\u0026gt;org.springframework.ai\u0026lt;/groupId\u0026gt; \u0026lt;artifactId\u0026gt;spring-ai-openai-spring-boot-starter\u0026lt;/artifactId\u0026gt; \u0026lt;/dependency\u0026gt; 配置：\nspring: ai: openai: api-key: ${OPENAI_API_KEY} chat: options: model: gpt-4o-mini 使用起来：\n@RestController public class ChatController { private final ChatClient chatClient; public ChatController(ChatClient.Builder builder) { this.chatClient = builder.build(); } @GetMapping(\u0026#34;/chat\u0026#34;) public String chat(@RequestParam String message) { return chatClient.prompt() .user(message) .call() .content(); } } 链式调用写起来很流畅：.prompt().user(message).call().content()。想要流式输出？把 .call() 换成 .stream() 就行。\n",
+  "keywords": [
+    "AI", "Spring AI", "Java"
+  ],
+  "articleBody": "Spring AI 初探：Spring 生态的 AI 新成员 Spring AI 是什么 Spring 官方终于下场做 AI 框架了。Spring AI 是 Spring 生态里的新成员，目标是让 Java/Spring 开发者能方便地集成各种 AI 能力。\n之前 Java 圈搞 AI 开发主要靠 LangChain4j，现在 Spring 官方也入局了，竞争挺有意思的。\nSpring AI 的风格很\"Spring\"：自动配置、Starter 依赖、注解驱动。用过 Spring Boot 的人上手会非常自然。\nChatClient：核心 API ChatClient 是 Spring AI 最核心的接口，设计思路类似 RestTemplate / WebClient。\n先加依赖（以 OpenAI 为例）：\norg.springframework.ai spring-ai-openai-spring-boot-starter 配置：\nspring: ai: openai: api-key: ${OPENAI_API_KEY} chat: options: model: gpt-4o-mini 使用起来：\n@RestController public class ChatController { private final ChatClient chatClient; public ChatController(ChatClient.Builder builder) { this.chatClient = builder.build(); } @GetMapping(\"/chat\") public String chat(@RequestParam String message) { return chatClient.prompt() .user(message) .call() .content(); } } 链式调用写起来很流畅：.prompt().user(message).call().content()。想要流式输出？把 .call() 换成 .stream() 就行。\nPrompt 模板 Spring AI 支持用模板构造提示词：\n@GetMapping(\"/translate\") public String translate(@RequestParam String text, @RequestParam String lang) { return chatClient.prompt() .system(\"你是一个专业翻译\") .user(u -\u003e u.text(\"请将以下文本翻译成{lang}：{text}\") .param(\"lang\", lang) .param(\"text\", text)) .call() .content(); } 也能从 classpath 文件加载模板。Spring AI 用的模板引擎是 StringTemplate，变量语法跟 Spring 的 ${} 不同，用的是 {}，我第一次用的时候没注意到这个差别，debug 了好一会儿。\n无缝切换到 Ollama 想用本地模型？换个 Starter 和配置就行：\norg.springframework.ai spring-ai-ollama-spring-boot-starter spring: ai: ollama: base-url: http://localhost:11434 chat: options: model: qwen2.5:7b 代码完全不动。ChatClient 的用法一模一样，只是底层换了模型提供商。这个抽象层做得确实好，典型的 Spring 设计哲学——面向接口编程。\n和 LangChain4j 对比 两个都玩了一段时间，聊聊对比。\nSpring AI 的好处：\n原生 Spring 生态，自动配置省心 ChatClient API 设计优雅，链式调用很流畅 切���模型后端只改配置，代码不动 长期来看跟 Spring 全家桶的整合会越来越深 LangChain4j 的好处：\n功能更全，AiServices、Tools、Agent 更成熟 版本更稳定，已经有不少生产案例 社区活跃，文档和示例丰富 不绑定 Spring，更灵活 如果项目是 Spring Boot 的，Spring AI 用着确实更顺手。但需要 RAG、Agent、Function Calling 这些高级功能的话，LangChain4j 目前更完善。\n我的判断：Spring AI 正式版出来之后，在 Spring 项目中大概率会成为主流选择。但现在还在早期��段，API 可能变动，生产环境要谨慎。\n小结 Spring AI 给了 Java 开发者一个原生的 AI 集成方案。ChatClient + 自动配置的体验很好，切换不同模型后端也很方便。\n其实吧，Java 生态在 AI 这块虽然起步��� Python 晚，但 Spring AI 和 LangChain4j 都在快速发展。作为 Java 开发者，现在入场 AI 开发并不晚。工具已经够用了，剩下的就是找场景去实践。\n",
+  "wordCount" : "228",
+  "inLanguage": "en",
+  "datePublished": "2026-01-20T00:00:00Z",
+  "dateModified": "2026-01-20T00:00:00Z",
+  "mainEntityOfPage": {
+    "@type": "WebPage",
+    "@id": "http://localhost:49494/posts/spring-ai-first-look/"
+  },
+  "publisher": {
+    "@type": "Organization",
+    "name": "Weiming's Blog",
+    "logo": {
+      "@type": "ImageObject",
+      "url": "http://localhost:49494/favicon.ico"
+    }
+  }
+}
+</script>
+</head>
+<body id="top">
+    <header class="header">
+    <nav class="nav">
+        <div class="logo">
+            <a href="http://localhost:49494/" accesskey="h" title="Weiming&#39;s Blog (Alt + H)">Weiming&#39;s Blog</a>
+            <div class="logo-switches">
+                <button id="theme-toggle" accesskey="t" title="(Alt + T)" aria-label="Toggle theme">
+                    <svg id="moon" xmlns="http://www.w3.org/2000/svg" width="24" height="18" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                    </svg>
+                    <svg id="sun" xmlns="http://www.w3.org/2000/svg" width="24" height="18" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="5"></circle>
+                        <line x1="12" y1="1" x2="12" y2="3"></line>
+                        <line x1="12" y1="21" x2="12" y2="23"></line>
+                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                        <line x1="1" y1="12" x2="3" y2="12"></line>
+                        <line x1="21" y1="12" x2="23" y2="12"></line>
+                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                    </svg>
+                </button>
+            </div>
+        </div>
+        <ul id="menu">
+            <li>
+                <a href="http://localhost:49494/archives/" title="归档">
+                    <span>归档</span>
+                </a>
+            </li>
+            <li>
+                <a href="http://localhost:49494/categories/" title="分类">
+                    <span>分类</span>
+                </a>
+            </li>
+            <li>
+                <a href="http://localhost:49494/tags/" title="标签">
+                    <span>标签</span>
+                </a>
+            </li>
+            <li>
+                <a href="http://localhost:49494/about/" title="关于">
+                    <span>关于</span>
+                </a>
+            </li>
+        </ul>
+    </nav>
+</header>
+<main class="main">
+
+<article class="post-single">
+  <header class="post-header">
+    <div class="breadcrumbs"><a href="http://localhost:49494/">Home</a>&nbsp;»&nbsp;<a href="http://localhost:49494/posts/">Posts</a></div>
+    <h1 class="post-title entry-hint-parent">
+      Spring AI 初探
+    </h1>
+    <div class="post-meta"><span title='2026-01-20 00:00:00 +0000 UTC'>January 20, 2026</span>&nbsp;·&nbsp;<span>2 min</span>
+
+</div>
+  </header> <div class="toc">
+    <details >
+        <summary accesskey="c" title="(Alt + C)">
+            <span class="details">Table of Contents</span>
+        </summary>
+
+        <div class="inner"><ul>
+                <li>
+                    <a href="#spring-ai-%e5%88%9d%e6%8e%a2spring-%e7%94%9f%e6%80%81%e7%9a%84-ai-%e6%96%b0%e6%88%90%e5%91%98" aria-label="Spring AI 初探：Spring 生态的 AI 新成员">Spring AI 初探：Spring 生态的 AI 新成员</a><ul>
+                        
+                <li>
+                    <a href="#spring-ai-%e6%98%af%e4%bb%80%e4%b9%88" aria-label="Spring AI 是什么">Spring AI 是什么</a></li>
+                <li>
+                    <a href="#chatclient%e6%a0%b8%e5%bf%83-api" aria-label="ChatClient：核心 API">ChatClient：核心 API</a></li>
+                <li>
+                    <a href="#prompt-%e6%a8%a1%e6%9d%bf" aria-label="Prompt 模板">Prompt 模板</a></li>
+                <li>
+                    <a href="#%e6%97%a0%e7%bc%9d%e5%88%87%e6%8d%a2%e5%88%b0-ollama" aria-label="无缝切换到 Ollama">无缝切换到 Ollama</a></li>
+                <li>
+                    <a href="#%e5%92%8c-langchain4j-%e5%af%b9%e6%af%94" aria-label="和 LangChain4j 对比">和 LangChain4j 对比</a></li>
+                <li>
+                    <a href="#%e5%b0%8f%e7%bb%93" aria-label="小结">小结</a>
+                </li>
+            </ul>
+            </li>
+            </ul>
+        </div>
+    </details>
+</div>
+
+  <div class="post-content"><h1 id="spring-ai-初探spring-生态的-ai-新成员">Spring AI 初探：Spring 生态的 AI 新成员<a hidden class="anchor" aria-hidden="true" href="#spring-ai-初探spring-生态的-ai-新成员">#</a></h1>
+<h2 id="spring-ai-是什么">Spring AI 是什么<a hidden class="anchor" aria-hidden="true" href="#spring-ai-是什么">#</a></h2>
+<p>Spring 官方终于下场做 AI 框架了。Spring AI 是 Spring 生态里的新成员，目标是让 Java/Spring 开发者能方便地集成各种 AI 能力。</p>
+<p>之前 Java 圈搞 AI 开发主要靠 LangChain4j，现在 Spring 官方也入局了，竞争挺有意思的。</p>
+<p>Spring AI 的风格很&quot;Spring&quot;：自动配置、Starter 依赖、注解驱动。用过 Spring Boot 的人上手会非常自然。</p>
+<h2 id="chatclient核心-api">ChatClient：核心 API<a hidden class="anchor" aria-hidden="true" href="#chatclient核心-api">#</a></h2>
+<p>ChatClient 是 Spring AI 最核心的接口，设计思路类似 RestTemplate / WebClient。</p>
+<p>先加依赖（以 OpenAI 为例）：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-xml" data-lang="xml"><span style="display:flex;"><span><span style="color:#f92672">&lt;dependency&gt;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">&lt;groupId&gt;</span>org.springframework.ai<span style="color:#f92672">&lt;/groupId&gt;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">&lt;artifactId&gt;</span>spring-ai-openai-spring-boot-starter<span style="color:#f92672">&lt;/artifactId&gt;</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">&lt;/dependency&gt;</span>
+</span></span></code></pre></div><p>配置：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-yaml" data-lang="yaml"><span style="display:flex;"><span><span style="color:#f92672">spring</span>:
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">ai</span>:
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">openai</span>:
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">api-key</span>: <span style="color:#ae81ff">${OPENAI_API_KEY}</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">chat</span>:
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">options</span>:
+</span></span><span style="display:flex;"><span>          <span style="color:#f92672">model</span>: <span style="color:#ae81ff">gpt-4o-mini</span>
+</span></span></code></pre></div><p>使用起来：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#a6e22e">@RestController</span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">public</span> <span style="color:#66d9ef">class</span> <span style="color:#a6e22e">ChatController</span> {
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">private</span> <span style="color:#66d9ef">final</span> ChatClient chatClient;
+</span></span><span style="display:flex;"><span>    
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">public</span> <span style="color:#a6e22e">ChatController</span>(ChatClient.<span style="color:#a6e22e">Builder</span> builder) {
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">this</span>.<span style="color:#a6e22e">chatClient</span> <span style="color:#f92672">=</span> builder.<span style="color:#a6e22e">build</span>();
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>    
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">@GetMapping</span>(<span style="color:#e6db74">&#34;/chat&#34;</span>)
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">public</span> String <span style="color:#a6e22e">chat</span>(<span style="color:#a6e22e">@RequestParam</span> String message) {
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">return</span> chatClient.<span style="color:#a6e22e">prompt</span>()
+</span></span><span style="display:flex;"><span>                .<span style="color:#a6e22e">user</span>(message)
+</span></span><span style="display:flex;"><span>                .<span style="color:#a6e22e">call</span>()
+</span></span><span style="display:flex;"><span>                .<span style="color:#a6e22e">content</span>();
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p>链式调用写起来很流畅：<code>.prompt().user(message).call().content()</code>。想要流式输出？把 <code>.call()</code> 换成 <code>.stream()</code> 就行。</p>
+<h2 id="prompt-模板">Prompt 模板<a hidden class="anchor" aria-hidden="true" href="#prompt-模板">#</a></h2>
+<p>Spring AI 支持用模板构造提示词：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#a6e22e">@GetMapping</span>(<span style="color:#e6db74">&#34;/translate&#34;</span>)
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">public</span> String <span style="color:#a6e22e">translate</span>(<span style="color:#a6e22e">@RequestParam</span> String text, <span style="color:#a6e22e">@RequestParam</span> String lang) {
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">return</span> chatClient.<span style="color:#a6e22e">prompt</span>()
+</span></span><span style="display:flex;"><span>            .<span style="color:#a6e22e">system</span>(<span style="color:#e6db74">&#34;你是一个专业翻译&#34;</span>)
+</span></span><span style="display:flex;"><span>            .<span style="color:#a6e22e">user</span>(u <span style="color:#f92672">-&gt;</span> u.<span style="color:#a6e22e">text</span>(<span style="color:#e6db74">&#34;请将以下文本翻译成{lang}：{text}&#34;</span>)
+</span></span><span style="display:flex;"><span>                    .<span style="color:#a6e22e">param</span>(<span style="color:#e6db74">&#34;lang&#34;</span>, lang)
+</span></span><span style="display:flex;"><span>                    .<span style="color:#a6e22e">param</span>(<span style="color:#e6db74">&#34;text&#34;</span>, text))
+</span></span><span style="display:flex;"><span>            .<span style="color:#a6e22e">call</span>()
+</span></span><span style="display:flex;"><span>            .<span style="color:#a6e22e">content</span>();
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p>也能从 classpath 文件加载模板。Spring AI 用的模板引擎是 StringTemplate，变量语法跟 Spring 的 <code>${}</code>  不同，用的是 <code>{}</code>，我第一次用的时候没注意到这个差别，debug 了好一会儿。</p>
+<h2 id="无缝切换到-ollama">无缝切换到 Ollama<a hidden class="anchor" aria-hidden="true" href="#无缝切换到-ollama">#</a></h2>
+<p>想用本地模型？换个 Starter 和配置就行：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-xml" data-lang="xml"><span style="display:flex;"><span><span style="color:#f92672">&lt;dependency&gt;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">&lt;groupId&gt;</span>org.springframework.ai<span style="color:#f92672">&lt;/groupId&gt;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">&lt;artifactId&gt;</span>spring-ai-ollama-spring-boot-starter<span style="color:#f92672">&lt;/artifactId&gt;</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">&lt;/dependency&gt;</span>
+</span></span></code></pre></div><div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-yaml" data-lang="yaml"><span style="display:flex;"><span><span style="color:#f92672">spring</span>:
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">ai</span>:
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">ollama</span>:
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">base-url</span>: <span style="color:#ae81ff">http://localhost:11434</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">chat</span>:
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">options</span>:
+</span></span><span style="display:flex;"><span>          <span style="color:#f92672">model</span>: <span style="color:#ae81ff">qwen2.5:7b</span>
+</span></span></code></pre></div><p>代码完全不动。ChatClient 的用法一模一样，只是底层换了模型提供商。这个抽象层做得确实好，典型的 Spring 设计哲学——面向接口编程。</p>
+<h2 id="和-langchain4j-对比">和 LangChain4j 对比<a hidden class="anchor" aria-hidden="true" href="#和-langchain4j-对比">#</a></h2>
+<p>两个都玩了一段时间，聊聊对比。</p>
+<p><strong>Spring AI 的好处</strong>：</p>
+<ul>
+<li>原生 Spring 生态，自动配置省心</li>
+<li>ChatClient API 设计优雅，链式调用很流畅</li>
+<li>切���模型后端只改配置，代码不动</li>
+<li>长期来看跟 Spring 全家桶的整合会越来越深</li>
+</ul>
+<p><strong>LangChain4j 的好处</strong>：</p>
+<ul>
+<li>功能更全，AiServices、Tools、Agent 更成熟</li>
+<li>版本更稳定，已经有不少生产案例</li>
+<li>社区活跃，文档和示例丰富</li>
+<li>不绑定 Spring，更灵活</li>
+</ul>
+<p>如果项目是 Spring Boot 的，Spring AI 用着确实更顺手。但需要 RAG、Agent、Function Calling 这些高级功能的话，LangChain4j 目前更完善。</p>
+<p>我的判断：Spring AI 正式版出来之后，在 Spring 项目中大概率会成为主流选择。但现在还在早期��段，API 可能变动，生产环境要谨慎。</p>
+<h2 id="小结">小结<a hidden class="anchor" aria-hidden="true" href="#小结">#</a></h2>
+<p>Spring AI 给了 Java 开发者一个原生的 AI 集成方案。ChatClient + 自动配置的体验很好，切换不同模型后端也很方便。</p>
+<p>其实吧，Java 生态在 AI 这块虽然起步��� Python 晚，但 Spring AI 和 LangChain4j 都在快速发展。作为 Java 开发者，现在入场 AI 开发并不晚。工具已经够用了，剩下的就是找场景去实践。</p>
+
+
+  </div>
+
+  <footer class="post-footer">
+    <ul class="post-tags">
+      <li><a href="http://localhost:49494/tags/ai/">AI</a></li>
+      <li><a href="http://localhost:49494/tags/spring-ai/">Spring AI</a></li>
+      <li><a href="http://localhost:49494/tags/java/">Java</a></li>
+    </ul>
+<nav class="paginav">
+  <a class="prev" href="http://localhost:49494/posts/prompt-engineering-tips/">
+    <span class="title">« Prev</span>
+    <br>
+    <span>Prompt Engineering 技巧整理</span>
+  </a>
+  <a class="next" href="http://localhost:49494/posts/ollama-local-llm/">
+    <span class="title">Next »</span>
+    <br>
+    <span>Ollama 本地部署大模型</span>
+  </a>
+</nav>
+
+  </footer>
+</article>
+    </main>
+    
+<footer class="footer">
+        <span>&copy; 2026 <a href="http://localhost:49494/">Weiming&#39;s Blog</a></span> · 
+
+    <span>
+        Powered by
+        <a href="https://gohugo.io/" rel="noopener noreferrer" target="_blank">Hugo</a> &
+        <a href="https://github.com/adityatelange/hugo-PaperMod/" rel="noopener" target="_blank">PaperMod</a>
+    </span>
+</footer>
+<a href="#top" aria-label="go to top" title="Go to Top (Alt + G)" class="top-link" id="top-link" accesskey="g">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 12 6" fill="currentColor">
+        <path d="M12 6H0l6-6z" />
+    </svg>
+</a>
+
+<script>
+    let menu = document.getElementById('menu');
+    if (menu) {
+        
+        const scrollPosition = localStorage.getItem("menu-scroll-position");
+        if (scrollPosition) {
+            menu.scrollLeft = parseInt(scrollPosition, 10);
+        }
+        
+        menu.onscroll = function () {
+            localStorage.setItem("menu-scroll-position", menu.scrollLeft);
+        }
+    }
+
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener("click", function (e) {
+            e.preventDefault();
+            var id = this.getAttribute("href").substr(1);
+            if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView({
+                    behavior: "smooth"
+                });
+            } else {
+                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView();
+            }
+            if (id === "top") {
+                history.replaceState(null, null, " ");
+            } else {
+                history.pushState(null, null, `#${id}`);
+            }
+        });
+    });
+
+</script>
+<script>
+    var mybutton = document.getElementById("top-link");
+    window.onscroll = function () {
+        if (document.body.scrollTop > 800 || document.documentElement.scrollTop > 800) {
+            mybutton.style.visibility = "visible";
+            mybutton.style.opacity = "1";
+        } else {
+            mybutton.style.visibility = "hidden";
+            mybutton.style.opacity = "0";
+        }
+    };
+
+</script>
+<script>
+    document.getElementById("theme-toggle").addEventListener("click", () => {
+        const html = document.querySelector("html");
+        if (html.dataset.theme === "dark") {
+            html.dataset.theme = 'light';
+            localStorage.setItem("pref-theme", 'light');
+        } else {
+            html.dataset.theme = 'dark';
+            localStorage.setItem("pref-theme", 'dark');
+        }
+    })
+
+</script>
+<script>
+    document.querySelectorAll('pre > code').forEach((codeblock) => {
+        const container = codeblock.parentNode.parentNode;
+
+        const copybutton = document.createElement('button');
+        copybutton.classList.add('copy-code');
+        copybutton.innerHTML = 'copy';
+
+        function copyingDone() {
+            copybutton.innerHTML = 'copied!';
+            setTimeout(() => {
+                copybutton.innerHTML = 'copy';
+            }, 2000);
+        }
+
+        copybutton.addEventListener('click', (cb) => {
+            if ('clipboard' in navigator) {
+                navigator.clipboard.writeText(codeblock.textContent);
+                copyingDone();
+                return;
+            }
+
+            const range = document.createRange();
+            range.selectNodeContents(codeblock);
+            const selection = window.getSelection();
+            selection.removeAllRanges();
+            selection.addRange(range);
+            try {
+                document.execCommand('copy');
+                copyingDone();
+            } catch (e) { };
+            selection.removeRange(range);
+        });
+
+        if (container.classList.contains("highlight")) {
+            container.appendChild(copybutton);
+        } else if (container.parentNode.firstChild == container) {
+            
+        } else if (codeblock.parentNode.parentNode.parentNode.parentNode.parentNode.nodeName == "TABLE") {
+            
+            codeblock.parentNode.parentNode.parentNode.parentNode.parentNode.appendChild(copybutton);
+        } else {
+            
+            codeblock.parentNode.appendChild(copybutton);
+        }
+    });
+</script>
+</body>
+
+</html>

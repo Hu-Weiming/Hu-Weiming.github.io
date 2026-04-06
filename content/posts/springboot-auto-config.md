@@ -1,5 +1,5 @@
 ---
-title: "Spring Boot 自动配置，看完你就不慌了"
+title: "Spring Boot 自动配置原理"
 date: 2023-09-05
 categories: ["Spring"]
 tags: ["Java", "Spring Boot", "自动配置"]

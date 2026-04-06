@@ -1,0 +1,1015 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:content="http://purl.org/rss/1.0/modules/content/">
+  <channel>
+    <title>Posts on Weiming&#39;s Blog</title>
+    <link>http://localhost:49494/posts/</link>
+    <description>Recent content in Posts on Weiming&#39;s Blog</description>
+    <generator>Hugo</generator>
+    <language>zh-cn</language>
+    <lastBuildDate>Tue, 10 Mar 2026 00:00:00 +0000</lastBuildDate>
+    <atom:link href="http://localhost:49494/posts/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>Prompt Engineering 技巧整理</title>
+      <link>http://localhost:49494/posts/prompt-engineering-tips/</link>
+      <pubDate>Tue, 10 Mar 2026 00:00:00 +0000</pubDate>
+      <guid>http://localhost:49494/posts/prompt-engineering-tips/</guid>
+      <description>&lt;h1 id=&#34;prompt-engineering-实用技巧我总结了这些&#34;&gt;Prompt Engineering 实用技巧，我总结了这些&lt;/h1&gt;
+&lt;p&gt;用大模型一年多了，写了不少 Prompt。从最开始&amp;quot;帮我写个 xxx&amp;quot;的大白话，到现在能让模型按我要的格式和风格精确输出，走了不少弯路。把真正实用的技巧整理一下。&lt;/p&gt;
+&lt;h2 id=&#34;零样本和少样本提示&#34;&gt;零样本和少样本提示&lt;/h2&gt;
+&lt;p&gt;&lt;strong&gt;零样本（Zero-shot）&lt;/strong&gt;：直接给指令，不带示例。&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;&#34;&gt;&lt;code class=&#34;language-fallback&#34; data-lang=&#34;fallback&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;请将以下英文翻译成中文：Hello, how are you?
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;简单任务零样本就够了。但稍微复杂点，模型可能理解不了你想要什么格式。&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;少样本（Few-shot）&lt;/strong&gt;：给几个示例让模型&amp;quot;学&amp;quot;你要的格式和风格。&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;&#34;&gt;&lt;code class=&#34;language-fallback&#34; data-lang=&#34;fallback&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;请对以下评论进行情感分类。
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;评论：这家店太好吃了，下次还来！
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;分类：正面
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;评论：等了一个小时才上菜，再也不来了
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;分类：负面
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;评论：东西还行，但价格偏贵
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;分类：
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;有了示例，输出格式一下就稳定了。我的经验：能给示例就给示例，虽然多费点 Token，但输出质量提升明显。特别是需要特定格式的时候，少样本几乎是必须的。&lt;/p&gt;
+&lt;h2 id=&#34;角色设定&#34;&gt;角色设定&lt;/h2&gt;
+&lt;p&gt;在 System Prompt 里给模型一个角色身份：&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;&#34;&gt;&lt;code class=&#34;language-fallback&#34; data-lang=&#34;fallback&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;你是一个有10年经验的 Java 后端工程师，擅长 Spring Boot 和微服务架构。
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;回答简洁专业，附带代码示例。
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;设了角色之后回答会更有深度、更有针对性。我审查代码的时候喜欢用&amp;quot;你是一个严格的代码审查专家&amp;quot;，效果比随口说&amp;quot;看看这代码有没有问题&amp;quot;好太多。&lt;/p&gt;
+&lt;p&gt;角色设定还有个好处：限定回答范围。设定&amp;quot;你是 Java 专家&amp;quot;，它就不太会扯到 Python 方案去。&lt;/p&gt;
+&lt;h2 id=&#34;思维链chain-of-thought&#34;&gt;思维链（Chain of Thought）&lt;/h2&gt;
+&lt;p&gt;这是个很强的技巧。让模型一步步推理，而不是直接给最终答案。&lt;/p&gt;
+&lt;p&gt;最简单的方式——加一句&amp;quot;请一步步思考&amp;quot;：&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;&#34;&gt;&lt;code class=&#34;language-fallback&#34; data-lang=&#34;fallback&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;一个水池有两个进水管和一个出水管。
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;A管每小时进3吨，B管每小时进5吨。
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;出水管每小时出2吨。水池容量20吨，多久能装满？
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;请一步步思考。
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;模型会把推理过程展开写出来，准确率高很多。不加这句的话，复杂推理容易直接算错。&lt;/p&gt;
+&lt;p&gt;更高级的是 Few-shot CoT——在示例里就展示推理过程：&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;&#34;&gt;&lt;code class=&#34;language-fallback&#34; data-lang=&#34;fallback&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;问题：小明有5个苹果，吃了2个，又买了3个，现在几个？
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;思考：开始5个，吃了2个剩3个，买了3个，3+3=6。
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;答案：6个
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;问题：（你的实际问题）
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;我写算法题的时候经常让模型先分析思路再写代码。比直接让它生成代码靠谱很多，debug 了几次才总结出来的经验。&lt;/p&gt;
+&lt;h2 id=&#34;结构化输出&#34;&gt;结构化输出&lt;/h2&gt;
+&lt;p&gt;如果需要程序解析模型的输出，结构化格式很关键：&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;&#34;&gt;&lt;code class=&#34;language-fallback&#34; data-lang=&#34;fallback&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;请分析以下文本的情感，以 JSON 格式返回：
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;{
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  &amp;#34;sentiment&amp;#34;: &amp;#34;正面/负面/中性&amp;#34;,
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  &amp;#34;confidence&amp;#34;: 0.0-1.0,
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  &amp;#34;keywords&amp;#34;: [&amp;#34;关键词1&amp;#34;, &amp;#34;关键词2&amp;#34;]
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;}
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;文本：今天天气真好，心情也不错，就是午饭有点难吃。
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;模型通常能很好地遵循 JSON 格式。OpenAI 还支持 JSON Mode，强制输出合法 JSON。&lt;/p&gt;</description>
+    </item>
+    <item>
+      <title>Spring AI 初探</title>
+      <link>http://localhost:49494/posts/spring-ai-first-look/</link>
+      <pubDate>Tue, 20 Jan 2026 00:00:00 +0000</pubDate>
+      <guid>http://localhost:49494/posts/spring-ai-first-look/</guid>
+      <description>&lt;h1 id=&#34;spring-ai-初探spring-生态的-ai-新成员&#34;&gt;Spring AI 初探：Spring 生态的 AI 新成员&lt;/h1&gt;
+&lt;h2 id=&#34;spring-ai-是什么&#34;&gt;Spring AI 是什么&lt;/h2&gt;
+&lt;p&gt;Spring 官方终于下场做 AI 框架了。Spring AI 是 Spring 生态里的新成员，目标是让 Java/Spring 开发者能方便地集成各种 AI 能力。&lt;/p&gt;
+&lt;p&gt;之前 Java 圈搞 AI 开发主要靠 LangChain4j，现在 Spring 官方也入局了，竞争挺有意思的。&lt;/p&gt;
+&lt;p&gt;Spring AI 的风格很&amp;quot;Spring&amp;quot;：自动配置、Starter 依赖、注解驱动。用过 Spring Boot 的人上手会非常自然。&lt;/p&gt;
+&lt;h2 id=&#34;chatclient核心-api&#34;&gt;ChatClient：核心 API&lt;/h2&gt;
+&lt;p&gt;ChatClient 是 Spring AI 最核心的接口，设计思路类似 RestTemplate / WebClient。&lt;/p&gt;
+&lt;p&gt;先加依赖（以 OpenAI 为例）：&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;&#34;&gt;&lt;code class=&#34;language-xml&#34; data-lang=&#34;xml&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;dependency&amp;gt;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;groupId&amp;gt;&lt;/span&gt;org.springframework.ai&lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;/groupId&amp;gt;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;artifactId&amp;gt;&lt;/span&gt;spring-ai-openai-spring-boot-starter&lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;/artifactId&amp;gt;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;/dependency&amp;gt;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;配置：&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;&#34;&gt;&lt;code class=&#34;language-yaml&#34; data-lang=&#34;yaml&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;spring&lt;/span&gt;:
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  &lt;span style=&#34;color:#f92672&#34;&gt;ai&lt;/span&gt;:
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#f92672&#34;&gt;openai&lt;/span&gt;:
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;      &lt;span style=&#34;color:#f92672&#34;&gt;api-key&lt;/span&gt;: &lt;span style=&#34;color:#ae81ff&#34;&gt;${OPENAI_API_KEY}&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;      &lt;span style=&#34;color:#f92672&#34;&gt;chat&lt;/span&gt;:
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        &lt;span style=&#34;color:#f92672&#34;&gt;options&lt;/span&gt;:
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;          &lt;span style=&#34;color:#f92672&#34;&gt;model&lt;/span&gt;: &lt;span style=&#34;color:#ae81ff&#34;&gt;gpt-4o-mini&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;使用起来：&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;&#34;&gt;&lt;code class=&#34;language-java&#34; data-lang=&#34;java&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#a6e22e&#34;&gt;@RestController&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;public&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;class&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;ChatController&lt;/span&gt; {
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;private&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;final&lt;/span&gt; ChatClient chatClient;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;public&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;ChatController&lt;/span&gt;(ChatClient.&lt;span style=&#34;color:#a6e22e&#34;&gt;Builder&lt;/span&gt; builder) {
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        &lt;span style=&#34;color:#66d9ef&#34;&gt;this&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;chatClient&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; builder.&lt;span style=&#34;color:#a6e22e&#34;&gt;build&lt;/span&gt;();
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    }
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#a6e22e&#34;&gt;@GetMapping&lt;/span&gt;(&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;/chat&amp;#34;&lt;/span&gt;)
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;public&lt;/span&gt; String &lt;span style=&#34;color:#a6e22e&#34;&gt;chat&lt;/span&gt;(&lt;span style=&#34;color:#a6e22e&#34;&gt;@RequestParam&lt;/span&gt; String message) {
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        &lt;span style=&#34;color:#66d9ef&#34;&gt;return&lt;/span&gt; chatClient.&lt;span style=&#34;color:#a6e22e&#34;&gt;prompt&lt;/span&gt;()
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;                .&lt;span style=&#34;color:#a6e22e&#34;&gt;user&lt;/span&gt;(message)
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;                .&lt;span style=&#34;color:#a6e22e&#34;&gt;call&lt;/span&gt;()
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;                .&lt;span style=&#34;color:#a6e22e&#34;&gt;content&lt;/span&gt;();
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    }
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;}
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;链式调用写起来很流畅：&lt;code&gt;.prompt().user(message).call().content()&lt;/code&gt;。想要流式输出？把 &lt;code&gt;.call()&lt;/code&gt; 换成 &lt;code&gt;.stream()&lt;/code&gt; 就行。&lt;/p&gt;</description>
+    </item>
+    <item>
+      <title>Ollama 本地部署大模型</title>
+      <link>http://localhost:49494/posts/ollama-local-llm/</link>
+      <pubDate>Fri, 05 Dec 2025 00:00:00 +0000</pubDate>
+      <guid>http://localhost:49494/posts/ollama-local-llm/</guid>
+      <description>&lt;h1 id=&#34;用-ollama-在本地跑大模型真的可以&#34;&gt;用 Ollama 在本地跑大模型，真的可以&lt;/h1&gt;
+&lt;h2 id=&#34;ollama-是什么&#34;&gt;Ollama 是什么&lt;/h2&gt;
+&lt;p&gt;一直觉得跑大模型得有好几块 A100 才行，直到有人跟我说&amp;quot;试试 Ollama&amp;quot;。&lt;/p&gt;
+&lt;p&gt;Ollama 是一个在本地运行大模型的工具。一行命令安装，一行命令拉模型，一行命令跑起来。它管理 LLM 的方式跟 Docker 管容器一样简单，上手极快。&lt;/p&gt;
+&lt;p&gt;Mac、Linux、Windows 都支持。对 Apple Silicon 的 Mac 支持特别好，能利用统一内存来跑模型。&lt;/p&gt;
+&lt;h2 id=&#34;安装和上手&#34;&gt;安装和上手&lt;/h2&gt;
+&lt;p&gt;Mac 上安装：&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;brew install ollama
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;也可以去官网 ollama.com 下安装包。启动服务后拉个模型试试：&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;ollama serve
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;ollama pull qwen2.5:7b
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;ollama run qwen2.5:7b
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;就可以在终端直接跟模型聊天了。第一次跑通的时候我确实挺惊讶——自己笔记本就能跑 AI，不用花一分钱。&lt;/p&gt;
+&lt;h2 id=&#34;推荐几个模型&#34;&gt;推荐几个模型&lt;/h2&gt;
+&lt;p&gt;Ollama 上可选的模型很多，说几个我试过觉得不错的：&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;strong&gt;qwen2.5:7b&lt;/strong&gt;：通义千问，中文效果好，7B 大小在普通笔记本上跑得动&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;llama3.1:8b&lt;/strong&gt;：Meta 出品，英文能力强，中文也还行&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;codellama:7b&lt;/strong&gt;：专门做代码生成和补全的，写 Java 还不错&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;mistral:7b&lt;/strong&gt;：法国 Mistral AI 的模型，综合性能不错&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;常用管理命令：&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;ollama list          &lt;span style=&#34;color:#75715e&#34;&gt;# 查看已下载的模型&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;ollama pull llama3.1 &lt;span style=&#34;color:#75715e&#34;&gt;# 下载模型&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;ollama rm mistral    &lt;span style=&#34;color:#75715e&#34;&gt;# 删除模型&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;ollama show qwen2.5  &lt;span style=&#34;color:#75715e&#34;&gt;# 查看模型详细信息&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;h2 id=&#34;api-调用&#34;&gt;API 调用&lt;/h2&gt;
+&lt;p&gt;Ollama 启动后默认在 &lt;code&gt;localhost:11434&lt;/code&gt; 提供 REST API，而且兼容 OpenAI 的接口格式。&lt;/p&gt;</description>
+    </item>
+    <item>
+      <title>RAG 检索增强生成实践</title>
+      <link>http://localhost:49494/posts/rag-practice/</link>
+      <pubDate>Wed, 15 Oct 2025 00:00:00 +0000</pubDate>
+      <guid>http://localhost:49494/posts/rag-practice/</guid>
+      <description>&lt;h1 id=&#34;rag-检索增强生成让大模型不再胡说八道&#34;&gt;RAG 检索增强生成，让大模型不再胡说八道&lt;/h1&gt;
+&lt;h2 id=&#34;rag-是什么&#34;&gt;RAG 是什么&lt;/h2&gt;
+&lt;p&gt;RAG，Retrieval-Augmented Generation，检索增强生成。名字挺唬人，但思路很简单：先从你自己的知识库里检索相关内容，把检索结果塞进 Prompt 里一起给大模型，让模型基于这些内容来回答。&lt;/p&gt;
+&lt;p&gt;用大白话说就是：给模型开卷考试。它自己可能不记得答案，但你给它参考资料，它就能答得靠谱了。&lt;/p&gt;
+&lt;h2 id=&#34;为什么需要-rag&#34;&gt;为什么需要 RAG&lt;/h2&gt;
+&lt;p&gt;大模型天然有几个局限：&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;&lt;strong&gt;知识有截止日期&lt;/strong&gt;：你公司的内部文档、最新的业务数据它不知道&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;会胡说八道&lt;/strong&gt;（幻觉）：编造看起来合理但实际错误的内容&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;微调成本高&lt;/strong&gt;：要 GPU、要标注数据、要调参，门槛不低&lt;/li&gt;
+&lt;/ol&gt;
+&lt;p&gt;RAG 好在不用微调模型。知识库更新了？改文档重新索引就行。回答有据可查，实现成本也低。&lt;/p&gt;
+&lt;p&gt;我做课设想搞个基于学校课程文档的问答系统。一开始想微调，研究了半天发现太折腾了。后来改用 RAG 方案，效果还不错。&lt;/p&gt;
+&lt;h2 id=&#34;文档切分第一步就有讲究&#34;&gt;文档切分：第一步就有讲究&lt;/h2&gt;
+&lt;p&gt;RAG 的第一步是把文档切成小块（Chunk）。为什么？模型上下文窗口有限，你不可能把整本书塞进去。而且检索粒度越小，匹配越精准。&lt;/p&gt;
+&lt;p&gt;常见切分策略：&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;按字符数切——简单但可能把句子切断&lt;/li&gt;
+&lt;li&gt;按段落切——保持语义完整&lt;/li&gt;
+&lt;li&gt;递归切分——先按大段切，太长的再往下拆&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;chunk size 一般设在 200-1000 Token 之间。太小信息不完整，太大检索不精准。记得加 overlap（重叠），比如每块重叠 50 Token，防止重要信息正好被切在边界上。&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;&#34;&gt;&lt;code class=&#34;language-java&#34; data-lang=&#34;java&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;DocumentSplitter splitter &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; DocumentSplitters.&lt;span style=&#34;color:#a6e22e&#34;&gt;recursive&lt;/span&gt;(500, 50);
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;List&lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;&lt;/span&gt;TextSegment&lt;span style=&#34;color:#f92672&#34;&gt;&amp;gt;&lt;/span&gt; segments &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; splitter.&lt;span style=&#34;color:#a6e22e&#34;&gt;split&lt;/span&gt;(document);
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;h2 id=&#34;embedding-和向量检索&#34;&gt;Embedding 和向量检索&lt;/h2&gt;
+&lt;p&gt;切完之后，怎么从一堆 Chunk 里找到跟用户问题相关的？答案是向量检索。&lt;/p&gt;
+&lt;p&gt;Embedding 模型会把文本转成一个高维向量（比如 1536 维的浮点数数组）。语义相近的文本，转出来的向量也会接近。&lt;/p&gt;
+&lt;p&gt;整个流程：&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;把所有文档 Chunk 转成向量，存到向量数据库&lt;/li&gt;
+&lt;li&gt;用户提问时，把问题也转成向量&lt;/li&gt;
+&lt;li&gt;在向量数据库里找最相似的 K 个 Chunk&lt;/li&gt;
+&lt;li&gt;把这些 Chunk 跟用户问题一起交给 LLM&lt;/li&gt;
+&lt;/ol&gt;
+&lt;p&gt;向量数据库现在选择很多：Milvus、Qdrant、Chroma、Pinecone。数据量小的话用内存存储就够了。&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;&#34;&gt;&lt;code class=&#34;language-java&#34; data-lang=&#34;java&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;EmbeddingModel embeddingModel &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; OpenAiEmbeddingModel.&lt;span style=&#34;color:#a6e22e&#34;&gt;builder&lt;/span&gt;()
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        .&lt;span style=&#34;color:#a6e22e&#34;&gt;apiKey&lt;/span&gt;(&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;your-key&amp;#34;&lt;/span&gt;)
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        .&lt;span style=&#34;color:#a6e22e&#34;&gt;modelName&lt;/span&gt;(&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;text-embedding-3-small&amp;#34;&lt;/span&gt;)
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        .&lt;span style=&#34;color:#a6e22e&#34;&gt;build&lt;/span&gt;();
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;InMemoryEmbeddingStore&lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;&lt;/span&gt;TextSegment&lt;span style=&#34;color:#f92672&#34;&gt;&amp;gt;&lt;/span&gt; embeddingStore &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;new&lt;/span&gt; InMemoryEmbeddingStore&lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;&amp;gt;&lt;/span&gt;();
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;EmbeddingStoreIngestor ingestor &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; EmbeddingStoreIngestor.&lt;span style=&#34;color:#a6e22e&#34;&gt;builder&lt;/span&gt;()
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        .&lt;span style=&#34;color:#a6e22e&#34;&gt;embeddingModel&lt;/span&gt;(embeddingModel)
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        .&lt;span style=&#34;color:#a6e22e&#34;&gt;embeddingStore&lt;/span&gt;(embeddingStore)
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        .&lt;span style=&#34;color:#a6e22e&#34;&gt;documentSplitter&lt;/span&gt;(DocumentSplitters.&lt;span style=&#34;color:#a6e22e&#34;&gt;recursive&lt;/span&gt;(500, 50))
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        .&lt;span style=&#34;color:#a6e22e&#34;&gt;build&lt;/span&gt;();
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;ingestor.&lt;span style=&#34;color:#a6e22e&#34;&gt;ingest&lt;/span&gt;(document);
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;h2 id=&#34;用-langchain4j-实现完整-rag&#34;&gt;用 LangChain4j 实现完整 RAG&lt;/h2&gt;
+&lt;p&gt;前面的准备工作做好了，把 RAG 串起来其实没几行：&lt;/p&gt;</description>
+    </item>
+    <item>
+      <title>LangChain4j 入门</title>
+      <link>http://localhost:49494/posts/langchain4j-getting-started/</link>
+      <pubDate>Wed, 20 Aug 2025 00:00:00 +0000</pubDate>
+      <guid>http://localhost:49494/posts/langchain4j-getting-started/</guid>
+      <description>&lt;h1 id=&#34;langchain4j-初体验java-也能玩-llm&#34;&gt;LangChain4j 初体验：Java 也能玩 LLM&lt;/h1&gt;
+&lt;h2 id=&#34;langchain4j-是什么&#34;&gt;LangChain4j 是什么&lt;/h2&gt;
+&lt;p&gt;说到 AI 开发，大家第一反应都是 Python。LangChain、LlamaIndex 清一色 Python 的。但我主力语言是 Java，难道就只能干看着？&lt;/p&gt;
+&lt;p&gt;LangChain4j 就是来填这个坑的。它是 LangChain 的 Java 实现，提供了和 LLM 交互的各种能力：模型接入、Prompt 管理、Memory、RAG、Tools 调用等。GitHub 上 &lt;code&gt;langchain4j/langchain4j&lt;/code&gt;，star 涨得挺快，说明 Java 圈对这个需求确实大。&lt;/p&gt;
+&lt;h2 id=&#34;快速上手&#34;&gt;快速上手&lt;/h2&gt;
+&lt;p&gt;建个 Spring Boot 项目，加依赖：&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;&#34;&gt;&lt;code class=&#34;language-xml&#34; data-lang=&#34;xml&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;dependency&amp;gt;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;groupId&amp;gt;&lt;/span&gt;dev.langchain4j&lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;/groupId&amp;gt;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;artifactId&amp;gt;&lt;/span&gt;langchain4j&lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;/artifactId&amp;gt;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;version&amp;gt;&lt;/span&gt;0.35.0&lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;/version&amp;gt;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;/dependency&amp;gt;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;dependency&amp;gt;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;groupId&amp;gt;&lt;/span&gt;dev.langchain4j&lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;/groupId&amp;gt;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;artifactId&amp;gt;&lt;/span&gt;langchain4j-open-ai&lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;/artifactId&amp;gt;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;version&amp;gt;&lt;/span&gt;0.35.0&lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;/version&amp;gt;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;/dependency&amp;gt;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;最简单的调用：&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;&#34;&gt;&lt;code class=&#34;language-java&#34; data-lang=&#34;java&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;ChatLanguageModel model &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; OpenAiChatModel.&lt;span style=&#34;color:#a6e22e&#34;&gt;builder&lt;/span&gt;()
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        .&lt;span style=&#34;color:#a6e22e&#34;&gt;apiKey&lt;/span&gt;(&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;your-api-key&amp;#34;&lt;/span&gt;)
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        .&lt;span style=&#34;color:#a6e22e&#34;&gt;modelName&lt;/span&gt;(&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;gpt-4o-mini&amp;#34;&lt;/span&gt;)
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        .&lt;span style=&#34;color:#a6e22e&#34;&gt;build&lt;/span&gt;();
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;String answer &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; model.&lt;span style=&#34;color:#a6e22e&#34;&gt;generate&lt;/span&gt;(&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;Java 和 Go 哪个更适合后端开发？&amp;#34;&lt;/span&gt;);
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;System.&lt;span style=&#34;color:#a6e22e&#34;&gt;out&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;println&lt;/span&gt;(answer);
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;几行代码就能跟大模型对话了。第一次跑通的时候还挺兴奋的。&lt;/p&gt;
+&lt;p&gt;也可以接 Ollama 跑本地模型，免费：&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;&#34;&gt;&lt;code class=&#34;language-java&#34; data-lang=&#34;java&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;ChatLanguageModel model &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; OllamaChatModel.&lt;span style=&#34;color:#a6e22e&#34;&gt;builder&lt;/span&gt;()
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        .&lt;span style=&#34;color:#a6e22e&#34;&gt;baseUrl&lt;/span&gt;(&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;http://localhost:11434&amp;#34;&lt;/span&gt;)
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        .&lt;span style=&#34;color:#a6e22e&#34;&gt;modelName&lt;/span&gt;(&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;qwen2.5:7b&amp;#34;&lt;/span&gt;)
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        .&lt;span style=&#34;color:#a6e22e&#34;&gt;build&lt;/span&gt;();
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;h2 id=&#34;aiservices最好用的特性&#34;&gt;AiServices：最好用的特性&lt;/h2&gt;
+&lt;p&gt;上面是最基础的字符串输入输出。实际开发中你需要更精细的控制。&lt;/p&gt;</description>
+    </item>
+    <item>
+      <title>大语言模型（LLM）入门</title>
+      <link>http://localhost:49494/posts/llm-introduction/</link>
+      <pubDate>Tue, 10 Jun 2025 00:00:00 +0000</pubDate>
+      <guid>http://localhost:49494/posts/llm-introduction/</guid>
+      <description>&lt;h1 id=&#34;大模型入门到底什么是-llm&#34;&gt;大模型入门：到底什么是 LLM&lt;/h1&gt;
+&lt;h2 id=&#34;transformer-到底是什么&#34;&gt;Transformer 到底是什么&lt;/h2&gt;
+&lt;p&gt;最近到处都在聊大模型、AI，感觉不了解点 LLM 都不好意思说自己学计算机的。但说实话，一开始我也是一头雾水。GPT、Transformer、Token，这些词满天飞，搜了好多资料才慢慢理出头绪。&lt;/p&gt;
+&lt;p&gt;LLM，Large Language Model，大语言模型。说白了就是一个超大的神经网络，用海量文本训练出来的，学会了&amp;quot;语言&amp;quot;这件事。你给它一段文字，它能接着往下写——本质上就是在预测下一个 Token。&lt;/p&gt;
+&lt;p&gt;底层架构叫 Transformer。2017 年 Google 那篇 &amp;ldquo;Attention is All You Need&amp;rdquo; 提出的，改变了整个 NLP 领域。&lt;/p&gt;
+&lt;p&gt;&lt;img alt=&#34;Transformer 架构&#34; loading=&#34;lazy&#34; src=&#34;https://upload.wikimedia.org/wikipedia/commons/thumb/8/8f/The-Transformer-model-architecture.png/440px-The-Transformer-model-architecture.png&#34;&gt;&lt;/p&gt;
+&lt;p&gt;Transformer 的核心是注意力机制（Attention）。不用纠结数学细节，可以这么理解：模型处理一个词的时候，会&amp;quot;看&amp;quot;句子里所有其他词，判断谁跟它关系更密切。比如&amp;quot;我去银行取钱&amp;quot;，处理&amp;quot;银行&amp;quot;时模型注意到&amp;quot;取钱&amp;quot;，就知道这是金融机构不是河岸。&lt;/p&gt;
+&lt;p&gt;之前的 RNN/LSTM 按顺序一个词一个词处理，长文本又慢效果又差。Transformer 可以并行处理所有位置，效率高太多了。这也是大模型能做到几百亿参数的关键原因。&lt;/p&gt;
+&lt;h2 id=&#34;预训练和微调&#34;&gt;预训练和微调&lt;/h2&gt;
+&lt;p&gt;大模型训练分两个阶段。&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;预训练&lt;/strong&gt;：拿海量文本数据（网页、书籍、代码、论文……），让模型学习预测下一个词。就这么简单的目标，在足够大的数据量和模型规模上，涌现出了各种能力——写代码、翻译、推理，都是&amp;quot;学&amp;quot;出来的。&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;微调&lt;/strong&gt;：预训练完的模型像一个&amp;quot;什么都懂但不听话&amp;quot;的人。微调让它更符合人类期望。常见方法是 RLHF（基于人类反馈的强化学习）——人类给模型的回答打分，模型根据反馈调整行为。&lt;/p&gt;
+&lt;p&gt;ChatGPT 之所以好用，很大功劳在微调阶段。没经过微调的 base model，你问它问题它不会好好回答，只会一直&amp;quot;接龙&amp;quot;下去。&lt;/p&gt;
+&lt;h2 id=&#34;token-和上下文窗口&#34;&gt;Token 和上下文窗口&lt;/h2&gt;
+&lt;p&gt;大模型不按&amp;quot;字&amp;quot;处理文本，而是按 Token。一个 Token 大概对应一个常见的词或子词片段。英文里一个单词通常 1-2 个 Token，中文一个字大概 1-2 个 Token。&lt;/p&gt;
+&lt;p&gt;上下文窗口（Context Window）是模型一次能处理的最大 Token 数。GPT-4 是 128K，Claude 支持到 200K。窗口越大，模型能&amp;quot;看到&amp;quot;的内容越多。&lt;/p&gt;
+&lt;p&gt;上下文窗口很重要——模型只能&amp;quot;看到&amp;quot;窗口以内的内容。跟它聊天聊久了，早期的对话超出窗口就被&amp;quot;遗忘&amp;quot;了。&lt;/p&gt;
+&lt;p&gt;Token 数也直接关系到使用成本。API 按 Token 收费，input 和 output 分开计价。所以写 Prompt 的时候别废话太多，能省就省。&lt;/p&gt;</description>
+    </item>
+    <item>
+      <title>Spring Cloud 微服务入门</title>
+      <link>http://localhost:49494/posts/spring-cloud-intro/</link>
+      <pubDate>Tue, 10 Sep 2024 00:00:00 +0000</pubDate>
+      <guid>http://localhost:49494/posts/spring-cloud-intro/</guid>
+      <description>&lt;h1 id=&#34;spring-cloud-微服务入门别被吓到&#34;&gt;Spring Cloud 微服务入门，别被吓到&lt;/h1&gt;
+&lt;h2 id=&#34;微服务到底是啥&#34;&gt;微服务到底是啥&lt;/h2&gt;
+&lt;p&gt;第一次听&amp;quot;微服务&amp;quot;这个词的时候，我觉得好高大上。服务注册发现、熔断降级、链路追踪，一堆概念砸过来挺吓人的。但学了之后发现，核心思路其实没那么复杂。&lt;/p&gt;
+&lt;p&gt;简单说，微服务就是把一个大应用拆成多个小服务，每个独立部署、独立运行。比如电商系统拆成用户服务、商品服务、订单服务、支付服务。&lt;/p&gt;
+&lt;p&gt;为什么要拆？单体应用到后期改个小功能就得重新部署整个系统，代码耦合严重，团队协作也别扭。微服务之后，各团队负责自己的服务，独立开发独立上线。&lt;/p&gt;
+&lt;p&gt;当然微服务不是银弹。小项目上微服务纯属自找麻烦，运维复杂度直接翻好几倍。但学习这套技术栈还是很有必要的，面试也经常问。&lt;/p&gt;
+&lt;h2 id=&#34;注册中心nacos&#34;&gt;注册中心：Nacos&lt;/h2&gt;
+&lt;p&gt;服务拆了之后，A 想调 B，怎么知道 B 在哪？IP 端口写死在配置里？那 B 有多个实例呢？地址变了呢？&lt;/p&gt;
+&lt;p&gt;注册中心解决这个问题。每个服务启动时把自己的地址注册上去，其他服务去查就行了。&lt;/p&gt;
+&lt;p&gt;Nacos 是现在的主流选择（阿里开源），同时搞定服务注册和配置管理。&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;&#34;&gt;&lt;code class=&#34;language-yaml&#34; data-lang=&#34;yaml&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;spring&lt;/span&gt;:
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  &lt;span style=&#34;color:#f92672&#34;&gt;cloud&lt;/span&gt;:
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#f92672&#34;&gt;nacos&lt;/span&gt;:
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;      &lt;span style=&#34;color:#f92672&#34;&gt;discovery&lt;/span&gt;:
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        &lt;span style=&#34;color:#f92672&#34;&gt;server-addr&lt;/span&gt;: &lt;span style=&#34;color:#ae81ff&#34;&gt;localhost:8848&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  &lt;span style=&#34;color:#f92672&#34;&gt;application&lt;/span&gt;:
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#f92672&#34;&gt;name&lt;/span&gt;: &lt;span style=&#34;color:#ae81ff&#34;&gt;user-service&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;加上依赖、写好配置、启动，就注册好了。Nacos 控制台能看到所有注册的服务实例，很直观。&lt;/p&gt;
+&lt;p&gt;我第一次跑通的时候还挺激动的，在控制台看到自己的服务出现了，有种打通&amp;quot;任督二脉&amp;quot;的感觉。&lt;/p&gt;
+&lt;h2 id=&#34;网关gateway&#34;&gt;网关：Gateway&lt;/h2&gt;
+&lt;p&gt;微服务拆了之后，前端调哪个服务？总不能让前端记一堆服务地址。网关就是统一入口，所有请求先过网关，由网关路由到对应服务。&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;&#34;&gt;&lt;code class=&#34;language-yaml&#34; data-lang=&#34;yaml&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;spring&lt;/span&gt;:
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  &lt;span style=&#34;color:#f92672&#34;&gt;cloud&lt;/span&gt;:
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#f92672&#34;&gt;gateway&lt;/span&gt;:
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;      &lt;span style=&#34;color:#f92672&#34;&gt;routes&lt;/span&gt;:
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        - &lt;span style=&#34;color:#f92672&#34;&gt;id&lt;/span&gt;: &lt;span style=&#34;color:#ae81ff&#34;&gt;user-service&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;          &lt;span style=&#34;color:#f92672&#34;&gt;uri&lt;/span&gt;: &lt;span style=&#34;color:#ae81ff&#34;&gt;lb://user-service&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;          &lt;span style=&#34;color:#f92672&#34;&gt;predicates&lt;/span&gt;:
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;            - &lt;span style=&#34;color:#ae81ff&#34;&gt;Path=/api/user/**&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        - &lt;span style=&#34;color:#f92672&#34;&gt;id&lt;/span&gt;: &lt;span style=&#34;color:#ae81ff&#34;&gt;order-service&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;          &lt;span style=&#34;color:#f92672&#34;&gt;uri&lt;/span&gt;: &lt;span style=&#34;color:#ae81ff&#34;&gt;lb://order-service&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;          &lt;span style=&#34;color:#f92672&#34;&gt;predicates&lt;/span&gt;:
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;            - &lt;span style=&#34;color:#ae81ff&#34;&gt;Path=/api/order/**&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;&lt;code&gt;/api/user/xxx&lt;/code&gt; 自动转发到 user-service，&lt;code&gt;/api/order/xxx&lt;/code&gt; 转发到 order-service。&lt;code&gt;lb://&lt;/code&gt; 前缀表示从注册中心取地址，自带负载均衡。&lt;/p&gt;
+&lt;p&gt;网关还能统一做鉴权、限流、日志。在网关校验 Token，下游服务就不用每个都重复写鉴权了。&lt;/p&gt;
+&lt;h2 id=&#34;远程调用openfeign&#34;&gt;远程调用：OpenFeign&lt;/h2&gt;
+&lt;p&gt;服务之间调用怎么搞？手写 RestTemplate 拼 URL？太折腾了。OpenFeign 让远程调用像调本地方法一样。&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;&#34;&gt;&lt;code class=&#34;language-java&#34; data-lang=&#34;java&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#a6e22e&#34;&gt;@FeignClient&lt;/span&gt;(&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;user-service&amp;#34;&lt;/span&gt;)
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;public&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;interface&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;UserClient&lt;/span&gt; {
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#a6e22e&#34;&gt;@GetMapping&lt;/span&gt;(&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;/api/user/{id}&amp;#34;&lt;/span&gt;)
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    User &lt;span style=&#34;color:#a6e22e&#34;&gt;getUser&lt;/span&gt;(&lt;span style=&#34;color:#a6e22e&#34;&gt;@PathVariable&lt;/span&gt; Long id);
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;}
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;&#34;&gt;&lt;code class=&#34;language-java&#34; data-lang=&#34;java&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#a6e22e&#34;&gt;@Service&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;public&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;class&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;OrderService&lt;/span&gt; {
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#a6e22e&#34;&gt;@Autowired&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;private&lt;/span&gt; UserClient userClient;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;public&lt;/span&gt; Order &lt;span style=&#34;color:#a6e22e&#34;&gt;createOrder&lt;/span&gt;(Long userId) {
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        User user &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; userClient.&lt;span style=&#34;color:#a6e22e&#34;&gt;getUser&lt;/span&gt;(userId); &lt;span style=&#34;color:#75715e&#34;&gt;// 像调本地方法一样&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        &lt;span style=&#34;color:#75715e&#34;&gt;// 创建订单...&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    }
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;}
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;OpenFeign 根据服务名从注册中心找地址，自动发 HTTP 请求，还自带负载均衡。第一次用的时候觉得真方便，声明式调用太舒服了。&lt;/p&gt;</description>
+    </item>
+    <item>
+      <title>MySQL 事务与 MVCC</title>
+      <link>http://localhost:49494/posts/mysql-transaction-mvcc/</link>
+      <pubDate>Tue, 20 Aug 2024 00:00:00 +0000</pubDate>
+      <guid>http://localhost:49494/posts/mysql-transaction-mvcc/</guid>
+      <description>&lt;h1 id=&#34;mysql-事务和-mvcc面试必问&#34;&gt;MySQL 事务和 MVCC，面试必问&lt;/h1&gt;
+&lt;p&gt;事务和 MVCC 是 MySQL 面试里出场率最高的话题，没有之一。我准备秋招的时候翻来覆去看了好几遍，现在总算能说清楚了。&lt;/p&gt;
+&lt;h2 id=&#34;acid-四大特性&#34;&gt;ACID 四大特性&lt;/h2&gt;
+&lt;p&gt;事务四个特性，关键是理解怎么实现的：&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;strong&gt;A（原子性）&lt;/strong&gt;：要么全做要么全不做。靠 undo log，出错就回滚。&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;C（一致性）&lt;/strong&gt;：数据从一个合法状态到另一个合法状态。这其实是目标，靠其他三个保证。&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;I（隔离性）&lt;/strong&gt;：并发事务互不干扰。靠 MVCC + 锁。&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;D（持久性）&lt;/strong&gt;：提交后数据不丢。靠 redo log。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;面试光背定义没意思，面试官想听实现原理。比如为啥用 redo log？直接刷数据页是随机 IO，写 redo log 是顺序 IO，快得多。先写日志，宕机了根据 redo log 恢复就行。这叫 WAL（Write-Ahead Logging）。&lt;/p&gt;
+&lt;h2 id=&#34;四种隔离级别&#34;&gt;四种隔离级别&lt;/h2&gt;
+&lt;table&gt;
+  &lt;thead&gt;
+      &lt;tr&gt;
+          &lt;th&gt;隔离级别&lt;/th&gt;
+          &lt;th&gt;脏读&lt;/th&gt;
+          &lt;th&gt;不可重复读&lt;/th&gt;
+          &lt;th&gt;幻读&lt;/th&gt;
+      &lt;/tr&gt;
+  &lt;/thead&gt;
+  &lt;tbody&gt;
+      &lt;tr&gt;
+          &lt;td&gt;Read Uncommitted&lt;/td&gt;
+          &lt;td&gt;可能&lt;/td&gt;
+          &lt;td&gt;可能&lt;/td&gt;
+          &lt;td&gt;可能&lt;/td&gt;
+      &lt;/tr&gt;
+      &lt;tr&gt;
+          &lt;td&gt;Read Committed (RC)&lt;/td&gt;
+          &lt;td&gt;不可能&lt;/td&gt;
+          &lt;td&gt;可能&lt;/td&gt;
+          &lt;td&gt;可能&lt;/td&gt;
+      &lt;/tr&gt;
+      &lt;tr&gt;
+          &lt;td&gt;Repeatable Read (RR)&lt;/td&gt;
+          &lt;td&gt;不可能&lt;/td&gt;
+          &lt;td&gt;不可能&lt;/td&gt;
+          &lt;td&gt;可能&lt;/td&gt;
+      &lt;/tr&gt;
+      &lt;tr&gt;
+          &lt;td&gt;Serializable&lt;/td&gt;
+          &lt;td&gt;不可能&lt;/td&gt;
+          &lt;td&gt;不可能&lt;/td&gt;
+          &lt;td&gt;不可能&lt;/td&gt;
+      &lt;/tr&gt;
+  &lt;/tbody&gt;
+&lt;/table&gt;
+&lt;p&gt;InnoDB 默认 &lt;strong&gt;Repeatable Read&lt;/strong&gt;。有意思的是，InnoDB 的 RR 很大程度上也解决了幻读（通过 MVCC + 间隙锁）。&lt;/p&gt;</description>
+    </item>
+    <item>
+      <title>MySQL 索引优化</title>
+      <link>http://localhost:49494/posts/mysql-index-optimization/</link>
+      <pubDate>Sat, 15 Jun 2024 00:00:00 +0000</pubDate>
+      <guid>http://localhost:49494/posts/mysql-index-optimization/</guid>
+      <description>&lt;h1 id=&#34;mysql-索引优化别再全表扫描了&#34;&gt;MySQL 索引优化，别再全表扫描了&lt;/h1&gt;
+&lt;p&gt;上学期数据库课的大作业，我写了个选课系统。数据量小的时候跑得飞快，一导入几万条测试数据就卡得不行。一查原因——全表扫描。那时候才真正意识到索引有多重要。&lt;/p&gt;
+&lt;h2 id=&#34;b树索引的底层结构&#34;&gt;B+树——索引的底层结构&lt;/h2&gt;
+&lt;p&gt;MySQL 的 InnoDB 引擎用 B+树组织索引。&lt;/p&gt;
+&lt;p&gt;&lt;img alt=&#34;B-tree 结构示意图&#34; loading=&#34;lazy&#34; src=&#34;https://upload.wikimedia.org/wikipedia/commons/thumb/6/65/B-tree-definition.svg/831px-B-tree-definition.svg.png&#34;&gt;&lt;/p&gt;
+&lt;p&gt;B+树的特点：&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;非叶子节点只存 key，不存数据&lt;/li&gt;
+&lt;li&gt;叶子节点存所有数据，用链表串起来&lt;/li&gt;
+&lt;li&gt;查询都走到叶子节点，效率稳定&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;为啥不用红黑树？磁盘 IO 是瓶颈。B+树很矮很胖，三层就能存上千万行数据，查一条记录最多三次磁盘 IO。&lt;/p&gt;
+&lt;p&gt;算一笔账：主键 bigint 8 字节，指针 6 字节，一个 16KB 的页存约 1170 个 key。叶子节点假设每行 1KB，一页 16 行。三层就是 1170 x 1170 x 16 约两千万行。&lt;/p&gt;
+&lt;h2 id=&#34;聚簇索引-vs-非聚簇索引&#34;&gt;聚簇索引 vs 非聚簇索引&lt;/h2&gt;
+&lt;p&gt;&lt;strong&gt;聚簇索引&lt;/strong&gt;（主键索引）：叶子节点直接存整行数据。一张表只能有一个。&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;非聚簇索引&lt;/strong&gt;（二级索引）：叶子节点存的是主键值。查到主键后还要去聚簇索引查完整数据——&lt;strong&gt;回表&lt;/strong&gt;。&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;&#34;&gt;&lt;code class=&#34;language-sql&#34; data-lang=&#34;sql&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;-- name 上有索引
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;SELECT&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;FROM&lt;/span&gt; student &lt;span style=&#34;color:#66d9ef&#34;&gt;WHERE&lt;/span&gt; name &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#39;张三&amp;#39;&lt;/span&gt;;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;-- 1. name 索引树找到主键 id=1001
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;-- 2. 拿 id=1001 去聚簇索引查整行 → 回表
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;回表就是两次 B+树查找，数据量大时开销不小。&lt;/p&gt;
+&lt;h2 id=&#34;最左匹配原则&#34;&gt;最左匹配原则&lt;/h2&gt;
+&lt;p&gt;联合索引 &lt;code&gt;(a, b, c)&lt;/code&gt; 的匹配规则：&lt;/p&gt;</description>
+    </item>
+    <item>
+      <title>策略模式替代 if-else</title>
+      <link>http://localhost:49494/posts/design-pattern-strategy/</link>
+      <pubDate>Wed, 15 May 2024 00:00:00 +0000</pubDate>
+      <guid>http://localhost:49494/posts/design-pattern-strategy/</guid>
+      <description>&lt;h1 id=&#34;策略模式干掉-if-else代码瞬间清爽&#34;&gt;策略模式干掉 if-else，代码瞬间清爽&lt;/h1&gt;
+&lt;h2 id=&#34;if-else-地狱&#34;&gt;if-else 地狱&lt;/h2&gt;
+&lt;p&gt;你写过这种代码吗：&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;&#34;&gt;&lt;code class=&#34;language-java&#34; data-lang=&#34;java&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;public&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;double&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;calculate&lt;/span&gt;(String type, &lt;span style=&#34;color:#66d9ef&#34;&gt;double&lt;/span&gt; amount) {
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;if&lt;/span&gt; (&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;NORMAL&amp;#34;&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;equals&lt;/span&gt;(type)) {
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        &lt;span style=&#34;color:#66d9ef&#34;&gt;return&lt;/span&gt; amount;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    } &lt;span style=&#34;color:#66d9ef&#34;&gt;else&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;if&lt;/span&gt; (&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;VIP&amp;#34;&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;equals&lt;/span&gt;(type)) {
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        &lt;span style=&#34;color:#66d9ef&#34;&gt;return&lt;/span&gt; amount &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt; 0.&lt;span style=&#34;color:#a6e22e&#34;&gt;9&lt;/span&gt;;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    } &lt;span style=&#34;color:#66d9ef&#34;&gt;else&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;if&lt;/span&gt; (&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;SVIP&amp;#34;&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;equals&lt;/span&gt;(type)) {
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        &lt;span style=&#34;color:#66d9ef&#34;&gt;return&lt;/span&gt; amount &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt; 0.&lt;span style=&#34;color:#a6e22e&#34;&gt;8&lt;/span&gt;;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    } &lt;span style=&#34;color:#66d9ef&#34;&gt;else&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;if&lt;/span&gt; (&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;EMPLOYEE&amp;#34;&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;equals&lt;/span&gt;(type)) {
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        &lt;span style=&#34;color:#66d9ef&#34;&gt;return&lt;/span&gt; amount &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt; 0.&lt;span style=&#34;color:#a6e22e&#34;&gt;7&lt;/span&gt;;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    } &lt;span style=&#34;color:#66d9ef&#34;&gt;else&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;if&lt;/span&gt; (&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;PARTNER&amp;#34;&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;equals&lt;/span&gt;(type)) {
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        &lt;span style=&#34;color:#66d9ef&#34;&gt;return&lt;/span&gt; amount &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt; 0.&lt;span style=&#34;color:#a6e22e&#34;&gt;6&lt;/span&gt;;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    }
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;return&lt;/span&gt; amount;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;}
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;说实话，你的代码里有没有类似的？我之前实习的时候接手过一个项目，一个方法里二十多个 if-else，看得我头皮发麻。每次加个新类型就得在这坨代码里再加一个分支，改着改着就出 bug。&lt;/p&gt;
+&lt;p&gt;这种代码的问题很明显：违反开闭原则，每次新增逻辑都要改已有代码。测试也麻烦，一个方法里分支太多，哪条路径没覆盖到都不好说。&lt;/p&gt;
+&lt;h2 id=&#34;策略模式是什么&#34;&gt;策略模式是什么&lt;/h2&gt;
+&lt;p&gt;策略模式说白了就是：把每个 if 分支里的逻辑抽成单独的类，通过一个统一的接口来调用。&lt;/p&gt;
+&lt;p&gt;核心三个角色：&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;strong&gt;策略接口&lt;/strong&gt;：定义算法规范&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;具体策略&lt;/strong&gt;：每个类实现一种算法&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;上下文&lt;/strong&gt;：持有策略引用，负责调用&lt;/li&gt;
+&lt;/ul&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;&#34;&gt;&lt;code class=&#34;language-java&#34; data-lang=&#34;java&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;// 策略接口&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;public&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;interface&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;PriceStrategy&lt;/span&gt; {
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;double&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;calculate&lt;/span&gt;(&lt;span style=&#34;color:#66d9ef&#34;&gt;double&lt;/span&gt; amount);
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;}
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;// 具体策略&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;public&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;class&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;VipPriceStrategy&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;implements&lt;/span&gt; PriceStrategy {
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#a6e22e&#34;&gt;@Override&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;public&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;double&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;calculate&lt;/span&gt;(&lt;span style=&#34;color:#66d9ef&#34;&gt;double&lt;/span&gt; amount) {
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        &lt;span style=&#34;color:#66d9ef&#34;&gt;return&lt;/span&gt; amount &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt; 0.&lt;span style=&#34;color:#a6e22e&#34;&gt;9&lt;/span&gt;;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    }
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;}
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;就这么简单。你可能会想，这不是更啰嗦了吗？本来一个方法搞定的事，搞出一堆类。别急，往下看。&lt;/p&gt;</description>
+    </item>
+    <item>
+      <title>Redis 分布式锁笔记</title>
+      <link>http://localhost:49494/posts/redis-distributed-lock/</link>
+      <pubDate>Wed, 10 Apr 2024 00:00:00 +0000</pubDate>
+      <guid>http://localhost:49494/posts/redis-distributed-lock/</guid>
+      <description>&lt;h1 id=&#34;redis-分布式锁踩坑记&#34;&gt;Redis 分布式锁踩坑记&lt;/h1&gt;
+&lt;p&gt;分布式锁这个东西，面试必问，实际开发也经常用。我做课程项目的时候在这上面栽了好几个跟头，今天把踩过的坑总结一下。&lt;/p&gt;
+&lt;h2 id=&#34;最简单的实现setnx&#34;&gt;最简单的实现：SETNX&lt;/h2&gt;
+&lt;p&gt;分布式锁的核心思路很简单：大家抢同一个 key，谁抢到谁执行。&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;SETNX lock:order:1001 &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;locked&amp;#34;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;DEL lock:order:1001
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;Java 代码：&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;&#34;&gt;&lt;code class=&#34;language-java&#34; data-lang=&#34;java&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;Boolean locked &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; redisTemplate.&lt;span style=&#34;color:#a6e22e&#34;&gt;opsForValue&lt;/span&gt;()
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    .&lt;span style=&#34;color:#a6e22e&#34;&gt;setIfAbsent&lt;/span&gt;(&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;lock:order:&amp;#34;&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;+&lt;/span&gt; orderId, &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;1&amp;#34;&lt;/span&gt;);
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;if&lt;/span&gt; (Boolean.&lt;span style=&#34;color:#a6e22e&#34;&gt;TRUE&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;equals&lt;/span&gt;(locked)) {
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;try&lt;/span&gt; {
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        doSomething();
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    } &lt;span style=&#34;color:#66d9ef&#34;&gt;finally&lt;/span&gt; {
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        redisTemplate.&lt;span style=&#34;color:#a6e22e&#34;&gt;delete&lt;/span&gt;(&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;lock:order:&amp;#34;&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;+&lt;/span&gt; orderId);
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    }
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;}
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;看起来没问题？坑大了。&lt;/p&gt;
+&lt;h2 id=&#34;过期时间的坑&#34;&gt;过期时间的坑&lt;/h2&gt;
+&lt;p&gt;假设拿到锁之后服务器挂了，&lt;code&gt;finally&lt;/code&gt; 里的 &lt;code&gt;delete&lt;/code&gt; 没执行到——死锁。&lt;/p&gt;
+&lt;p&gt;所以得加过期时间：&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;&#34;&gt;&lt;code class=&#34;language-java&#34; data-lang=&#34;java&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;Boolean locked &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; redisTemplate.&lt;span style=&#34;color:#a6e22e&#34;&gt;opsForValue&lt;/span&gt;()
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    .&lt;span style=&#34;color:#a6e22e&#34;&gt;setIfAbsent&lt;/span&gt;(&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;lock:order:&amp;#34;&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;+&lt;/span&gt; orderId, &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;1&amp;#34;&lt;/span&gt;, 30, TimeUnit.&lt;span style=&#34;color:#a6e22e&#34;&gt;SECONDS&lt;/span&gt;);
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;注意一定要用 &lt;code&gt;SET key value EX seconds NX&lt;/code&gt; 原子命令。别先 SETNX 再 EXPIRE，中间挂了还是死锁。我第一次写就犯了这个错。&lt;/p&gt;
+&lt;p&gt;但过期时间带来新问题：业务执行时间超过锁的过期时间咋办？锁过期了，别的线程拿到锁，两个线程同时在跑。&lt;/p&gt;
+&lt;p&gt;还有个更隐蔽的坑：A 的锁过期了，B 拿到锁，然后 A 执行完去 DEL，删的其实是 B 的锁。&lt;/p&gt;
+&lt;p&gt;解决误删要给 value 加唯一标识，删前先检查：&lt;/p&gt;</description>
+    </item>
+    <item>
+      <title>MyBatis SQL 执行流程</title>
+      <link>http://localhost:49494/posts/mybatis-execution-flow/</link>
+      <pubDate>Tue, 05 Mar 2024 00:00:00 +0000</pubDate>
+      <guid>http://localhost:49494/posts/mybatis-execution-flow/</guid>
+      <description>&lt;h1 id=&#34;mybatis-一条-sql-的执行之旅&#34;&gt;MyBatis 一条 SQL 的执行之旅&lt;/h1&gt;
+&lt;h2 id=&#34;从-mapper-接口说起&#34;&gt;从 Mapper 接口说起&lt;/h2&gt;
+&lt;p&gt;用 MyBatis 写代码，日常就是定义一个 Mapper 接口，写个 XML 或注解，然后调用方法就完事了。但你有没有想过，你调 &lt;code&gt;userMapper.selectById(1)&lt;/code&gt; 的时候，MyBatis 背后到底干了啥？&lt;/p&gt;
+&lt;p&gt;我之前一直觉得这东西就是个黑盒，SQL 进去，对象出来，不用管就好。直到有次面试被问&amp;quot;说说 MyBatis 的执行流程&amp;quot;，我直接愣住了。回来之后认真翻了源码，发现整个流程其实挺清晰的，今天来捋一捋。&lt;/p&gt;
+&lt;p&gt;简单说，你调 Mapper 方法，其实调的是一个 JDK 动态代理对象。MyBatis 在启动的时候会给每个 Mapper 接口生成代理，拦截方法调用，然后转到 SqlSession 去执行。&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;&#34;&gt;&lt;code class=&#34;language-java&#34; data-lang=&#34;java&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;// 你以为你在调接口方法&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;User user &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; userMapper.&lt;span style=&#34;color:#a6e22e&#34;&gt;selectById&lt;/span&gt;(1);
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;// 实际上等价于&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;User user &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; sqlSession.&lt;span style=&#34;color:#a6e22e&#34;&gt;selectOne&lt;/span&gt;(&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;com.example.mapper.UserMapper.selectById&amp;#34;&lt;/span&gt;, 1);
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;所以 Mapper 接口本身没有实现类，全靠代理。这个设计挺巧妙的，让你写代码的时候感觉像在调普通方法。&lt;/p&gt;
+&lt;h2 id=&#34;sqlsession-是什么&#34;&gt;SqlSession 是什么&lt;/h2&gt;
+&lt;p&gt;SqlSession 是 MyBatis 的核心接口，相当于一次数据库会话。它提供了 selectOne、selectList、insert、update、delete 这些方法。&lt;/p&gt;
+&lt;p&gt;不过 SqlSession 自己不干活，它把事情委托给 Executor。你可以把 SqlSession 理解成一个门面，真正干活的是后面的 Executor。&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;&#34;&gt;&lt;code class=&#34;language-java&#34; data-lang=&#34;java&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;public&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;class&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;DefaultSqlSession&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;implements&lt;/span&gt; SqlSession {
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;private&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;final&lt;/span&gt; Executor executor;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#a6e22e&#34;&gt;@Override&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;public&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;&lt;/span&gt;T&lt;span style=&#34;color:#f92672&#34;&gt;&amp;gt;&lt;/span&gt; T &lt;span style=&#34;color:#a6e22e&#34;&gt;selectOne&lt;/span&gt;(String statement, Object parameter) {
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        List&lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;&lt;/span&gt;T&lt;span style=&#34;color:#f92672&#34;&gt;&amp;gt;&lt;/span&gt; list &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;this&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;selectList&lt;/span&gt;(statement, parameter);
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        &lt;span style=&#34;color:#66d9ef&#34;&gt;if&lt;/span&gt; (list.&lt;span style=&#34;color:#a6e22e&#34;&gt;size&lt;/span&gt;() &lt;span style=&#34;color:#f92672&#34;&gt;==&lt;/span&gt; 1) {
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;            &lt;span style=&#34;color:#66d9ef&#34;&gt;return&lt;/span&gt; list.&lt;span style=&#34;color:#a6e22e&#34;&gt;get&lt;/span&gt;(0);
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        }
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        &lt;span style=&#34;color:#75715e&#34;&gt;// ...&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    }
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;}
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;话说回来，如果你用的是 Spring + MyBatis，SqlSession 的创建和关闭都被 SqlSessionTemplate 管了，你基本不用操心。&lt;/p&gt;</description>
+    </item>
+    <item>
+      <title>Redis 五种数据结构</title>
+      <link>http://localhost:49494/posts/redis-data-structures/</link>
+      <pubDate>Tue, 20 Feb 2024 00:00:00 +0000</pubDate>
+      <guid>http://localhost:49494/posts/redis-data-structures/</guid>
+      <description>&lt;h1 id=&#34;redis-五种数据结构各有各的妙用&#34;&gt;Redis 五种数据结构，各有各的妙用&lt;/h1&gt;
+&lt;p&gt;Redis 谁都用过吧？但我发现很多人（包括之前的我）用 Redis 就只会 &lt;code&gt;SET&lt;/code&gt; 和 &lt;code&gt;GET&lt;/code&gt;，把它当个 key-value 缓存使。其实 Redis 有五种基本数据结构，每种都有自己的应用场景，选对了效率翻倍，选错了可能还不如不用。&lt;/p&gt;
+&lt;h2 id=&#34;string最简单但别小看它&#34;&gt;String——最简单但别小看它&lt;/h2&gt;
+&lt;p&gt;String 是最基础的数据类型。一个 key 对应一个 value，value 最大 512MB。&lt;/p&gt;
+&lt;p&gt;常见用法：&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;SET user:token:1001 &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;abc123&amp;#34;&lt;/span&gt; EX &lt;span style=&#34;color:#ae81ff&#34;&gt;3600&lt;/span&gt;   &lt;span style=&#34;color:#75715e&#34;&gt;# 存 token，1小时过期&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;GET user:token:1001                      &lt;span style=&#34;color:#75715e&#34;&gt;# 取 token&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;INCR article:view:2001                   &lt;span style=&#34;color:#75715e&#34;&gt;# 文章浏览量 +1&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;INCRBY inventory:sku:3001 -1            &lt;span style=&#34;color:#75715e&#34;&gt;# 库存 -1&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;底层编码有三种：&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;strong&gt;int&lt;/strong&gt;：值是整数且小于 2^63，直接存数字&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;embstr&lt;/strong&gt;：字符串长度 &amp;lt;= 44 字节，一次内存分配&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;raw&lt;/strong&gt;：字符串长度 &amp;gt; 44 字节，两次内存分配&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;实际项目里 String 最常用的就是缓存和计数器。我之前做选课系统的时候用 &lt;code&gt;INCR&lt;/code&gt; 做并发计数，原子操作不用加锁，很方便。&lt;/p&gt;
+&lt;h2 id=&#34;hash存对象就用它&#34;&gt;Hash——存对象就用它&lt;/h2&gt;
+&lt;p&gt;Hash 适合存结构化数据：&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;HSET user:1001 name &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;张三&amp;#34;&lt;/span&gt; age &lt;span style=&#34;color:#ae81ff&#34;&gt;21&lt;/span&gt; major &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;计算机&amp;#34;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;HGET user:1001 name        &lt;span style=&#34;color:#75715e&#34;&gt;# 取单个字段&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;HGETALL user:1001          &lt;span style=&#34;color:#75715e&#34;&gt;# 取所有字段&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;你可能会想，用 String 存 JSON 也能存对象啊，为啥要用 Hash？&lt;/p&gt;</description>
+    </item>
+    <item>
+      <title>Java Stream API 使用笔记</title>
+      <link>http://localhost:49494/posts/java-stream-api/</link>
+      <pubDate>Thu, 18 Jan 2024 00:00:00 +0000</pubDate>
+      <guid>http://localhost:49494/posts/java-stream-api/</guid>
+      <description>&lt;h1 id=&#34;stream-api-用起来真香但别乱用&#34;&gt;Stream API 用起来真香，但别乱用&lt;/h1&gt;
+&lt;p&gt;自从学了 Stream API，写 Java 的风格变了不少。以前过滤加转换要写十几行 for 循环，现在一行链式搞定，确实香。&lt;/p&gt;
+&lt;p&gt;但用了一段时间也踩了不少坑，特别是并行流和性能方面，今天来聊聊。&lt;/p&gt;
+&lt;h2 id=&#34;基本操作过一遍&#34;&gt;基本操作过一遍&lt;/h2&gt;
+&lt;p&gt;Stream 操作分两种：中间操作（返回新 Stream，可以链式调用）和终端操作（触发计算，产出结果）。&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;&#34;&gt;&lt;code class=&#34;language-java&#34; data-lang=&#34;java&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;List&lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;&lt;/span&gt;String&lt;span style=&#34;color:#f92672&#34;&gt;&amp;gt;&lt;/span&gt; names &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; students.&lt;span style=&#34;color:#a6e22e&#34;&gt;stream&lt;/span&gt;()
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    .&lt;span style=&#34;color:#a6e22e&#34;&gt;filter&lt;/span&gt;(s &lt;span style=&#34;color:#f92672&#34;&gt;-&amp;gt;&lt;/span&gt; s.&lt;span style=&#34;color:#a6e22e&#34;&gt;getScore&lt;/span&gt;() &lt;span style=&#34;color:#f92672&#34;&gt;&amp;gt;&lt;/span&gt; 80)      &lt;span style=&#34;color:#75715e&#34;&gt;// 过滤&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    .&lt;span style=&#34;color:#a6e22e&#34;&gt;map&lt;/span&gt;(Student::getName)                 &lt;span style=&#34;color:#75715e&#34;&gt;// 转换&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    .&lt;span style=&#34;color:#a6e22e&#34;&gt;sorted&lt;/span&gt;()                              &lt;span style=&#34;color:#75715e&#34;&gt;// 排序&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    .&lt;span style=&#34;color:#a6e22e&#34;&gt;distinct&lt;/span&gt;()                            &lt;span style=&#34;color:#75715e&#34;&gt;// 去重&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    .&lt;span style=&#34;color:#a6e22e&#34;&gt;limit&lt;/span&gt;(10)                             &lt;span style=&#34;color:#75715e&#34;&gt;// 取前10&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    .&lt;span style=&#34;color:#a6e22e&#34;&gt;collect&lt;/span&gt;(Collectors.&lt;span style=&#34;color:#a6e22e&#34;&gt;toList&lt;/span&gt;());         &lt;span style=&#34;color:#75715e&#34;&gt;// 收集结果&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;几个常用的终端操作：&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;&#34;&gt;&lt;code class=&#34;language-java&#34; data-lang=&#34;java&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;// 收集到 Map&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;Map&lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;&lt;/span&gt;Long, Student&lt;span style=&#34;color:#f92672&#34;&gt;&amp;gt;&lt;/span&gt; map &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; students.&lt;span style=&#34;color:#a6e22e&#34;&gt;stream&lt;/span&gt;()
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    .&lt;span style=&#34;color:#a6e22e&#34;&gt;collect&lt;/span&gt;(Collectors.&lt;span style=&#34;color:#a6e22e&#34;&gt;toMap&lt;/span&gt;(Student::getId, s &lt;span style=&#34;color:#f92672&#34;&gt;-&amp;gt;&lt;/span&gt; s));
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;// 分组&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;Map&lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;&lt;/span&gt;String, List&lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;&lt;/span&gt;Student&lt;span style=&#34;color:#f92672&#34;&gt;&amp;gt;&amp;gt;&lt;/span&gt; grouped &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; students.&lt;span style=&#34;color:#a6e22e&#34;&gt;stream&lt;/span&gt;()
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    .&lt;span style=&#34;color:#a6e22e&#34;&gt;collect&lt;/span&gt;(Collectors.&lt;span style=&#34;color:#a6e22e&#34;&gt;groupingBy&lt;/span&gt;(Student::getClassName));
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;// 归约&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;int&lt;/span&gt; total &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; numbers.&lt;span style=&#34;color:#a6e22e&#34;&gt;stream&lt;/span&gt;().&lt;span style=&#34;color:#a6e22e&#34;&gt;reduce&lt;/span&gt;(0, Integer::sum);
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;// 匹配和查找&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;boolean&lt;/span&gt; allMatch &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; stream.&lt;span style=&#34;color:#a6e22e&#34;&gt;allMatch&lt;/span&gt;(predicate);
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;Optional&lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;&lt;/span&gt;T&lt;span style=&#34;color:#f92672&#34;&gt;&amp;gt;&lt;/span&gt; first &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; stream.&lt;span style=&#34;color:#a6e22e&#34;&gt;findFirst&lt;/span&gt;();
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;h2 id=&#34;几个实用的写法&#34;&gt;几个实用的写法&lt;/h2&gt;
+&lt;p&gt;&lt;strong&gt;toMap key 冲突处理&lt;/strong&gt;&lt;/p&gt;</description>
+    </item>
+    <item>
+      <title>Java 反射机制与性能</title>
+      <link>http://localhost:49494/posts/java-reflection/</link>
+      <pubDate>Wed, 25 Oct 2023 00:00:00 +0000</pubDate>
+      <guid>http://localhost:49494/posts/java-reflection/</guid>
+      <description>&lt;h1 id=&#34;反射慢慢多少你测过吗&#34;&gt;反射慢？慢多少你测过吗&lt;/h1&gt;
+&lt;p&gt;&amp;ldquo;反射很慢，尽量别用。&amp;ldquo;这话你肯定听过。但到底慢多少？慢在哪？大部分人说不清楚，我之前也说不清楚，干脆自己测了一下。&lt;/p&gt;
+&lt;h2 id=&#34;怎么获取-class-对象&#34;&gt;怎么获取 Class 对象&lt;/h2&gt;
+&lt;p&gt;反射的入口是 Class 对象，三种方式：&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;&#34;&gt;&lt;code class=&#34;language-java&#34; data-lang=&#34;java&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;// 方式1：编译期就确定了&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;Class&lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;?&amp;gt;&lt;/span&gt; clazz &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; String.&lt;span style=&#34;color:#a6e22e&#34;&gt;class&lt;/span&gt;;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;// 方式2：从已有对象获取&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;Class&lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;?&amp;gt;&lt;/span&gt; clazz &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;hello&amp;#34;&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;getClass&lt;/span&gt;();
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;// 方式3：运行时按类名加载&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;Class&lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;?&amp;gt;&lt;/span&gt; clazz &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; Class.&lt;span style=&#34;color:#a6e22e&#34;&gt;forName&lt;/span&gt;(&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;java.lang.String&amp;#34;&lt;/span&gt;);
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;方式 1 和 2 编译期就确定类型了，方式 3 运行时按名字找，最灵活也最慢。&lt;/p&gt;
+&lt;p&gt;拿到 Class 之后就能获取方法、字段、构造器：&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;&#34;&gt;&lt;code class=&#34;language-java&#34; data-lang=&#34;java&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;Method method &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; clazz.&lt;span style=&#34;color:#a6e22e&#34;&gt;getDeclaredMethod&lt;/span&gt;(&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;substring&amp;#34;&lt;/span&gt;, &lt;span style=&#34;color:#66d9ef&#34;&gt;int&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;class&lt;/span&gt;);
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;Field&lt;span style=&#34;color:#f92672&#34;&gt;[]&lt;/span&gt; fields &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; clazz.&lt;span style=&#34;color:#a6e22e&#34;&gt;getDeclaredFields&lt;/span&gt;();
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;Object obj &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; clazz.&lt;span style=&#34;color:#a6e22e&#34;&gt;getDeclaredConstructor&lt;/span&gt;().&lt;span style=&#34;color:#a6e22e&#34;&gt;newInstance&lt;/span&gt;();
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;&lt;code&gt;getDeclaredXxx&lt;/code&gt; 拿本类声明的（包括 private），&lt;code&gt;getXxx&lt;/code&gt; 拿 public 的（包括继承的）。这个区别我之前搞混过，拿不到 private 字段 debug 了半天。&lt;/p&gt;
+&lt;h2 id=&#34;methodinvoke-干了啥&#34;&gt;Method.invoke 干了啥&lt;/h2&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;&#34;&gt;&lt;code class=&#34;language-java&#34; data-lang=&#34;java&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;Method method &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; clazz.&lt;span style=&#34;color:#a6e22e&#34;&gt;getDeclaredMethod&lt;/span&gt;(&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;length&amp;#34;&lt;/span&gt;);
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;Object result &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; method.&lt;span style=&#34;color:#a6e22e&#34;&gt;invoke&lt;/span&gt;(&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;hello&amp;#34;&lt;/span&gt;);  &lt;span style=&#34;color:#75715e&#34;&gt;// 返回 5&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;private 方法要先 &lt;code&gt;method.setAccessible(true)&lt;/code&gt; 开权限。&lt;/p&gt;
+&lt;p&gt;invoke 底层干了几件事：&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;检查访问权限&lt;/li&gt;
+&lt;li&gt;检查参数类型匹配&lt;/li&gt;
+&lt;li&gt;调用次数不到 15 次时走 JNI（native 实现）&lt;/li&gt;
+&lt;li&gt;超过 15 次后 JVM 动态生成字节码类来做调用&lt;/li&gt;
+&lt;/ol&gt;
+&lt;p&gt;前 15 次用 native 是因为生成字节码本身有成本，调用少的话不划算。阈值可以通过 &lt;code&gt;-Dsun.reflect.inflationThreshold&lt;/code&gt; 调。&lt;/p&gt;</description>
+    </item>
+    <item>
+      <title>Spring Boot 自动配置原理</title>
+      <link>http://localhost:49494/posts/springboot-auto-config/</link>
+      <pubDate>Tue, 05 Sep 2023 00:00:00 +0000</pubDate>
+      <guid>http://localhost:49494/posts/springboot-auto-config/</guid>
+      <description>&lt;h1 id=&#34;spring-boot-自动配置看完你就不慌了&#34;&gt;Spring Boot 自动配置，看完你就不慌了&lt;/h1&gt;
+&lt;p&gt;用 Spring Boot 写项目的时候，你有没有想过：我就加了个 &lt;code&gt;spring-boot-starter-web&lt;/code&gt; 依赖，Tomcat 怎么就自己跑起来了？数据源我就配了个 URL，连接池怎么就自动用上 HikariCP 了？&lt;/p&gt;
+&lt;p&gt;这背后全是自动配置在搞事情。&lt;/p&gt;
+&lt;h2 id=&#34;springbootapplication-背后藏了什么&#34;&gt;@SpringBootApplication 背后藏了什么&lt;/h2&gt;
+&lt;p&gt;启动类上那个 &lt;code&gt;@SpringBootApplication&lt;/code&gt;，其实是个组合注解：&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;&#34;&gt;&lt;code class=&#34;language-java&#34; data-lang=&#34;java&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#a6e22e&#34;&gt;@SpringBootConfiguration&lt;/span&gt;  &lt;span style=&#34;color:#75715e&#34;&gt;// 本质就是 @Configuration&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#a6e22e&#34;&gt;@EnableAutoConfiguration&lt;/span&gt;   &lt;span style=&#34;color:#75715e&#34;&gt;// 关键！开启自动配置&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#a6e22e&#34;&gt;@ComponentScan&lt;/span&gt;             &lt;span style=&#34;color:#75715e&#34;&gt;// 包扫描&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;public&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;@interface&lt;/span&gt; SpringBootApplication {
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;}
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;重点是 &lt;code&gt;@EnableAutoConfiguration&lt;/code&gt;。它里面用了 &lt;code&gt;@Import(AutoConfigurationImportSelector.class)&lt;/code&gt;，这个 Selector 负责加载所有自动配置类。&lt;/p&gt;
+&lt;p&gt;怎么加载？读 &lt;code&gt;META-INF/spring.factories&lt;/code&gt; 文件。Spring Boot 3.x 改成了 &lt;code&gt;META-INF/spring/org.springframework.boot.autoconfigure.AutoConfiguration.imports&lt;/code&gt;，但思路一样。&lt;/p&gt;
+&lt;h2 id=&#34;springfactories-是怎么回事&#34;&gt;spring.factories 是怎么回事&lt;/h2&gt;
+&lt;p&gt;这个文件在每个 starter 的 jar 包里都有。去解压 &lt;code&gt;spring-boot-autoconfigure&lt;/code&gt; 这个 jar，就能看到里面的 &lt;code&gt;spring.factories&lt;/code&gt;，密密麻麻写了一堆配置类：&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;&#34;&gt;&lt;code class=&#34;language-properties&#34; data-lang=&#34;properties&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#a6e22e&#34;&gt;org.springframework.boot.autoconfigure.EnableAutoConfiguration&lt;/span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;\
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;org.springframework.boot.autoconfigure.web.servlet.WebMvcAutoConfiguration,\
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration,\
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;org.springframework.boot.autoconfigure.data.redis.RedisAutoConfiguration,\
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;...&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;启动的时候 Spring Boot 把这些类全加载进来。你可能想：这么多配置类全加载，不会很慢吗？别急，看下面。&lt;/p&gt;
+&lt;h2 id=&#34;条件注解按需加载的秘密&#34;&gt;条件注解——按需加载的秘密&lt;/h2&gt;
+&lt;p&gt;虽然列了上百个配置类，但不是每个都会生效。Spring Boot 用条件注解控制：&lt;/p&gt;
+&lt;table&gt;
+  &lt;thead&gt;
+      &lt;tr&gt;
+          &lt;th&gt;注解&lt;/th&gt;
+          &lt;th&gt;含义&lt;/th&gt;
+      &lt;/tr&gt;
+  &lt;/thead&gt;
+  &lt;tbody&gt;
+      &lt;tr&gt;
+          &lt;td&gt;&lt;code&gt;@ConditionalOnClass&lt;/code&gt;&lt;/td&gt;
+          &lt;td&gt;classpath 里有某个类才生效&lt;/td&gt;
+      &lt;/tr&gt;
+      &lt;tr&gt;
+          &lt;td&gt;&lt;code&gt;@ConditionalOnMissingClass&lt;/code&gt;&lt;/td&gt;
+          &lt;td&gt;classpath 里没某个类才生效&lt;/td&gt;
+      &lt;/tr&gt;
+      &lt;tr&gt;
+          &lt;td&gt;&lt;code&gt;@ConditionalOnBean&lt;/code&gt;&lt;/td&gt;
+          &lt;td&gt;容器里有某个 Bean 才生效&lt;/td&gt;
+      &lt;/tr&gt;
+      &lt;tr&gt;
+          &lt;td&gt;&lt;code&gt;@ConditionalOnMissingBean&lt;/code&gt;&lt;/td&gt;
+          &lt;td&gt;容器里没某个 Bean 才生效&lt;/td&gt;
+      &lt;/tr&gt;
+      &lt;tr&gt;
+          &lt;td&gt;&lt;code&gt;@ConditionalOnProperty&lt;/code&gt;&lt;/td&gt;
+          &lt;td&gt;配置文件里有某个属性才生效&lt;/td&gt;
+      &lt;/tr&gt;
+  &lt;/tbody&gt;
+&lt;/table&gt;
+&lt;p&gt;举个例子，&lt;code&gt;RedisAutoConfiguration&lt;/code&gt; 的源码大概这样：&lt;/p&gt;</description>
+    </item>
+    <item>
+      <title>Java 泛型常见问题</title>
+      <link>http://localhost:49494/posts/java-generics/</link>
+      <pubDate>Sat, 12 Aug 2023 00:00:00 +0000</pubDate>
+      <guid>http://localhost:49494/posts/java-generics/</guid>
+      <description>&lt;h1 id=&#34;java-泛型这几个坑你肯定踩过&#34;&gt;Java 泛型这几个坑你肯定踩过&lt;/h1&gt;
+&lt;p&gt;Java 泛型这东西，看着简单用着顺手，直到踩坑才发现自己根本没搞懂。上周写作业一个泛型编译错误折腾了我一个多小时，气得把泛型重新学了一遍。&lt;/p&gt;
+&lt;h2 id=&#34;类型擦除到底擦了啥&#34;&gt;类型擦除到底擦了啥&lt;/h2&gt;
+&lt;p&gt;Java 的泛型是假泛型。编译之后泛型信息就没了，全变成 Object（或上界类型），这叫类型擦除。&lt;/p&gt;
+&lt;p&gt;&lt;code&gt;List&amp;lt;String&amp;gt;&lt;/code&gt; 和 &lt;code&gt;List&amp;lt;Integer&amp;gt;&lt;/code&gt;，到了 JVM 眼里都是 &lt;code&gt;List&lt;/code&gt;：&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;&#34;&gt;&lt;code class=&#34;language-java&#34; data-lang=&#34;java&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;List&lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;&lt;/span&gt;String&lt;span style=&#34;color:#f92672&#34;&gt;&amp;gt;&lt;/span&gt; strList &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;new&lt;/span&gt; ArrayList&lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;&amp;gt;&lt;/span&gt;();
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;List&lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;&lt;/span&gt;Integer&lt;span style=&#34;color:#f92672&#34;&gt;&amp;gt;&lt;/span&gt; intList &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;new&lt;/span&gt; ArrayList&lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;&amp;gt;&lt;/span&gt;();
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;System.&lt;span style=&#34;color:#a6e22e&#34;&gt;out&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;println&lt;/span&gt;(strList.&lt;span style=&#34;color:#a6e22e&#34;&gt;getClass&lt;/span&gt;() &lt;span style=&#34;color:#f92672&#34;&gt;==&lt;/span&gt; intList.&lt;span style=&#34;color:#a6e22e&#34;&gt;getClass&lt;/span&gt;());  &lt;span style=&#34;color:#75715e&#34;&gt;// true&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;泛型只在编译期做类型检查，运行时完全不知道 T 是啥。&lt;/p&gt;
+&lt;p&gt;所以这些事都做不了：&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;&#34;&gt;&lt;code class=&#34;language-java&#34; data-lang=&#34;java&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;new&lt;/span&gt; T();              &lt;span style=&#34;color:#75715e&#34;&gt;// 不知道 T 是啥，没法 new&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;new&lt;/span&gt; T&lt;span style=&#34;color:#f92672&#34;&gt;[&lt;/span&gt;10&lt;span style=&#34;color:#f92672&#34;&gt;]&lt;/span&gt;;            &lt;span style=&#34;color:#75715e&#34;&gt;// 不能创建泛型数组&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;T.&lt;span style=&#34;color:#a6e22e&#34;&gt;class&lt;/span&gt;;              &lt;span style=&#34;color:#75715e&#34;&gt;// 拿不到 T 的 Class&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;instanceof&lt;/span&gt; T;         &lt;span style=&#34;color:#75715e&#34;&gt;// 运行时不认识 T&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;想在泛型方法里创建实例？得把 &lt;code&gt;Class&amp;lt;T&amp;gt;&lt;/code&gt; 传进去：&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;&#34;&gt;&lt;code class=&#34;language-java&#34; data-lang=&#34;java&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;public&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;&lt;/span&gt;T&lt;span style=&#34;color:#f92672&#34;&gt;&amp;gt;&lt;/span&gt; T &lt;span style=&#34;color:#a6e22e&#34;&gt;create&lt;/span&gt;(Class&lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;&lt;/span&gt;T&lt;span style=&#34;color:#f92672&#34;&gt;&amp;gt;&lt;/span&gt; clazz) &lt;span style=&#34;color:#66d9ef&#34;&gt;throws&lt;/span&gt; Exception {
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;return&lt;/span&gt; clazz.&lt;span style=&#34;color:#a6e22e&#34;&gt;newInstance&lt;/span&gt;();
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;}
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;本质就是擦除之后 T 没了，你得自己把类型信息带进来。&lt;/p&gt;
+&lt;h2 id=&#34;通配符--extends-和--super&#34;&gt;通配符 ? extends 和 ? super&lt;/h2&gt;
+&lt;p&gt;这块是泛型里最让人头疼的部分。&lt;/p&gt;
+&lt;p&gt;&lt;code&gt;? extends T&lt;/code&gt; 表示&amp;quot;T 或 T 的子类&amp;quot;（上界通配符）：&lt;/p&gt;</description>
+    </item>
+    <item>
+      <title>volatile 与 Java 内存模型</title>
+      <link>http://localhost:49494/posts/java-memory-model-volatile/</link>
+      <pubDate>Thu, 20 Jul 2023 00:00:00 +0000</pubDate>
+      <guid>http://localhost:49494/posts/java-memory-model-volatile/</guid>
+      <description>&lt;h1 id=&#34;volatile-到底能保证什么&#34;&gt;volatile 到底能保证什么&lt;/h1&gt;
+&lt;h2 id=&#34;java-内存模型简单说&#34;&gt;Java 内存模型简单说&lt;/h2&gt;
+&lt;p&gt;聊 volatile 之前，得先说说 Java 内存模型（JMM）。放心，不讲太深，够理解 volatile 就行。&lt;/p&gt;
+&lt;p&gt;JMM 规定了线程和内存之间的关系。简单理解：每个线程有自己的工作内存（你可以想象成 CPU 缓存），线程操作变量不是直接改主内存，而是先拷贝一份到工作内存，改完再写回去。&lt;/p&gt;
+&lt;p&gt;这就埋下了隐患——线程 A 改了变量，线程 B 可能看不到，因为 B 还在用自己工作内存里的旧值。&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;&#34;&gt;&lt;code class=&#34;language-fallback&#34; data-lang=&#34;fallback&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;主内存:  x = 0
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;线程A工作内存: x = 0  →  x = 1  →  写回主内存
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;线程B工作内存: x = 0  →  还是0！没刷新！
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;这就是可见性问题。&lt;/p&gt;
+&lt;h2 id=&#34;可见性volatile-的第一个保证&#34;&gt;可见性：volatile 的第一个保证&lt;/h2&gt;
+&lt;p&gt;来看个经典例子：&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;&#34;&gt;&lt;code class=&#34;language-java&#34; data-lang=&#34;java&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;public&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;class&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;VisibilityDemo&lt;/span&gt; {
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;private&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;static&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;boolean&lt;/span&gt; flag &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;true&lt;/span&gt;;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;public&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;static&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;void&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;main&lt;/span&gt;(String&lt;span style=&#34;color:#f92672&#34;&gt;[]&lt;/span&gt; args) &lt;span style=&#34;color:#66d9ef&#34;&gt;throws&lt;/span&gt; InterruptedException {
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        &lt;span style=&#34;color:#66d9ef&#34;&gt;new&lt;/span&gt; Thread(() &lt;span style=&#34;color:#f92672&#34;&gt;-&amp;gt;&lt;/span&gt; {
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;            &lt;span style=&#34;color:#66d9ef&#34;&gt;while&lt;/span&gt; (flag) {
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;                &lt;span style=&#34;color:#75715e&#34;&gt;// 忙等待&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;            }
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;            System.&lt;span style=&#34;color:#a6e22e&#34;&gt;out&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;println&lt;/span&gt;(&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;线程退出&amp;#34;&lt;/span&gt;);
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        }).&lt;span style=&#34;color:#a6e22e&#34;&gt;start&lt;/span&gt;();
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        Thread.&lt;span style=&#34;color:#a6e22e&#34;&gt;sleep&lt;/span&gt;(1000);
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        flag &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;false&lt;/span&gt;;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        System.&lt;span style=&#34;color:#a6e22e&#34;&gt;out&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;println&lt;/span&gt;(&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;已设置 flag = false&amp;#34;&lt;/span&gt;);
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    }
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;}
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;你觉得子线程能退出吗？答案是：不一定。JIT 编译器可能把 &lt;code&gt;while(flag)&lt;/code&gt; 优化成 &lt;code&gt;while(true)&lt;/code&gt;，因为它发现当前线程里没人改 flag。&lt;/p&gt;</description>
+    </item>
+    <item>
+      <title>Spring AOP 原理</title>
+      <link>http://localhost:49494/posts/spring-aop-explained/</link>
+      <pubDate>Thu, 15 Jun 2023 00:00:00 +0000</pubDate>
+      <guid>http://localhost:49494/posts/spring-aop-explained/</guid>
+      <description>&lt;h1 id=&#34;aop-这东西说难不难说简单不简单&#34;&gt;AOP 这东西，说难不难说简单不简单&lt;/h1&gt;
+&lt;p&gt;AOP，面向切面编程。第一次听到这个词的时候我满脸问号——什么切面？切什么？&lt;/p&gt;
+&lt;p&gt;后来我换了个理解方式就通了：你有一堆业务方法，想在每个方法执行前后都打个日志，怎么办？一个个方法里加 &lt;code&gt;log.info()&lt;/code&gt;？那要是有 200 个方法呢？改到吐。AOP 就是帮你把这种&amp;quot;横切&amp;quot;的逻辑抽出来，统一处理。&lt;/p&gt;
+&lt;h2 id=&#34;什么是-aop为什么需要它&#34;&gt;什么是 AOP，为什么需要它&lt;/h2&gt;
+&lt;p&gt;OOP 的核心是纵向的继承和封装，但有些逻辑是横向的——日志、事务、权限校验，跟具体业务没关系，但到处都要用。如果每个方法都写一遍，代码重复不说，后续改起来也要命。&lt;/p&gt;
+&lt;p&gt;AOP 的思路是：你定义好在&amp;quot;哪些方法&amp;quot;的&amp;quot;什么时机&amp;quot;执行&amp;quot;什么逻辑&amp;quot;，框架帮你织入。业务代码完全不用动。&lt;/p&gt;
+&lt;h2 id=&#34;动态代理jdk-vs-cglib&#34;&gt;动态代理：JDK vs CGLIB&lt;/h2&gt;
+&lt;p&gt;AOP 的底层实现靠动态代理。Spring 用了两种：&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;JDK 动态代理&lt;/strong&gt;：基于接口。你的类必须实现一个接口，代理对象也实现这个接口，通过 &lt;code&gt;InvocationHandler&lt;/code&gt; 拦截方法调用。&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;&#34;&gt;&lt;code class=&#34;language-java&#34; data-lang=&#34;java&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;public&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;class&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;MyInvocationHandler&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;implements&lt;/span&gt; InvocationHandler {
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;private&lt;/span&gt; Object target;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;public&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;MyInvocationHandler&lt;/span&gt;(Object target) {
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        &lt;span style=&#34;color:#66d9ef&#34;&gt;this&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;target&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; target;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    }
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#a6e22e&#34;&gt;@Override&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;public&lt;/span&gt; Object &lt;span style=&#34;color:#a6e22e&#34;&gt;invoke&lt;/span&gt;(Object proxy, Method method, Object&lt;span style=&#34;color:#f92672&#34;&gt;[]&lt;/span&gt; args) &lt;span style=&#34;color:#66d9ef&#34;&gt;throws&lt;/span&gt; Throwable {
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        System.&lt;span style=&#34;color:#a6e22e&#34;&gt;out&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;println&lt;/span&gt;(&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;方法执行前&amp;#34;&lt;/span&gt;);
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        Object result &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; method.&lt;span style=&#34;color:#a6e22e&#34;&gt;invoke&lt;/span&gt;(target, args);
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        System.&lt;span style=&#34;color:#a6e22e&#34;&gt;out&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;println&lt;/span&gt;(&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;方法执行后&amp;#34;&lt;/span&gt;);
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        &lt;span style=&#34;color:#66d9ef&#34;&gt;return&lt;/span&gt; result;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    }
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;}
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;&lt;strong&gt;CGLIB 动态代理&lt;/strong&gt;：基于继承。不需要接口，直接继承目标类，重写方法来拦截。底层用 ASM 字节码框架。&lt;/p&gt;
+&lt;p&gt;那 Spring 怎么选？目标类实现了接口就用 JDK 代理，没实现接口就用 CGLIB。不过 Spring Boot 2.x 之后默认全用 CGLIB 了，因为 JDK 代理有时候有类型转换的坑。&lt;/p&gt;</description>
+    </item>
+    <item>
+      <title>JVM 垃圾回收机制</title>
+      <link>http://localhost:49494/posts/jvm-gc/</link>
+      <pubDate>Mon, 08 May 2023 00:00:00 +0000</pubDate>
+      <guid>http://localhost:49494/posts/jvm-gc/</guid>
+      <description>&lt;h1 id=&#34;jvm-垃圾回收看这篇就够了&#34;&gt;JVM 垃圾回收看这篇就够了&lt;/h1&gt;
+&lt;p&gt;JVM 垃圾回收是面试八股文里的重头戏，也是我觉得最难啃的一块。概念多、算法多、收集器也多，第一次看的时候感觉脑子不够用。这篇把我学到的整理一下，尽量讲人话。&lt;/p&gt;
+&lt;p&gt;&lt;img alt=&#34;垃圾回收示意图&#34; loading=&#34;lazy&#34; src=&#34;https://upload.wikimedia.org/wikipedia/commons/thumb/3/3c/Tracing-garbage-collection.svg/400px-Tracing-garbage-collection.svg.png&#34;&gt;&lt;/p&gt;
+&lt;h2 id=&#34;堆内存长什么样&#34;&gt;堆内存长什么样&lt;/h2&gt;
+&lt;p&gt;JVM 的堆分两大块：新生代（Young Generation）和老年代（Old Generation）。&lt;/p&gt;
+&lt;p&gt;新生代又分三块：Eden 区和两个 Survivor 区（S0、S1），默认比例 8:1:1。&lt;/p&gt;
+&lt;p&gt;为什么这么分？大部分对象都是&amp;quot;朝生夕死&amp;quot;的，活不过一次 GC。放在新生代用快速算法回收就行，少数长寿的晋升到老年代。&lt;/p&gt;
+&lt;p&gt;对象一般在 Eden 区创建。Eden 满了触发 Minor GC，存活对象搬到 Survivor 区。每熬过一次 GC 年龄加 1，到阈值（默认 15）就晋升老年代。&lt;/p&gt;
+&lt;p&gt;两个 Survivor 同一时刻只有一个在用。GC 时把 Eden 和正在用的 Survivor 里的存活对象一起复制到空的那个 Survivor，然后清空原来的区域。这是复制算法在新生代的应用。&lt;/p&gt;
+&lt;h2 id=&#34;怎么判断对象该不该回收&#34;&gt;怎么判断对象该不该回收&lt;/h2&gt;
+&lt;p&gt;主流方案是&lt;strong&gt;可达性分析&lt;/strong&gt;。从一组叫 GC Roots 的对象出发，沿引用链往下找，找不到的就是垃圾。&lt;/p&gt;
+&lt;p&gt;GC Roots 包括：&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;虚拟机栈中引用的对象（局部变量）&lt;/li&gt;
+&lt;li&gt;类的静态变量引用的对象&lt;/li&gt;
+&lt;li&gt;常量引用的对象&lt;/li&gt;
+&lt;li&gt;JNI 引用的对象&lt;/li&gt;
+&lt;li&gt;同步锁持有的对象&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;你可能听过引用计数法——被引用加 1，引用没了减 1，归零就回收。听着简单，但有个致命问题：循环引用。A 引用 B、B 引用 A，计数永远不为 0，但都是垃圾。JVM 没用这个方案。&lt;/p&gt;
+&lt;h2 id=&#34;三种回收算法&#34;&gt;三种回收算法&lt;/h2&gt;
+&lt;p&gt;&lt;strong&gt;标记-清除（Mark-Sweep）&lt;/strong&gt;&lt;/p&gt;
+&lt;p&gt;先标记要回收的对象，然后清除。问题是清完之后碎片一堆，大对象找不到连续空间。&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;复制算法（Copying）&lt;/strong&gt;&lt;/p&gt;
+&lt;p&gt;内存分两半，只用一半。GC 时把活的复制到另一半，这一半整个清空。没碎片，但浪费一半空间。新生代用的就是这个思路——因为大部分对象活不久，实际要复制的量很少，效率很高。&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;标记-整理（Mark-Compact）&lt;/strong&gt;&lt;/p&gt;
+&lt;p&gt;先标记，然后把存活对象往一端挪，清掉边界外的内存。没碎片也不浪费空间，但移动对象有额外开销。老年代一般用这个。&lt;/p&gt;
+&lt;h2 id=&#34;cms-和-g1-怎么选&#34;&gt;CMS 和 G1 怎么选&lt;/h2&gt;
+&lt;p&gt;这两个是面试高频考点。&lt;/p&gt;</description>
+    </item>
+    <item>
+      <title>TCP 三次握手与四次挥手</title>
+      <link>http://localhost:49494/posts/tcp-handshake/</link>
+      <pubDate>Sat, 15 Apr 2023 00:00:00 +0000</pubDate>
+      <guid>http://localhost:49494/posts/tcp-handshake/</guid>
+      <description>&lt;h1 id=&#34;tcp-三次握手和四次挥手画个图就懂了&#34;&gt;TCP 三次握手和四次挥手，画个图就懂了&lt;/h1&gt;
+&lt;h2 id=&#34;三次握手流程&#34;&gt;三次握手流程&lt;/h2&gt;
+&lt;p&gt;TCP 三次握手大概是计网面试被问得最多的点了。背归背，但搞懂&amp;quot;为什么&amp;quot;比记住流程更重要。&lt;/p&gt;
+&lt;p&gt;先上个图：&lt;/p&gt;
+&lt;p&gt;&lt;img alt=&#34;TCP 三次握手&#34; loading=&#34;lazy&#34; src=&#34;https://upload.wikimedia.org/wikipedia/commons/thumb/9/98/Tcp-handshake.svg/800px-Tcp-handshake.svg.png&#34;&gt;&lt;/p&gt;
+&lt;p&gt;大白话描述一下：&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;第一次握手&lt;/strong&gt;：客户端发 SYN 包，带上初始序列号（ISN），&amp;ldquo;我想跟你建立连接&amp;rdquo;。客户端进入 SYN_SENT 状态。&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;第二次握手&lt;/strong&gt;：服务端回 SYN+ACK 包，带上自己的初始序列号，同时确认收到了客户端的 SYN。&amp;ldquo;收到了，我也想连你&amp;rdquo;。服务端进入 SYN_RCVD 状态。&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;第三次握手&lt;/strong&gt;：客户端再发 ACK 包确认。双方进入 ESTABLISHED 状态，连接建立。&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;&#34;&gt;&lt;code class=&#34;language-fallback&#34; data-lang=&#34;fallback&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;客户端                    服务端
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  |                        |
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  |------- SYN(seq=x) ----&amp;gt;|  第一次握手
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  |                        |
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  |&amp;lt;-- SYN+ACK(seq=y,ack=x+1) --|  第二次握手
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  |                        |
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  |------- ACK(ack=y+1) --&amp;gt;|  第三次握手
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  |                        |
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  |     连接建立完成         |
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;h2 id=&#34;为什么是三次不是两次&#34;&gt;为什么是三次，不是两次&lt;/h2&gt;
+&lt;p&gt;面试最爱追问的地方。&lt;/p&gt;
+&lt;p&gt;角度一：确认双方收发能力。三次握手后，双方都确认了&amp;quot;我能发、我能收、对方能发、对方能收&amp;quot;。只有两次的话，服务端没法确认客户端能不能收到它的消息。&lt;/p&gt;
+&lt;p&gt;角度二（更根本）：防止历史连接。假设客户端发了一个 SYN，因网络延迟一直没到。客户端超时重发了新 SYN 并完成连接通信。后来那个迟到的旧 SYN 到了服务端。两次握手的话，服务端收到就建连了，但客户端压根不知道，白白浪费资源。有第三次握手，服务端得等 ACK，客户端不会理这个旧连接的 SYN-ACK，连接就不会误建。&lt;/p&gt;
+&lt;p&gt;我当初看书时第一个角度好理解，第二个角度想了一会儿才明白。&lt;/p&gt;</description>
+    </item>
+    <item>
+      <title>Spring IOC 容器原理</title>
+      <link>http://localhost:49494/posts/spring-ioc-container/</link>
+      <pubDate>Mon, 20 Mar 2023 00:00:00 +0000</pubDate>
+      <guid>http://localhost:49494/posts/spring-ioc-container/</guid>
+      <description>&lt;h1 id=&#34;spring-ioc-到底干了啥&#34;&gt;Spring IOC 到底干了啥&lt;/h1&gt;
+&lt;p&gt;学 Spring 的时候，IOC（控制反转）这个词听了不下一百遍。老师讲、教程讲、面试题也讲。但我一开始真没搞懂这玩意到底在干嘛——不就是 new 一个对象吗，为啥要搞得这么复杂？&lt;/p&gt;
+&lt;p&gt;后来写项目写多了才明白，Spring 的 IOC 容器本质上就是帮你管理对象的。你不用自己 new，它帮你 new，帮你组装，帮你销毁。听着简单，但里面门道挺多的。&lt;/p&gt;
+&lt;h2 id=&#34;bean-生命周期从出生到死亡&#34;&gt;Bean 生命周期——从出生到死亡&lt;/h2&gt;
+&lt;p&gt;一个 Bean 从创建到被 GC 回收，中间经历了不少事。大致流程是这样：&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;实例化（调构造方法）&lt;/li&gt;
+&lt;li&gt;属性赋值（依赖注入）&lt;/li&gt;
+&lt;li&gt;初始化（各种回调）&lt;/li&gt;
+&lt;li&gt;使用&lt;/li&gt;
+&lt;li&gt;销毁&lt;/li&gt;
+&lt;/ol&gt;
+&lt;p&gt;其实吧，光说这几步看着挺简单，但 Spring 在中间插了一堆扩展点。比如 &lt;code&gt;BeanPostProcessor&lt;/code&gt;，它能在初始化前后做一些操作。AOP 的代理对象就是在这一步生成的。&lt;/p&gt;
+&lt;p&gt;我之前踩过一个坑：在构造方法里调另一个 Bean 的方法，结果拿到的是 null。debug 了半天才发现，构造方法执行的时候依赖注入还没开始呢！所以如果有初始化逻辑，老老实实用 &lt;code&gt;@PostConstruct&lt;/code&gt; 或者实现 &lt;code&gt;InitializingBean&lt;/code&gt;。&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;&#34;&gt;&lt;code class=&#34;language-java&#34; data-lang=&#34;java&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#a6e22e&#34;&gt;@Component&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;public&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;class&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;MyService&lt;/span&gt; {
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#a6e22e&#34;&gt;@Autowired&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;private&lt;/span&gt; UserDao userDao;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#a6e22e&#34;&gt;@PostConstruct&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;public&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;void&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;init&lt;/span&gt;() {
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        &lt;span style=&#34;color:#75715e&#34;&gt;// 这里才能安全地用 userDao&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        userDao.&lt;span style=&#34;color:#a6e22e&#34;&gt;loadCache&lt;/span&gt;();
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    }
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;}
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;h2 id=&#34;beanfactory-和-applicationcontext到底用哪个&#34;&gt;BeanFactory 和 ApplicationContext，到底用哪个&lt;/h2&gt;
+&lt;p&gt;你可能会想，这俩都是 IOC 容器，有啥区别？&lt;/p&gt;
+&lt;p&gt;简单说，&lt;code&gt;BeanFactory&lt;/code&gt; 是爹，&lt;code&gt;ApplicationContext&lt;/code&gt; 是儿子。ApplicationContext 继承了 BeanFactory，在它基础上加了一堆功能：&lt;/p&gt;</description>
+    </item>
+    <item>
+      <title>Java 线程池原理与实践</title>
+      <link>http://localhost:49494/posts/java-thread-pool/</link>
+      <pubDate>Fri, 10 Feb 2023 00:00:00 +0000</pubDate>
+      <guid>http://localhost:49494/posts/java-thread-pool/</guid>
+      <description>&lt;h1 id=&#34;线程池这玩意用不好真的会出事&#34;&gt;线程池这玩意，用不好真的会出事&lt;/h1&gt;
+&lt;p&gt;上周实验室项目出了个线上问题，排查了一下午发现是线程池配置不对导致的 OOM。这事让我意识到，线程池看着简单，用不好是真会出事的。&lt;/p&gt;
+&lt;h2 id=&#34;为什么要用线程池&#34;&gt;为什么要用线程池&lt;/h2&gt;
+&lt;p&gt;你可能觉得，new 一个 Thread 跑任务不就完了？能跑，但有几个问题：&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;创建线程有开销，操作系统要分配栈内存、做系统调用&lt;/li&gt;
+&lt;li&gt;任务量大的时候无限创建线程，系统资源扛不住&lt;/li&gt;
+&lt;li&gt;线程太多 CPU 光忙着上下文切换，正经活干不了&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;线程池的思路很简单：提前创建好一批线程，任务来了从池子里拿线程执行，执行完放回去复用。&lt;/p&gt;
+&lt;h2 id=&#34;核心参数搞清楚&#34;&gt;核心参数搞清楚&lt;/h2&gt;
+&lt;p&gt;&lt;code&gt;ThreadPoolExecutor&lt;/code&gt; 的构造方法有 7 个参数，面试最爱问：&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;&#34;&gt;&lt;code class=&#34;language-java&#34; data-lang=&#34;java&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;public&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;ThreadPoolExecutor&lt;/span&gt;(
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;int&lt;/span&gt; corePoolSize,        &lt;span style=&#34;color:#75715e&#34;&gt;// 核心线程数&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;int&lt;/span&gt; maximumPoolSize,     &lt;span style=&#34;color:#75715e&#34;&gt;// 最大线程数&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;long&lt;/span&gt; keepAliveTime,      &lt;span style=&#34;color:#75715e&#34;&gt;// 非核心线程存活时间&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    TimeUnit unit,           &lt;span style=&#34;color:#75715e&#34;&gt;// 时间单位&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    BlockingQueue&lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;&lt;/span&gt;Runnable&lt;span style=&#34;color:#f92672&#34;&gt;&amp;gt;&lt;/span&gt; workQueue,  &lt;span style=&#34;color:#75715e&#34;&gt;// 任务队列&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    ThreadFactory threadFactory,        &lt;span style=&#34;color:#75715e&#34;&gt;// 线程工厂&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    RejectedExecutionHandler handler    &lt;span style=&#34;color:#75715e&#34;&gt;// 拒绝策略&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;)
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;任务提交的执行流程：&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;当前线程数 &amp;lt; corePoolSize，直接创建新线程执行&lt;/li&gt;
+&lt;li&gt;当前线程数 &amp;gt;= corePoolSize，任务放进 workQueue 排队&lt;/li&gt;
+&lt;li&gt;workQueue 满了，且线程数 &amp;lt; maximumPoolSize，创建非核心线程&lt;/li&gt;
+&lt;li&gt;线程数到了 maximumPoolSize 队列也满了，触发拒绝策略&lt;/li&gt;
+&lt;/ol&gt;
+&lt;p&gt;注意这个顺序——是队列满了才创建超过核心数的线程。我之前一直以为先涨线程数再放队列，看源码才发现搞反了。&lt;/p&gt;
+&lt;h2 id=&#34;四种拒绝策略&#34;&gt;四种拒绝策略&lt;/h2&gt;
+&lt;p&gt;线程池扛不住的时候，拒绝策略决定怎么处理新来的任务：&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;strong&gt;AbortPolicy&lt;/strong&gt;（默认）：直接抛 RejectedExecutionException。简单粗暴，至少你知道任务被拒了。&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;CallerRunsPolicy&lt;/strong&gt;：让提交任务的线程自己跑。妙处在于调用方忙着执行就没空提交新的，天然限流。&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;DiscardPolicy&lt;/strong&gt;：默默丢掉，不抛异常。很危险，你完全不知道任务丢了。&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;DiscardOldestPolicy&lt;/strong&gt;：丢掉队列最老的任务，然后重试提交。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;实际项目用得最多的是 AbortPolicy 和 CallerRunsPolicy。DiscardPolicy 千万别用，出了问题排查不出来。&lt;/p&gt;</description>
+    </item>
+    <item>
+      <title>单例模式的几种写法</title>
+      <link>http://localhost:49494/posts/singleton-patterns/</link>
+      <pubDate>Sat, 10 Dec 2022 00:00:00 +0000</pubDate>
+      <guid>http://localhost:49494/posts/singleton-patterns/</guid>
+      <description>&lt;h1 id=&#34;单例模式的几种写法你用哪种&#34;&gt;单例模式的几种写法，你用哪种？&lt;/h1&gt;
+&lt;h2 id=&#34;为什么需要单例&#34;&gt;为什么需要单例&lt;/h2&gt;
+&lt;p&gt;单例模式大概是最简单也最常被问到的设计模式了。面试必问，但你真的理解每种写法的区别吗？&lt;/p&gt;
+&lt;p&gt;先说为什么需要单例。有些对象全局只需要一个就够了，比如线程池、数据库连接池、配置管理器。你不希望到处 new，浪费资源不说，状态不一致更头疼。&lt;/p&gt;
+&lt;p&gt;单例的核心就两件事：构造方法私有化，提供一个全局访问点。听起来简单，但写法还挺多的，逐个来看。&lt;/p&gt;
+&lt;h2 id=&#34;饿汉式&#34;&gt;饿汉式&lt;/h2&gt;
+&lt;p&gt;最简单直接的写法：&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;&#34;&gt;&lt;code class=&#34;language-java&#34; data-lang=&#34;java&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;public&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;class&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;Singleton&lt;/span&gt; {
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;private&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;static&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;final&lt;/span&gt; Singleton INSTANCE &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;new&lt;/span&gt; Singleton();
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;private&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;Singleton&lt;/span&gt;() {}
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;public&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;static&lt;/span&gt; Singleton &lt;span style=&#34;color:#a6e22e&#34;&gt;getInstance&lt;/span&gt;() {
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        &lt;span style=&#34;color:#66d9ef&#34;&gt;return&lt;/span&gt; INSTANCE;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    }
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;}
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;类加载的时候就创建实例了，所以叫&amp;quot;饿汉&amp;quot;——还没等你要，它就准备好了。&lt;/p&gt;
+&lt;p&gt;优点：简单，线程安全（JVM 类加载机制保证的）。
+缺点：不管用不用都会创建，如果对象很重，就有点浪费。&lt;/p&gt;
+&lt;p&gt;说实话，大部分场景用饿汉式就够了。你的单例对象真的很重吗？多数时候并不是。&lt;/p&gt;
+&lt;h2 id=&#34;懒汉式&#34;&gt;懒汉式&lt;/h2&gt;
+&lt;p&gt;既然饿汉式可能浪费，那就等需要的时候再创建：&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;&#34;&gt;&lt;code class=&#34;language-java&#34; data-lang=&#34;java&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;public&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;class&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;Singleton&lt;/span&gt; {
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;private&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;static&lt;/span&gt; Singleton instance;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;private&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;Singleton&lt;/span&gt;() {}
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;public&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;static&lt;/span&gt; Singleton &lt;span style=&#34;color:#a6e22e&#34;&gt;getInstance&lt;/span&gt;() {
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        &lt;span style=&#34;color:#66d9ef&#34;&gt;if&lt;/span&gt; (instance &lt;span style=&#34;color:#f92672&#34;&gt;==&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;null&lt;/span&gt;) {
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;            instance &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;new&lt;/span&gt; Singleton();
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        }
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        &lt;span style=&#34;color:#66d9ef&#34;&gt;return&lt;/span&gt; instance;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    }
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;}
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;这就是懒汉式——用的时候才创建。&lt;/p&gt;
+&lt;p&gt;但问题来了：多线程环境下不安全。两个线程同时判断 &lt;code&gt;instance == null&lt;/code&gt;，都通过了，就会创建两个实例。&lt;/p&gt;
+&lt;p&gt;加个 synchronized 能解决：&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;&#34;&gt;&lt;code class=&#34;language-java&#34; data-lang=&#34;java&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;public&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;static&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;synchronized&lt;/span&gt; Singleton &lt;span style=&#34;color:#a6e22e&#34;&gt;getInstance&lt;/span&gt;() {
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;if&lt;/span&gt; (instance &lt;span style=&#34;color:#f92672&#34;&gt;==&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;null&lt;/span&gt;) {
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        instance &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;new&lt;/span&gt; Singleton();
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    }
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;return&lt;/span&gt; instance;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;}
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;但这样每次调用 getInstance 都要加锁，性能太差了。实例都创建好了还加锁，完全没必要。&lt;/p&gt;</description>
+    </item>
+    <item>
+      <title>ConcurrentHashMap 线程安全原理</title>
+      <link>http://localhost:49494/posts/concurrenthashmap-deep-dive/</link>
+      <pubDate>Sun, 20 Nov 2022 00:00:00 +0000</pubDate>
+      <guid>http://localhost:49494/posts/concurrenthashmap-deep-dive/</guid>
+      <description>&lt;h1 id=&#34;concurrenthashmap-到底怎么保证线程安全的&#34;&gt;ConcurrentHashMap 到底怎么保证线程安全的&lt;/h1&gt;
+&lt;p&gt;上篇写了 HashMap，有同学私信问我 ConcurrentHashMap 和 HashMap 有什么区别。其实吧，区别大了去了，JDK8 的 ConcurrentHashMap 基本是重写的，跟 JDK7 完全两个思路。&lt;/p&gt;
+&lt;p&gt;花了差不多一周把源码理清楚，这篇来聊聊它到底怎么在并发场景下保证线程安全。&lt;/p&gt;
+&lt;h2 id=&#34;jdk7-的-segment-分段锁&#34;&gt;JDK7 的 Segment 分段锁&lt;/h2&gt;
+&lt;p&gt;先说 JDK7 的方案，面试还是会问。&lt;/p&gt;
+&lt;p&gt;JDK7 的 ConcurrentHashMap 内部有一个 &lt;code&gt;Segment&lt;/code&gt; 数组，每个 Segment 继承了 &lt;code&gt;ReentrantLock&lt;/code&gt;，里面维护一个 HashEntry 数组。&lt;/p&gt;
+&lt;p&gt;简单说就是把整个 Map 分成好几段，每段有自己的锁。操作某个 key 时，先定位到它所在的 Segment，再锁那个 Segment。不同 Segment 之间互不影响，可以并发操作。&lt;/p&gt;
+&lt;p&gt;默认 16 个 Segment，理论上最多 16 个线程同时写入。&lt;/p&gt;
+&lt;p&gt;这个设计比给整个 Map 加一把大锁好很多，但也有局限——Segment 个数初始化之后就固定了，而且结构比较复杂。&lt;/p&gt;
+&lt;h2 id=&#34;jdk8-彻底重写了&#34;&gt;JDK8 彻底重写了&lt;/h2&gt;
+&lt;p&gt;JDK8 抛弃了 Segment，结构改成跟 HashMap 一样的 &lt;code&gt;Node&amp;lt;K,V&amp;gt;[]&lt;/code&gt; 数组。线程安全靠 CAS + synchronized，粒度细到了每个桶。&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;&#34;&gt;&lt;code class=&#34;language-java&#34; data-lang=&#34;java&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;transient&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;volatile&lt;/span&gt; Node&lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;&lt;/span&gt;K,V&lt;span style=&#34;color:#f92672&#34;&gt;&amp;gt;[]&lt;/span&gt; table;
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;注意 &lt;code&gt;volatile&lt;/code&gt;。table 引用是 volatile 的，保证扩容时新数组对其他线程可见。每个 Node 的 val 和 next 也是 volatile 的，保证读操作不需要加锁。&lt;/p&gt;</description>
+    </item>
+    <item>
+      <title>HashMap 源码笔记</title>
+      <link>http://localhost:49494/posts/hashmap-source-code/</link>
+      <pubDate>Thu, 15 Sep 2022 00:00:00 +0000</pubDate>
+      <guid>http://localhost:49494/posts/hashmap-source-code/</guid>
+      <description>&lt;h1 id=&#34;hashmap-源码我读了三遍才看懂&#34;&gt;HashMap 源码我读了三遍才看懂&lt;/h1&gt;
+&lt;p&gt;大二下学期面试实习的时候，面试官问我 HashMap 的底层原理，我支支吾吾说了个&amp;quot;数组加链表&amp;quot;就说不下去了。回来之后就下定决心要把源码读一遍。结果读了三遍才算真正搞明白，这玩意比我想象的要精妙得多。&lt;/p&gt;
+&lt;p&gt;&lt;img alt=&#34;Hash Table 示意图&#34; loading=&#34;lazy&#34; src=&#34;https://upload.wikimedia.org/wikipedia/commons/thumb/5/5e/Hash_table_5_0_1_1_1_1_0_SP.svg/380px-Hash_table_5_0_1_1_1_1_0_SP.svg.png&#34;&gt;&lt;/p&gt;
+&lt;h2 id=&#34;先说说-hashmap-的内部结构&#34;&gt;先说说 HashMap 的内部结构&lt;/h2&gt;
+&lt;p&gt;你打开 HashMap 的源码，会看到一个叫 &lt;code&gt;Node&amp;lt;K,V&amp;gt;[] table&lt;/code&gt; 的数组。这就是 HashMap 的骨架。&lt;/p&gt;
+&lt;p&gt;每个 Node 长这样：&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;&#34;&gt;&lt;code class=&#34;language-java&#34; data-lang=&#34;java&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;static&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;class&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;Node&lt;/span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;&lt;/span&gt;K,V&lt;span style=&#34;color:#f92672&#34;&gt;&amp;gt;&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;implements&lt;/span&gt; Map.&lt;span style=&#34;color:#a6e22e&#34;&gt;Entry&lt;/span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;&lt;/span&gt;K,V&lt;span style=&#34;color:#f92672&#34;&gt;&amp;gt;&lt;/span&gt; {
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;final&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;int&lt;/span&gt; hash;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;final&lt;/span&gt; K key;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    V value;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    Node&lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;&lt;/span&gt;K,V&lt;span style=&#34;color:#f92672&#34;&gt;&amp;gt;&lt;/span&gt; next;  &lt;span style=&#34;color:#75715e&#34;&gt;// 看到没，链表结构&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;}
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;本质就是：一个数组，数组的每个位置可以挂一条链表。你 put 一个 key-value 进去，先算 key 的 hash 值，定位到数组的某个下标，然后挂到那个位置的链表上。&lt;/p&gt;
+&lt;p&gt;JDK8 加了个重要改动：当链表长度超过 8 的时候，链表会转成红黑树。为啥呢？链表查找是 O(n)，红黑树是 O(log n)，hash 冲突严重的时候性能差距很大。&lt;/p&gt;
+&lt;p&gt;你可能会问，为什么阈值是 8？源码注释里写了，按泊松分布计算，链表长度达到 8 的概率大概是千万分之六。正常使用根本不会触发，这纯粹是个保底策略。&lt;/p&gt;
+&lt;h2 id=&#34;put-一个元素到底经历了什么&#34;&gt;put 一个元素到底经历了什么&lt;/h2&gt;
+&lt;p&gt;来看 &lt;code&gt;putVal&lt;/code&gt; 方法的核心逻辑，我把它拆开讲：&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;算 hash。不是直接用 &lt;code&gt;key.hashCode()&lt;/code&gt;，而是做了个扰动：&lt;code&gt;(h = key.hashCode()) ^ (h &amp;gt;&amp;gt;&amp;gt; 16)&lt;/code&gt;。高 16 位和低 16 位异或一下，让 hash 分布更均匀。&lt;/li&gt;
+&lt;li&gt;定位下标。用 &lt;code&gt;(n - 1) &amp;amp; hash&lt;/code&gt; 算出数组下标，n 是数组长度，后面会讲为啥要是 2 的幂。&lt;/li&gt;
+&lt;li&gt;如果那个位置是空的，直接放进去。&lt;/li&gt;
+&lt;li&gt;如果有东西，看 key 是不是一样的，一样就覆盖 value。&lt;/li&gt;
+&lt;li&gt;不一样的话，看当前节点是不是 TreeNode（红黑树节点），是的话走红黑树的插入逻辑。&lt;/li&gt;
+&lt;li&gt;不是树节点就遍历链表，找到末尾插入。插入之后看链表长度有没有到 8，到了就转红黑树。&lt;/li&gt;
+&lt;/ol&gt;
+&lt;p&gt;我之前踩过一个坑：以为 HashMap 的链表是头插法，结果 debug 了半天发现 JDK8 改成尾插法了。JDK7 确实是头插的，但头插法在多线程 resize 的时候会形成环链表，导致死循环。这个 bug 挺经典的，面试也爱问。&lt;/p&gt;</description>
+    </item>
+  </channel>
+</rss>

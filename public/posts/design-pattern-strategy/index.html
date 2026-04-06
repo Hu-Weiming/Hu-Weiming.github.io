@@ -1,0 +1,570 @@
+<!DOCTYPE html>
+<html lang="en" dir="auto" data-theme="auto">
+
+<head><script src="/livereload.js?mindelay=10&amp;v=2&amp;port=49494&amp;path=livereload" data-no-instant defer></script><meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<meta name="robots" content="index, follow">
+<title>策略模式替代 if-else | Weiming&#39;s Blog</title>
+<meta name="keywords" content="Java, 设计模式, 策略模式">
+<meta name="description" content="策略模式干掉 if-else，代码瞬间清爽
+if-else 地狱
+你写过这种代码吗：
+public double calculate(String type, double amount) {
+    if (&#34;NORMAL&#34;.equals(type)) {
+        return amount;
+    } else if (&#34;VIP&#34;.equals(type)) {
+        return amount * 0.9;
+    } else if (&#34;SVIP&#34;.equals(type)) {
+        return amount * 0.8;
+    } else if (&#34;EMPLOYEE&#34;.equals(type)) {
+        return amount * 0.7;
+    } else if (&#34;PARTNER&#34;.equals(type)) {
+        return amount * 0.6;
+    }
+    return amount;
+}
+说实话，你的代码里有没有类似的？我之前实习的时候接手过一个项目，一个方法里二十多个 if-else，看得我头皮发麻。每次加个新类型就得在这坨代码里再加一个分支，改着改着就出 bug。
+这种代码的问题很明显：违反开闭原则，每次新增逻辑都要改已有代码。测试也麻烦，一个方法里分支太多，哪条路径没覆盖到都不好说。
+策略模式是什么
+策略模式说白了就是：把每个 if 分支里的逻辑抽成单独的类，通过一个统一的接口来调用。
+核心三个角色：
+
+策略接口：定义算法规范
+具体策略：每个类实现一种算法
+上下文：持有策略引用，负责调用
+
+// 策略接口
+public interface PriceStrategy {
+    double calculate(double amount);
+}
+
+// 具体策略
+public class VipPriceStrategy implements PriceStrategy {
+    @Override
+    public double calculate(double amount) {
+        return amount * 0.9;
+    }
+}
+就这么简单。你可能会想，这不是更啰嗦了吗？本来一个方法搞定的事，搞出一堆类。别急，往下看。">
+<meta name="author" content="">
+<link rel="canonical" href="http://localhost:49494/posts/design-pattern-strategy/">
+<link crossorigin="anonymous" href="/assets/css/stylesheet.199042e659bc7245f5609d333d6c044eb554a0640849bb874e1dff8eb0f57209.css" integrity="sha256-GZBC5lm8ckX1YJ0zPWwETrVUoGQISbuHTh3/jrD1cgk=" rel="preload stylesheet" as="style">
+<link rel="icon" href="http://localhost:49494/favicon.ico">
+<link rel="icon" type="image/png" sizes="16x16" href="http://localhost:49494/favicon-16x16.png">
+<link rel="icon" type="image/png" sizes="32x32" href="http://localhost:49494/favicon-32x32.png">
+<link rel="apple-touch-icon" href="http://localhost:49494/apple-touch-icon.png">
+<link rel="mask-icon" href="http://localhost:49494/safari-pinned-tab.svg">
+<meta name="theme-color" content="#2e2e33">
+<meta name="msapplication-TileColor" content="#2e2e33">
+<link rel="alternate" hreflang="en" href="http://localhost:49494/posts/design-pattern-strategy/">
+<noscript>
+    <style>
+        #theme-toggle,
+        .top-link {
+            display: none;
+        }
+
+    </style>
+    <style>
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --theme: rgb(29, 30, 32);
+                --entry: rgb(46, 46, 51);
+                --primary: rgb(218, 218, 219);
+                --secondary: rgb(155, 156, 157);
+                --tertiary: rgb(65, 66, 68);
+                --content: rgb(196, 196, 197);
+                --code-block-bg: rgb(46, 46, 51);
+                --code-bg: rgb(55, 56, 62);
+                --border: rgb(51, 51, 51);
+                color-scheme: dark;
+            }
+
+            .list {
+                background: var(--theme);
+            }
+
+            .toc {
+                background: var(--entry);
+            }
+        }
+
+        @media (prefers-color-scheme: light) {
+            .list::-webkit-scrollbar-thumb {
+                border-color: var(--code-bg);
+            }
+        }
+
+    </style>
+</noscript>
+<script>
+    if (localStorage.getItem("pref-theme") === "dark") {
+        document.querySelector("html").dataset.theme = 'dark';
+    } else if (localStorage.getItem("pref-theme") === "light") {
+       document.querySelector("html").dataset.theme = 'light';
+    } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        document.querySelector("html").dataset.theme = 'dark';
+    } else {
+        document.querySelector("html").dataset.theme = 'light';
+    }
+
+</script><meta property="og:url" content="http://localhost:49494/posts/design-pattern-strategy/">
+  <meta property="og:site_name" content="Weiming&#39;s Blog">
+  <meta property="og:title" content="策略模式替代 if-else">
+  <meta property="og:description" content="策略模式干掉 if-else，代码瞬间清爽 if-else 地狱 你写过这种代码吗：
+public double calculate(String type, double amount) { if (&#34;NORMAL&#34;.equals(type)) { return amount; } else if (&#34;VIP&#34;.equals(type)) { return amount * 0.9; } else if (&#34;SVIP&#34;.equals(type)) { return amount * 0.8; } else if (&#34;EMPLOYEE&#34;.equals(type)) { return amount * 0.7; } else if (&#34;PARTNER&#34;.equals(type)) { return amount * 0.6; } return amount; } 说实话，你的代码里有没有类似的？我之前实习的时候接手过一个项目，一个方法里二十多个 if-else，看得我头皮发麻。每次加个新类型就得在这坨代码里再加一个分支，改着改着就出 bug。
+这种代码的问题很明显：违反开闭原则，每次新增逻辑都要改已有代码。测试也麻烦，一个方法里分支太多，哪条路径没覆盖到都不好说。
+策略模式是什么 策略模式说白了就是：把每个 if 分支里的逻辑抽成单独的类，通过一个统一的接口来调用。
+核心三个角色：
+策略接口：定义算法规范 具体策略：每个类实现一种算法 上下文：持有策略引用，负责调用 // 策略接口 public interface PriceStrategy { double calculate(double amount); } // 具体策略 public class VipPriceStrategy implements PriceStrategy { @Override public double calculate(double amount) { return amount * 0.9; } } 就这么简单。你可能会想，这不是更啰嗦了吗？本来一个方法搞定的事，搞出一堆类。别急，往下看。">
+  <meta property="og:locale" content="zh_cn">
+  <meta property="og:type" content="article">
+    <meta property="article:section" content="posts">
+    <meta property="article:published_time" content="2024-05-15T00:00:00+00:00">
+    <meta property="article:modified_time" content="2024-05-15T00:00:00+00:00">
+    <meta property="article:tag" content="Java">
+    <meta property="article:tag" content="设计模式">
+    <meta property="article:tag" content="策略模式">
+
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:title" content="策略模式替代 if-else">
+  <meta name="twitter:description" content="策略模式干掉 if-else，代码瞬间清爽 if-else 地狱 你写过这种代码吗：
+public double calculate(String type, double amount) { if (&#34;NORMAL&#34;.equals(type)) { return amount; } else if (&#34;VIP&#34;.equals(type)) { return amount * 0.9; } else if (&#34;SVIP&#34;.equals(type)) { return amount * 0.8; } else if (&#34;EMPLOYEE&#34;.equals(type)) { return amount * 0.7; } else if (&#34;PARTNER&#34;.equals(type)) { return amount * 0.6; } return amount; } 说实话，你的代码里有没有类似的？我之前实习的时候接手过一个项目，一个方法里二十多个 if-else，看得我头皮发麻。每次加个新类型就得在这坨代码里再加一个分支，改着改着就出 bug。
+这种代码的问题很明显：违反开闭原则，每次新增逻辑都要改已有代码。测试也麻烦，一个方法里分支太多，哪条路径没覆盖到都不好说。
+策略模式是什么 策略模式说白了就是：把每个 if 分支里的逻辑抽成单独的类，通过一个统一的接口来调用。
+核心三个角色：
+策略接口：定义算法规范 具体策略：每个类实现一种算法 上下文：持有策略引用，负责调用 // 策略接口 public interface PriceStrategy { double calculate(double amount); } // 具体策略 public class VipPriceStrategy implements PriceStrategy { @Override public double calculate(double amount) { return amount * 0.9; } } 就这么简单。你可能会想，这不是更啰嗦了吗？本来一个方法搞定的事，搞出一堆类。别急，往下看。">
+
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {
+      "@type": "ListItem",
+      "position":  1 ,
+      "name": "Posts",
+      "item": "http://localhost:49494/posts/"
+    }, 
+    {
+      "@type": "ListItem",
+      "position":  2 ,
+      "name": "策略模式替代 if-else",
+      "item": "http://localhost:49494/posts/design-pattern-strategy/"
+    }
+  ]
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "策略模式替代 if-else",
+  "name": "策略模式替代 if-else",
+  "description": "策略模式干掉 if-else，代码瞬间清爽 if-else 地狱 你写过这种代码吗：\npublic double calculate(String type, double amount) { if (\u0026#34;NORMAL\u0026#34;.equals(type)) { return amount; } else if (\u0026#34;VIP\u0026#34;.equals(type)) { return amount * 0.9; } else if (\u0026#34;SVIP\u0026#34;.equals(type)) { return amount * 0.8; } else if (\u0026#34;EMPLOYEE\u0026#34;.equals(type)) { return amount * 0.7; } else if (\u0026#34;PARTNER\u0026#34;.equals(type)) { return amount * 0.6; } return amount; } 说实话，你的代码里有没有类似的？我之前实习的时候接手过一个项目，一个方法里二十多个 if-else，看得我头皮发麻。每次加个新类型就得在这坨代码里再加一个分支，改着改着就出 bug。\n这种代码的问题很明显：违反开闭原则，每次新增逻辑都要改已有代码。测试也麻烦，一个方法里分支太多，哪条路径没覆盖到都不好说。\n策略模式是什么 策略模式说白了就是：把每个 if 分支里的逻辑抽成单独的类，通过一个统一的接口来调用。\n核心三个角色：\n策略接口：定义算法规范 具体策略：每个类实现一种算法 上下文：持有策略引用，负责调用 // 策略接口 public interface PriceStrategy { double calculate(double amount); } // 具体策略 public class VipPriceStrategy implements PriceStrategy { @Override public double calculate(double amount) { return amount * 0.9; } } 就这么简单。你可能会想，这不是更啰嗦了吗？本来一个方法搞定的事，搞出一堆类。别急，往下看。\n",
+  "keywords": [
+    "Java", "设计模式", "策略模式"
+  ],
+  "articleBody": "策略模式干掉 if-else，代码瞬间清爽 if-else 地狱 你写过这种代码吗：\npublic double calculate(String type, double amount) { if (\"NORMAL\".equals(type)) { return amount; } else if (\"VIP\".equals(type)) { return amount * 0.9; } else if (\"SVIP\".equals(type)) { return amount * 0.8; } else if (\"EMPLOYEE\".equals(type)) { return amount * 0.7; } else if (\"PARTNER\".equals(type)) { return amount * 0.6; } return amount; } 说实话，你的代码里有没有类似的？我之前实习的时候接手过一个项目，一个方法里二十多个 if-else，看得我头皮发麻。每次加个新类型就得在这坨代码里再加一个分支，改着改着就出 bug。\n这种代码的问题很明显：违反开闭原则，每次新增逻辑都要改已有代码。测试也麻烦，一个方法里分支太多，哪条路径没覆盖到都不好说。\n策略模式是什么 策略模式说白了就是：把每个 if 分支里的逻辑抽成单独的类，通过一个统一的接口来调用。\n核心三个角色：\n策略接口：定义算法规范 具体策略：每个类实现一种算法 上下文：持有策略引用，负责调用 // 策略接口 public interface PriceStrategy { double calculate(double amount); } // 具体策略 public class VipPriceStrategy implements PriceStrategy { @Override public double calculate(double amount) { return amount * 0.9; } } 就这么简单。你可能会想，这不是更啰嗦了吗？本来一个方法搞定的事，搞出一堆类。别急，往下看。\n用策略模式重构 搞个策略工厂，用 Map 把类型和策略对应起来：\npublic class PriceStrategyFactory { private static final Map\u003cString, PriceStrategy\u003e STRATEGY_MAP = new HashMap\u003c\u003e(); static { STRATEGY_MAP.put(\"NORMAL\", amount -\u003e amount); STRATEGY_MAP.put(\"VIP\", amount -\u003e amount * 0.9); STRATEGY_MAP.put(\"SVIP\", amount -\u003e amount * 0.8); STRATEGY_MAP.put(\"EMPLOYEE\", amount -\u003e amount * 0.7); STRATEGY_MAP.put(\"PARTNER\", amount -\u003e amount * 0.6); } public static PriceStrategy getStrategy(String type) { return STRATEGY_MAP.getOrDefault(type, amount -\u003e amount); } } 调用的时候：\npublic double calculate(String type, double amount) { PriceStrategy strategy = PriceStrategyFactory.getStrategy(type); return strategy.calculate(amount); } 两行搞定，清爽多了吧。新加类型？往 Map 里加一条就行，原有逻辑完全不动。\n结合 Spring 玩得更花 在 Spring 项目里，策略模式可以用得更舒服。让 Spring 帮你自动收集策略 Bean。\npublic interface PriceStrategy { String getType(); // 每个策略声明自己处理什么类型 double calculate(double amount); } @Component public class VipPriceStrategy implements PriceStrategy { @Override public String getType() { return \"VIP\"; } @Override public double calculate(double amount) { return amount * 0.9; } } 然后搞个上下文，用 @Autowired 把所有策略注入进来：\n@Component public class PriceContext { private final Map\u003cString, PriceStrategy\u003e strategyMap; @Autowired public PriceContext(List\u003cPriceStrategy\u003e strategies) { strategyMap = strategies.stream() .collect(Collectors.toMap(PriceStrategy::getType, s -\u003e s)); } public double calculate(String type, double amount) { PriceStrategy strategy = strategyMap.get(type); if (strategy == null) { throw new IllegalArgumentException(\"未知类型: \" + type); } return strategy.calculate(amount); } } 这样每次加新策略，只需要新建一个类加上 @Component，其他地方一行都不用改。Spring 会自动把所有 PriceStrategy 的实现收集到 List 里注入。\n我觉得这个写法是真的优雅。第一次看到的时候有种\"原来还能这么玩\"的感觉。\n实际业务案例 说个我做过的真实场景：消息通知。系统要支持短信、邮件、站内信、企微推送多种通知方式。\n最初的写法，你猜对了，又是 if-else：\nif (\"SMS\".equals(channel)) { sendSms(message); } else if (\"EMAIL\".equals(channel)) { sendEmail(message); } else if (\"WECHAT_WORK\".equals(channel)) { sendWechatWork(message); } 用策略模式重构后：\npublic interface NotifyStrategy { String getChannel(); void send(Message message); } @Component public class SmsNotifyStrategy implements NotifyStrategy { @Override public String getChannel() { return \"SMS\"; } @Override public void send(Message message) { // 调用短信 SDK } } 后来产品说要加钉钉通知。我新建了一个 DingTalkNotifyStrategy，写完逻辑加上 @Component，结束。原来的代码一行没动。组里大佬 code review 的时候还夸了一句，开心了好久哈哈。\n什么时候该用，什么时候别用 也别什么地方都上策略模式。如果你的 if-else 就两三个分支，而且以后基本不会变，那没必要折腾。过度设计比代码臭味更可怕。\n适合用策略模式的场景：\n分支多，而且经常要新增 各分支逻辑比较复杂，不是一两行能搞定的 希望各分支能独立测试 团队多人开发，不想互相冲突 其实吧，设计模式这东西，看着简单，用对时机才是关键。我之前学的时候光记概念没啥感觉，后来真正写项目才体会到它的好处。策略模式算是最实用的设计模式之一了，日常开发中用到的频率很高，强烈建议掌握。\n",
+  "wordCount" : "362",
+  "inLanguage": "en",
+  "datePublished": "2024-05-15T00:00:00Z",
+  "dateModified": "2024-05-15T00:00:00Z",
+  "mainEntityOfPage": {
+    "@type": "WebPage",
+    "@id": "http://localhost:49494/posts/design-pattern-strategy/"
+  },
+  "publisher": {
+    "@type": "Organization",
+    "name": "Weiming's Blog",
+    "logo": {
+      "@type": "ImageObject",
+      "url": "http://localhost:49494/favicon.ico"
+    }
+  }
+}
+</script>
+</head>
+<body id="top">
+    <header class="header">
+    <nav class="nav">
+        <div class="logo">
+            <a href="http://localhost:49494/" accesskey="h" title="Weiming&#39;s Blog (Alt + H)">Weiming&#39;s Blog</a>
+            <div class="logo-switches">
+                <button id="theme-toggle" accesskey="t" title="(Alt + T)" aria-label="Toggle theme">
+                    <svg id="moon" xmlns="http://www.w3.org/2000/svg" width="24" height="18" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                    </svg>
+                    <svg id="sun" xmlns="http://www.w3.org/2000/svg" width="24" height="18" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="5"></circle>
+                        <line x1="12" y1="1" x2="12" y2="3"></line>
+                        <line x1="12" y1="21" x2="12" y2="23"></line>
+                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                        <line x1="1" y1="12" x2="3" y2="12"></line>
+                        <line x1="21" y1="12" x2="23" y2="12"></line>
+                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                    </svg>
+                </button>
+            </div>
+        </div>
+        <ul id="menu">
+            <li>
+                <a href="http://localhost:49494/archives/" title="归档">
+                    <span>归档</span>
+                </a>
+            </li>
+            <li>
+                <a href="http://localhost:49494/categories/" title="分类">
+                    <span>分类</span>
+                </a>
+            </li>
+            <li>
+                <a href="http://localhost:49494/tags/" title="标签">
+                    <span>标签</span>
+                </a>
+            </li>
+            <li>
+                <a href="http://localhost:49494/about/" title="关于">
+                    <span>关于</span>
+                </a>
+            </li>
+        </ul>
+    </nav>
+</header>
+<main class="main">
+
+<article class="post-single">
+  <header class="post-header">
+    <div class="breadcrumbs"><a href="http://localhost:49494/">Home</a>&nbsp;»&nbsp;<a href="http://localhost:49494/posts/">Posts</a></div>
+    <h1 class="post-title entry-hint-parent">
+      策略模式替代 if-else
+    </h1>
+    <div class="post-meta"><span title='2024-05-15 00:00:00 +0000 UTC'>May 15, 2024</span>&nbsp;·&nbsp;<span>2 min</span>
+
+</div>
+  </header> <div class="toc">
+    <details >
+        <summary accesskey="c" title="(Alt + C)">
+            <span class="details">Table of Contents</span>
+        </summary>
+
+        <div class="inner"><ul>
+                <li>
+                    <a href="#%e7%ad%96%e7%95%a5%e6%a8%a1%e5%bc%8f%e5%b9%b2%e6%8e%89-if-else%e4%bb%a3%e7%a0%81%e7%9e%ac%e9%97%b4%e6%b8%85%e7%88%bd" aria-label="策略模式干掉 if-else，代码瞬间清爽">策略模式干掉 if-else，代码瞬间清爽</a><ul>
+                        
+                <li>
+                    <a href="#if-else-%e5%9c%b0%e7%8b%b1" aria-label="if-else 地狱">if-else 地狱</a></li>
+                <li>
+                    <a href="#%e7%ad%96%e7%95%a5%e6%a8%a1%e5%bc%8f%e6%98%af%e4%bb%80%e4%b9%88" aria-label="策略模式是什么">策略模式是什么</a></li>
+                <li>
+                    <a href="#%e7%94%a8%e7%ad%96%e7%95%a5%e6%a8%a1%e5%bc%8f%e9%87%8d%e6%9e%84" aria-label="用策略模式重构">用策略模式重构</a></li>
+                <li>
+                    <a href="#%e7%bb%93%e5%90%88-spring-%e7%8e%a9%e5%be%97%e6%9b%b4%e8%8a%b1" aria-label="结合 Spring 玩得更花">结合 Spring 玩得更花</a></li>
+                <li>
+                    <a href="#%e5%ae%9e%e9%99%85%e4%b8%9a%e5%8a%a1%e6%a1%88%e4%be%8b" aria-label="实际业务案例">实际业务案例</a></li>
+                <li>
+                    <a href="#%e4%bb%80%e4%b9%88%e6%97%b6%e5%80%99%e8%af%a5%e7%94%a8%e4%bb%80%e4%b9%88%e6%97%b6%e5%80%99%e5%88%ab%e7%94%a8" aria-label="什么时候该用，什么时候别用">什么时候该用，什么时候别用</a>
+                </li>
+            </ul>
+            </li>
+            </ul>
+        </div>
+    </details>
+</div>
+
+  <div class="post-content"><h1 id="策略模式干掉-if-else代码瞬间清爽">策略模式干掉 if-else，代码瞬间清爽<a hidden class="anchor" aria-hidden="true" href="#策略模式干掉-if-else代码瞬间清爽">#</a></h1>
+<h2 id="if-else-地狱">if-else 地狱<a hidden class="anchor" aria-hidden="true" href="#if-else-地狱">#</a></h2>
+<p>你写过这种代码吗：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#66d9ef">public</span> <span style="color:#66d9ef">double</span> <span style="color:#a6e22e">calculate</span>(String type, <span style="color:#66d9ef">double</span> amount) {
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">if</span> (<span style="color:#e6db74">&#34;NORMAL&#34;</span>.<span style="color:#a6e22e">equals</span>(type)) {
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">return</span> amount;
+</span></span><span style="display:flex;"><span>    } <span style="color:#66d9ef">else</span> <span style="color:#66d9ef">if</span> (<span style="color:#e6db74">&#34;VIP&#34;</span>.<span style="color:#a6e22e">equals</span>(type)) {
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">return</span> amount <span style="color:#f92672">*</span> 0.<span style="color:#a6e22e">9</span>;
+</span></span><span style="display:flex;"><span>    } <span style="color:#66d9ef">else</span> <span style="color:#66d9ef">if</span> (<span style="color:#e6db74">&#34;SVIP&#34;</span>.<span style="color:#a6e22e">equals</span>(type)) {
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">return</span> amount <span style="color:#f92672">*</span> 0.<span style="color:#a6e22e">8</span>;
+</span></span><span style="display:flex;"><span>    } <span style="color:#66d9ef">else</span> <span style="color:#66d9ef">if</span> (<span style="color:#e6db74">&#34;EMPLOYEE&#34;</span>.<span style="color:#a6e22e">equals</span>(type)) {
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">return</span> amount <span style="color:#f92672">*</span> 0.<span style="color:#a6e22e">7</span>;
+</span></span><span style="display:flex;"><span>    } <span style="color:#66d9ef">else</span> <span style="color:#66d9ef">if</span> (<span style="color:#e6db74">&#34;PARTNER&#34;</span>.<span style="color:#a6e22e">equals</span>(type)) {
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">return</span> amount <span style="color:#f92672">*</span> 0.<span style="color:#a6e22e">6</span>;
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">return</span> amount;
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p>说实话，你的代码里有没有类似的？我之前实习的时候接手过一个项目，一个方法里二十多个 if-else，看得我头皮发麻。每次加个新类型就得在这坨代码里再加一个分支，改着改着就出 bug。</p>
+<p>这种代码的问题很明显：违反开闭原则，每次新增逻辑都要改已有代码。测试也麻烦，一个方法里分支太多，哪条路径没覆盖到都不好说。</p>
+<h2 id="策略模式是什么">策略模式是什么<a hidden class="anchor" aria-hidden="true" href="#策略模式是什么">#</a></h2>
+<p>策略模式说白了就是：把每个 if 分支里的逻辑抽成单独的类，通过一个统一的接口来调用。</p>
+<p>核心三个角色：</p>
+<ul>
+<li><strong>策略接口</strong>：定义算法规范</li>
+<li><strong>具体策略</strong>：每个类实现一种算法</li>
+<li><strong>上下文</strong>：持有策略引用，负责调用</li>
+</ul>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#75715e">// 策略接口</span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">public</span> <span style="color:#66d9ef">interface</span> <span style="color:#a6e22e">PriceStrategy</span> {
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">double</span> <span style="color:#a6e22e">calculate</span>(<span style="color:#66d9ef">double</span> amount);
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">// 具体策略</span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">public</span> <span style="color:#66d9ef">class</span> <span style="color:#a6e22e">VipPriceStrategy</span> <span style="color:#66d9ef">implements</span> PriceStrategy {
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">@Override</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">public</span> <span style="color:#66d9ef">double</span> <span style="color:#a6e22e">calculate</span>(<span style="color:#66d9ef">double</span> amount) {
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">return</span> amount <span style="color:#f92672">*</span> 0.<span style="color:#a6e22e">9</span>;
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p>就这么简单。你可能会想，这不是更啰嗦了吗？本来一个方法搞定的事，搞出一堆类。别急，往下看。</p>
+<h2 id="用策略模式重构">用策略模式重构<a hidden class="anchor" aria-hidden="true" href="#用策略模式重构">#</a></h2>
+<p>搞个策略工厂，用 Map 把类型和策略对应起来：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#66d9ef">public</span> <span style="color:#66d9ef">class</span> <span style="color:#a6e22e">PriceStrategyFactory</span> {
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">private</span> <span style="color:#66d9ef">static</span> <span style="color:#66d9ef">final</span> Map<span style="color:#f92672">&lt;</span>String, PriceStrategy<span style="color:#f92672">&gt;</span> STRATEGY_MAP <span style="color:#f92672">=</span> <span style="color:#66d9ef">new</span> HashMap<span style="color:#f92672">&lt;&gt;</span>();
+</span></span><span style="display:flex;"><span>    
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">static</span> {
+</span></span><span style="display:flex;"><span>        STRATEGY_MAP.<span style="color:#a6e22e">put</span>(<span style="color:#e6db74">&#34;NORMAL&#34;</span>, amount <span style="color:#f92672">-&gt;</span> amount);
+</span></span><span style="display:flex;"><span>        STRATEGY_MAP.<span style="color:#a6e22e">put</span>(<span style="color:#e6db74">&#34;VIP&#34;</span>, amount <span style="color:#f92672">-&gt;</span> amount <span style="color:#f92672">*</span> 0.<span style="color:#a6e22e">9</span>);
+</span></span><span style="display:flex;"><span>        STRATEGY_MAP.<span style="color:#a6e22e">put</span>(<span style="color:#e6db74">&#34;SVIP&#34;</span>, amount <span style="color:#f92672">-&gt;</span> amount <span style="color:#f92672">*</span> 0.<span style="color:#a6e22e">8</span>);
+</span></span><span style="display:flex;"><span>        STRATEGY_MAP.<span style="color:#a6e22e">put</span>(<span style="color:#e6db74">&#34;EMPLOYEE&#34;</span>, amount <span style="color:#f92672">-&gt;</span> amount <span style="color:#f92672">*</span> 0.<span style="color:#a6e22e">7</span>);
+</span></span><span style="display:flex;"><span>        STRATEGY_MAP.<span style="color:#a6e22e">put</span>(<span style="color:#e6db74">&#34;PARTNER&#34;</span>, amount <span style="color:#f92672">-&gt;</span> amount <span style="color:#f92672">*</span> 0.<span style="color:#a6e22e">6</span>);
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>    
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">public</span> <span style="color:#66d9ef">static</span> PriceStrategy <span style="color:#a6e22e">getStrategy</span>(String type) {
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">return</span> STRATEGY_MAP.<span style="color:#a6e22e">getOrDefault</span>(type, amount <span style="color:#f92672">-&gt;</span> amount);
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p>调用的时候：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#66d9ef">public</span> <span style="color:#66d9ef">double</span> <span style="color:#a6e22e">calculate</span>(String type, <span style="color:#66d9ef">double</span> amount) {
+</span></span><span style="display:flex;"><span>    PriceStrategy strategy <span style="color:#f92672">=</span> PriceStrategyFactory.<span style="color:#a6e22e">getStrategy</span>(type);
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">return</span> strategy.<span style="color:#a6e22e">calculate</span>(amount);
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p>两行搞定，清爽多了吧。新加类型？往 Map 里加一条就行，原有逻辑完全不动。</p>
+<h2 id="结合-spring-玩得更花">结合 Spring 玩得更花<a hidden class="anchor" aria-hidden="true" href="#结合-spring-玩得更花">#</a></h2>
+<p>在 Spring 项目里，策略模式可以用得更舒服。让 Spring 帮你自动收集策略 Bean。</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#66d9ef">public</span> <span style="color:#66d9ef">interface</span> <span style="color:#a6e22e">PriceStrategy</span> {
+</span></span><span style="display:flex;"><span>    String <span style="color:#a6e22e">getType</span>(); <span style="color:#75715e">// 每个策略声明自己处理什么类型</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">double</span> <span style="color:#a6e22e">calculate</span>(<span style="color:#66d9ef">double</span> amount);
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">@Component</span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">public</span> <span style="color:#66d9ef">class</span> <span style="color:#a6e22e">VipPriceStrategy</span> <span style="color:#66d9ef">implements</span> PriceStrategy {
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">@Override</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">public</span> String <span style="color:#a6e22e">getType</span>() { <span style="color:#66d9ef">return</span> <span style="color:#e6db74">&#34;VIP&#34;</span>; }
+</span></span><span style="display:flex;"><span>    
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">@Override</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">public</span> <span style="color:#66d9ef">double</span> <span style="color:#a6e22e">calculate</span>(<span style="color:#66d9ef">double</span> amount) { <span style="color:#66d9ef">return</span> amount <span style="color:#f92672">*</span> 0.<span style="color:#a6e22e">9</span>; }
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p>然后搞个上下文，用 <code>@Autowired</code> 把所有策略注入进来：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#a6e22e">@Component</span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">public</span> <span style="color:#66d9ef">class</span> <span style="color:#a6e22e">PriceContext</span> {
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">private</span> <span style="color:#66d9ef">final</span> Map<span style="color:#f92672">&lt;</span>String, PriceStrategy<span style="color:#f92672">&gt;</span> strategyMap;
+</span></span><span style="display:flex;"><span>    
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">@Autowired</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">public</span> <span style="color:#a6e22e">PriceContext</span>(List<span style="color:#f92672">&lt;</span>PriceStrategy<span style="color:#f92672">&gt;</span> strategies) {
+</span></span><span style="display:flex;"><span>        strategyMap <span style="color:#f92672">=</span> strategies.<span style="color:#a6e22e">stream</span>()
+</span></span><span style="display:flex;"><span>            .<span style="color:#a6e22e">collect</span>(Collectors.<span style="color:#a6e22e">toMap</span>(PriceStrategy::getType, s <span style="color:#f92672">-&gt;</span> s));
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>    
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">public</span> <span style="color:#66d9ef">double</span> <span style="color:#a6e22e">calculate</span>(String type, <span style="color:#66d9ef">double</span> amount) {
+</span></span><span style="display:flex;"><span>        PriceStrategy strategy <span style="color:#f92672">=</span> strategyMap.<span style="color:#a6e22e">get</span>(type);
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">if</span> (strategy <span style="color:#f92672">==</span> <span style="color:#66d9ef">null</span>) {
+</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">throw</span> <span style="color:#66d9ef">new</span> IllegalArgumentException(<span style="color:#e6db74">&#34;未知类型: &#34;</span> <span style="color:#f92672">+</span> type);
+</span></span><span style="display:flex;"><span>        }
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">return</span> strategy.<span style="color:#a6e22e">calculate</span>(amount);
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p>这样每次加新策略，只需要新建一个类加上 <code>@Component</code>，其他地方一行都不用改。Spring 会自动把所有 PriceStrategy 的实现收集到 List 里注入。</p>
+<p>我觉得这个写法是真的优雅。第一次看到的时候有种&quot;原来还能这么玩&quot;的感觉。</p>
+<h2 id="实际业务案例">实际业务案例<a hidden class="anchor" aria-hidden="true" href="#实际业务案例">#</a></h2>
+<p>说个我做过的真实场景：消息通知。系统要支持短信、邮件、站内信、企微推送多种通知方式。</p>
+<p>最初的写法，你猜对了，又是 if-else：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#66d9ef">if</span> (<span style="color:#e6db74">&#34;SMS&#34;</span>.<span style="color:#a6e22e">equals</span>(channel)) {
+</span></span><span style="display:flex;"><span>    sendSms(message);
+</span></span><span style="display:flex;"><span>} <span style="color:#66d9ef">else</span> <span style="color:#66d9ef">if</span> (<span style="color:#e6db74">&#34;EMAIL&#34;</span>.<span style="color:#a6e22e">equals</span>(channel)) {
+</span></span><span style="display:flex;"><span>    sendEmail(message);
+</span></span><span style="display:flex;"><span>} <span style="color:#66d9ef">else</span> <span style="color:#66d9ef">if</span> (<span style="color:#e6db74">&#34;WECHAT_WORK&#34;</span>.<span style="color:#a6e22e">equals</span>(channel)) {
+</span></span><span style="display:flex;"><span>    sendWechatWork(message);
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p>用策略模式重构后：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#66d9ef">public</span> <span style="color:#66d9ef">interface</span> <span style="color:#a6e22e">NotifyStrategy</span> {
+</span></span><span style="display:flex;"><span>    String <span style="color:#a6e22e">getChannel</span>();
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">send</span>(Message message);
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">@Component</span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">public</span> <span style="color:#66d9ef">class</span> <span style="color:#a6e22e">SmsNotifyStrategy</span> <span style="color:#66d9ef">implements</span> NotifyStrategy {
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">@Override</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">public</span> String <span style="color:#a6e22e">getChannel</span>() { <span style="color:#66d9ef">return</span> <span style="color:#e6db74">&#34;SMS&#34;</span>; }
+</span></span><span style="display:flex;"><span>    
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">@Override</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">public</span> <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">send</span>(Message message) {
+</span></span><span style="display:flex;"><span>        <span style="color:#75715e">// 调用短信 SDK</span>
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p>后来产品说要加钉钉通知。我新建了一个 DingTalkNotifyStrategy，写完逻辑加上 @Component，结束。原来的代码一行没动。组里大佬 code review 的时候还夸了一句，开心了好久哈哈。</p>
+<h2 id="什么时候该用什么时候别用">什么时候该用，什么时候别用<a hidden class="anchor" aria-hidden="true" href="#什么时候该用什么时候别用">#</a></h2>
+<p>也别什么地方都上策略模式。如果你的 if-else 就两三个分支，而且以后基本不会变，那没必要折腾。过度设计比代码臭味更可怕。</p>
+<p>适合用策略模式的场景：</p>
+<ul>
+<li>分支多，而且经常要新增</li>
+<li>各分支逻辑比较复杂，不是一两行能搞定的</li>
+<li>希望各分支能独立测试</li>
+<li>团队多人开发，不想互相冲突</li>
+</ul>
+<p>其实吧，设计模式这东西，看着简单，用对时机才是关键。我之前学的时候光记概念没啥感觉，后来真正写项目才体会到它的好处。策略模式算是最实用的设计模式之一了，日常开发中用到的频率很高，强烈建议掌握。</p>
+
+
+  </div>
+
+  <footer class="post-footer">
+    <ul class="post-tags">
+      <li><a href="http://localhost:49494/tags/java/">Java</a></li>
+      <li><a href="http://localhost:49494/tags/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/">设计模式</a></li>
+      <li><a href="http://localhost:49494/tags/%E7%AD%96%E7%95%A5%E6%A8%A1%E5%BC%8F/">策略模式</a></li>
+    </ul>
+<nav class="paginav">
+  <a class="prev" href="http://localhost:49494/posts/mysql-index-optimization/">
+    <span class="title">« Prev</span>
+    <br>
+    <span>MySQL 索引优化</span>
+  </a>
+  <a class="next" href="http://localhost:49494/posts/redis-distributed-lock/">
+    <span class="title">Next »</span>
+    <br>
+    <span>Redis 分布式锁笔记</span>
+  </a>
+</nav>
+
+  </footer>
+</article>
+    </main>
+    
+<footer class="footer">
+        <span>&copy; 2026 <a href="http://localhost:49494/">Weiming&#39;s Blog</a></span> · 
+
+    <span>
+        Powered by
+        <a href="https://gohugo.io/" rel="noopener noreferrer" target="_blank">Hugo</a> &
+        <a href="https://github.com/adityatelange/hugo-PaperMod/" rel="noopener" target="_blank">PaperMod</a>
+    </span>
+</footer>
+<a href="#top" aria-label="go to top" title="Go to Top (Alt + G)" class="top-link" id="top-link" accesskey="g">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 12 6" fill="currentColor">
+        <path d="M12 6H0l6-6z" />
+    </svg>
+</a>
+
+<script>
+    let menu = document.getElementById('menu');
+    if (menu) {
+        
+        const scrollPosition = localStorage.getItem("menu-scroll-position");
+        if (scrollPosition) {
+            menu.scrollLeft = parseInt(scrollPosition, 10);
+        }
+        
+        menu.onscroll = function () {
+            localStorage.setItem("menu-scroll-position", menu.scrollLeft);
+        }
+    }
+
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener("click", function (e) {
+            e.preventDefault();
+            var id = this.getAttribute("href").substr(1);
+            if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView({
+                    behavior: "smooth"
+                });
+            } else {
+                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView();
+            }
+            if (id === "top") {
+                history.replaceState(null, null, " ");
+            } else {
+                history.pushState(null, null, `#${id}`);
+            }
+        });
+    });
+
+</script>
+<script>
+    var mybutton = document.getElementById("top-link");
+    window.onscroll = function () {
+        if (document.body.scrollTop > 800 || document.documentElement.scrollTop > 800) {
+            mybutton.style.visibility = "visible";
+            mybutton.style.opacity = "1";
+        } else {
+            mybutton.style.visibility = "hidden";
+            mybutton.style.opacity = "0";
+        }
+    };
+
+</script>
+<script>
+    document.getElementById("theme-toggle").addEventListener("click", () => {
+        const html = document.querySelector("html");
+        if (html.dataset.theme === "dark") {
+            html.dataset.theme = 'light';
+            localStorage.setItem("pref-theme", 'light');
+        } else {
+            html.dataset.theme = 'dark';
+            localStorage.setItem("pref-theme", 'dark');
+        }
+    })
+
+</script>
+<script>
+    document.querySelectorAll('pre > code').forEach((codeblock) => {
+        const container = codeblock.parentNode.parentNode;
+
+        const copybutton = document.createElement('button');
+        copybutton.classList.add('copy-code');
+        copybutton.innerHTML = 'copy';
+
+        function copyingDone() {
+            copybutton.innerHTML = 'copied!';
+            setTimeout(() => {
+                copybutton.innerHTML = 'copy';
+            }, 2000);
+        }
+
+        copybutton.addEventListener('click', (cb) => {
+            if ('clipboard' in navigator) {
+                navigator.clipboard.writeText(codeblock.textContent);
+                copyingDone();
+                return;
+            }
+
+            const range = document.createRange();
+            range.selectNodeContents(codeblock);
+            const selection = window.getSelection();
+            selection.removeAllRanges();
+            selection.addRange(range);
+            try {
+                document.execCommand('copy');
+                copyingDone();
+            } catch (e) { };
+            selection.removeRange(range);
+        });
+
+        if (container.classList.contains("highlight")) {
+            container.appendChild(copybutton);
+        } else if (container.parentNode.firstChild == container) {
+            
+        } else if (codeblock.parentNode.parentNode.parentNode.parentNode.parentNode.nodeName == "TABLE") {
+            
+            codeblock.parentNode.parentNode.parentNode.parentNode.parentNode.appendChild(copybutton);
+        } else {
+            
+            codeblock.parentNode.appendChild(copybutton);
+        }
+    });
+</script>
+</body>
+
+</html>

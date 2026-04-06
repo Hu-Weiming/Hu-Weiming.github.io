@@ -1,0 +1,519 @@
+<!DOCTYPE html>
+<html lang="en" dir="auto" data-theme="auto">
+
+<head><script src="/livereload.js?mindelay=10&amp;v=2&amp;port=49494&amp;path=livereload" data-no-instant defer></script><meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<meta name="robots" content="index, follow">
+<title>MyBatis SQL 执行流程 | Weiming&#39;s Blog</title>
+<meta name="keywords" content="Java, MyBatis, ORM">
+<meta name="description" content="MyBatis 一条 SQL 的执行之旅
+从 Mapper 接口说起
+用 MyBatis 写代码，日常就是定义一个 Mapper 接口，写个 XML 或注解，然后调用方法就完事了。但你有没有想过，你调 userMapper.selectById(1) 的时候，MyBatis 背后到底干了啥？
+我之前一直觉得这东西就是个黑盒，SQL 进去，对象出来，不用管就好。直到有次面试被问&quot;说说 MyBatis 的执行流程&quot;，我直接愣住了。回来之后认真翻了源码，发现整个流程其实挺清晰的，今天来捋一捋。
+简单说，你调 Mapper 方法，其实调的是一个 JDK 动态代理对象。MyBatis 在启动的时候会给每个 Mapper 接口生成代理，拦截方法调用，然后转到 SqlSession 去执行。
+// 你以为你在调接口方法
+User user = userMapper.selectById(1);
+
+// 实际上等价于
+User user = sqlSession.selectOne(&#34;com.example.mapper.UserMapper.selectById&#34;, 1);
+所以 Mapper 接口本身没有实现类，全靠代理。这个设计挺巧妙的，让你写代码的时候感觉像在调普通方法。
+SqlSession 是什么
+SqlSession 是 MyBatis 的核心接口，相当于一次数据库会话。它提供了 selectOne、selectList、insert、update、delete 这些方法。
+不过 SqlSession 自己不干活，它把事情委托给 Executor。你可以把 SqlSession 理解成一个门面，真正干活的是后面的 Executor。
+public class DefaultSqlSession implements SqlSession {
+    private final Executor executor;
+    
+    @Override
+    public &lt;T&gt; T selectOne(String statement, Object parameter) {
+        List&lt;T&gt; list = this.selectList(statement, parameter);
+        if (list.size() == 1) {
+            return list.get(0);
+        }
+        // ...
+    }
+}
+话说回来，如果你用的是 Spring &#43; MyBatis，SqlSession 的创建和关闭都被 SqlSessionTemplate 管了，你基本不用操心。">
+<meta name="author" content="">
+<link rel="canonical" href="http://localhost:49494/posts/mybatis-execution-flow/">
+<link crossorigin="anonymous" href="/assets/css/stylesheet.199042e659bc7245f5609d333d6c044eb554a0640849bb874e1dff8eb0f57209.css" integrity="sha256-GZBC5lm8ckX1YJ0zPWwETrVUoGQISbuHTh3/jrD1cgk=" rel="preload stylesheet" as="style">
+<link rel="icon" href="http://localhost:49494/favicon.ico">
+<link rel="icon" type="image/png" sizes="16x16" href="http://localhost:49494/favicon-16x16.png">
+<link rel="icon" type="image/png" sizes="32x32" href="http://localhost:49494/favicon-32x32.png">
+<link rel="apple-touch-icon" href="http://localhost:49494/apple-touch-icon.png">
+<link rel="mask-icon" href="http://localhost:49494/safari-pinned-tab.svg">
+<meta name="theme-color" content="#2e2e33">
+<meta name="msapplication-TileColor" content="#2e2e33">
+<link rel="alternate" hreflang="en" href="http://localhost:49494/posts/mybatis-execution-flow/">
+<noscript>
+    <style>
+        #theme-toggle,
+        .top-link {
+            display: none;
+        }
+
+    </style>
+    <style>
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --theme: rgb(29, 30, 32);
+                --entry: rgb(46, 46, 51);
+                --primary: rgb(218, 218, 219);
+                --secondary: rgb(155, 156, 157);
+                --tertiary: rgb(65, 66, 68);
+                --content: rgb(196, 196, 197);
+                --code-block-bg: rgb(46, 46, 51);
+                --code-bg: rgb(55, 56, 62);
+                --border: rgb(51, 51, 51);
+                color-scheme: dark;
+            }
+
+            .list {
+                background: var(--theme);
+            }
+
+            .toc {
+                background: var(--entry);
+            }
+        }
+
+        @media (prefers-color-scheme: light) {
+            .list::-webkit-scrollbar-thumb {
+                border-color: var(--code-bg);
+            }
+        }
+
+    </style>
+</noscript>
+<script>
+    if (localStorage.getItem("pref-theme") === "dark") {
+        document.querySelector("html").dataset.theme = 'dark';
+    } else if (localStorage.getItem("pref-theme") === "light") {
+       document.querySelector("html").dataset.theme = 'light';
+    } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        document.querySelector("html").dataset.theme = 'dark';
+    } else {
+        document.querySelector("html").dataset.theme = 'light';
+    }
+
+</script><meta property="og:url" content="http://localhost:49494/posts/mybatis-execution-flow/">
+  <meta property="og:site_name" content="Weiming&#39;s Blog">
+  <meta property="og:title" content="MyBatis SQL 执行流程">
+  <meta property="og:description" content="MyBatis 一条 SQL 的执行之旅 从 Mapper 接口说起 用 MyBatis 写代码，日常就是定义一个 Mapper 接口，写个 XML 或注解，然后调用方法就完事了。但你有没有想过，你调 userMapper.selectById(1) 的时候，MyBatis 背后到底干了啥？
+我之前一直觉得这东西就是个黑盒，SQL 进去，对象出来，不用管就好。直到有次面试被问&#34;说说 MyBatis 的执行流程&#34;，我直接愣住了。回来之后认真翻了源码，发现整个流程其实挺清晰的，今天来捋一捋。
+简单说，你调 Mapper 方法，其实调的是一个 JDK 动态代理对象。MyBatis 在启动的时候会给每个 Mapper 接口生成代理，拦截方法调用，然后转到 SqlSession 去执行。
+// 你以为你在调接口方法 User user = userMapper.selectById(1); // 实际上等价于 User user = sqlSession.selectOne(&#34;com.example.mapper.UserMapper.selectById&#34;, 1); 所以 Mapper 接口本身没有实现类，全靠代理。这个设计挺巧妙的，让你写代码的时候感觉像在调普通方法。
+SqlSession 是什么 SqlSession 是 MyBatis 的核心接口，相当于一次数据库会话。它提供了 selectOne、selectList、insert、update、delete 这些方法。
+不过 SqlSession 自己不干活，它把事情委托给 Executor。你可以把 SqlSession 理解成一个门面，真正干活的是后面的 Executor。
+public class DefaultSqlSession implements SqlSession { private final Executor executor; @Override public &lt;T&gt; T selectOne(String statement, Object parameter) { List&lt;T&gt; list = this.selectList(statement, parameter); if (list.size() == 1) { return list.get(0); } // ... } } 话说回来，如果你用的是 Spring &#43; MyBatis，SqlSession 的创建和关闭都被 SqlSessionTemplate 管了，你基本不用操心。">
+  <meta property="og:locale" content="zh_cn">
+  <meta property="og:type" content="article">
+    <meta property="article:section" content="posts">
+    <meta property="article:published_time" content="2024-03-05T00:00:00+00:00">
+    <meta property="article:modified_time" content="2024-03-05T00:00:00+00:00">
+    <meta property="article:tag" content="Java">
+    <meta property="article:tag" content="MyBatis">
+    <meta property="article:tag" content="ORM">
+
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:title" content="MyBatis SQL 执行流程">
+  <meta name="twitter:description" content="MyBatis 一条 SQL 的执行之旅 从 Mapper 接口说起 用 MyBatis 写代码，日常就是定义一个 Mapper 接口，写个 XML 或注解，然后调用方法就完事了。但你有没有想过，你调 userMapper.selectById(1) 的时候，MyBatis 背后到底干了啥？
+我之前一直觉得这东西就是个黑盒，SQL 进去，对象出来，不用管就好。直到有次面试被问&#34;说说 MyBatis 的执行流程&#34;，我直接愣住了。回来之后认真翻了源码，发现整个流程其实挺清晰的，今天来捋一捋。
+简单说，你调 Mapper 方法，其实调的是一个 JDK 动态代理对象。MyBatis 在启动的时候会给每个 Mapper 接口生成代理，拦截方法调用，然后转到 SqlSession 去执行。
+// 你以为你在调接口方法 User user = userMapper.selectById(1); // 实际上等价于 User user = sqlSession.selectOne(&#34;com.example.mapper.UserMapper.selectById&#34;, 1); 所以 Mapper 接口本身没有实现类，全靠代理。这个设计挺巧妙的，让你写代码的时候感觉像在调普通方法。
+SqlSession 是什么 SqlSession 是 MyBatis 的核心接口，相当于一次数据库会话。它提供了 selectOne、selectList、insert、update、delete 这些方法。
+不过 SqlSession 自己不干活，它把事情委托给 Executor。你可以把 SqlSession 理解成一个门面，真正干活的是后面的 Executor。
+public class DefaultSqlSession implements SqlSession { private final Executor executor; @Override public &lt;T&gt; T selectOne(String statement, Object parameter) { List&lt;T&gt; list = this.selectList(statement, parameter); if (list.size() == 1) { return list.get(0); } // ... } } 话说回来，如果你用的是 Spring &#43; MyBatis，SqlSession 的创建和关闭都被 SqlSessionTemplate 管了，你基本不用操心。">
+
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {
+      "@type": "ListItem",
+      "position":  1 ,
+      "name": "Posts",
+      "item": "http://localhost:49494/posts/"
+    }, 
+    {
+      "@type": "ListItem",
+      "position":  2 ,
+      "name": "MyBatis SQL 执行流程",
+      "item": "http://localhost:49494/posts/mybatis-execution-flow/"
+    }
+  ]
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "MyBatis SQL 执行流程",
+  "name": "MyBatis SQL 执行流程",
+  "description": "MyBatis 一条 SQL 的执行之旅 从 Mapper 接口说起 用 MyBatis 写代码，日常就是定义一个 Mapper 接口，写个 XML 或注解，然后调用方法就完事了。但你有没有想过，你调 userMapper.selectById(1) 的时候，MyBatis 背后到底干了啥？\n我之前一直觉得这东西就是个黑盒，SQL 进去，对象出来，不用管就好。直到有次面试被问\u0026quot;说说 MyBatis 的执行流程\u0026quot;，我直接愣住了。回来之后认真翻了源码，发现整个流程其实挺清晰的，今天来捋一捋。\n简单说，你调 Mapper 方法，其实调的是一个 JDK 动态代理对象。MyBatis 在启动的时候会给每个 Mapper 接口生成代理，拦截方法调用，然后转到 SqlSession 去执行。\n// 你以为你在调接口方法 User user = userMapper.selectById(1); // 实际上等价于 User user = sqlSession.selectOne(\u0026#34;com.example.mapper.UserMapper.selectById\u0026#34;, 1); 所以 Mapper 接口本身没有实现类，全靠代理。这个设计挺巧妙的，让你写代码的时候感觉像在调普通方法。\nSqlSession 是什么 SqlSession 是 MyBatis 的核心接口，相当于一次数据库会话。它提供了 selectOne、selectList、insert、update、delete 这些方法。\n不过 SqlSession 自己不干活，它把事情委托给 Executor。你可以把 SqlSession 理解成一个门面，真正干活的是后面的 Executor。\npublic class DefaultSqlSession implements SqlSession { private final Executor executor; @Override public \u0026lt;T\u0026gt; T selectOne(String statement, Object parameter) { List\u0026lt;T\u0026gt; list = this.selectList(statement, parameter); if (list.size() == 1) { return list.get(0); } // ... } } 话说回来，如果你用的是 Spring + MyBatis，SqlSession 的创建和关闭都被 SqlSessionTemplate 管了，你基本不用操心。\n",
+  "keywords": [
+    "Java", "MyBatis", "ORM"
+  ],
+  "articleBody": "MyBatis 一条 SQL 的执行之旅 从 Mapper 接口说起 用 MyBatis 写代码，日常就是定义一个 Mapper 接口，写个 XML 或注解，然后调用方法就完事了。但你有没有想过，你调 userMapper.selectById(1) 的时候，MyBatis 背后到底干了啥？\n我之前一直觉得这东西就是个黑盒，SQL 进去，对象出来，不用管就好。直到有次面试被问\"说说 MyBatis 的执行流程\"，我直接愣住了。回来之后认真翻了源码，发现整个流程其实挺清晰的，今天来捋一捋。\n简单说，你调 Mapper 方法，其实调的是一个 JDK 动态代理对象。MyBatis 在启动的时候会给每个 Mapper 接口生成代理，拦截方法调用，然后转到 SqlSession 去执行。\n// 你以为你在调接口方法 User user = userMapper.selectById(1); // 实际上等价于 User user = sqlSession.selectOne(\"com.example.mapper.UserMapper.selectById\", 1); 所以 Mapper 接口本身没有实现类，全靠代理。这个设计挺巧妙的，让你写代码的时候感觉像在调普通方法。\nSqlSession 是什么 SqlSession 是 MyBatis 的核心接口，相当于一次数据库会话。它提供了 selectOne、selectList、insert、update、delete 这些方法。\n不过 SqlSession 自己不干活，它把事情委托给 Executor。你可以把 SqlSession 理解成一个门面，真正干活的是后面的 Executor。\npublic class DefaultSqlSession implements SqlSession { private final Executor executor; @Override public \u003cT\u003e T selectOne(String statement, Object parameter) { List\u003cT\u003e list = this.selectList(statement, parameter); if (list.size() == 1) { return list.get(0); } // ... } } 话说回来，如果你用的是 Spring + MyBatis，SqlSession 的创建和关闭都被 SqlSessionTemplate 管了，你基本不用操心。\nExecutor 执行器 Executor 是真正执行 SQL 的组件。MyBatis 提供了三种 Executor：\nSimpleExecutor：每次执行都创建新的 Statement，最朴素的方式 ReuseExecutor：会复用 Statement，减少创建开销 BatchExecutor：批量执行，适合大量 insert/update 的场景 默认用的是 SimpleExecutor。Executor 拿到 MappedStatement（就是你 XML 里那条 SQL 的所有配置信息），然后交给 StatementHandler 去处理。\n// Executor 的核心方法 public \u003cE\u003e List\u003cE\u003e query(MappedStatement ms, Object parameter, RowBounds rowBounds, ResultHandler resultHandler) { BoundSql boundSql = ms.getBoundSql(parameter); CacheKey key = createCacheKey(ms, parameter, rowBounds, boundSql); return query(ms, parameter, rowBounds, resultHandler, key, boundSql); } 注意这里有个 CacheKey，后面讲缓存会用到。\nStatementHandler 和参数映射 StatementHandler 负责创建 JDBC 的 Statement，设置参数，执行 SQL。\n参数设置这块是 ParameterHandler 干的。它会把你传的 Java 对象映射成 SQL 的参数。这里用到了 TypeHandler，比如把 Java 的 String 映射成 VARCHAR，把 Date 映射成 TIMESTAMP。\n// ParameterHandler 设置参数的核心逻辑 public void setParameters(PreparedStatement ps) { for (int i = 0; i \u003c parameterMappings.size(); i++) { ParameterMapping parameterMapping = parameterMappings.get(i); Object value = // 从参数对象中取值 TypeHandler typeHandler = parameterMapping.getTypeHandler(); typeHandler.setParameter(ps, i + 1, value, parameterMapping.getJdbcType()); } } 我之前踩过一个坑：参数是 Map 的时候，XML 里的 #{key} 要和 Map 的 key 对上，不然就是 null。debug 了半天才发现是 key 写错了，大小写不一致。这种问题 MyBatis 不会报错，就默默给你传个 null，很坑。\n结果集映射 SQL 执行完，ResultSetHandler 负责把 JDBC 的 ResultSet 映射成 Java 对象。\n这个过程大概是：\n根据 resultMap 或 resultType 确定目标类型 创建目标对象（通过反射） 遍历每一列，用 TypeHandler 把数据库类型转成 Java 类型 通过反射设置属性值 如果你用了 resultMap 还配了 association 和 collection，那就涉及嵌套查询或嵌套结果集映射，逻辑会复杂不少。\n顺便提一下，MyBatis 的自动映射（autoMapping）默认是开的，它会尝试把列名和属性名匹配。驼峰命名转换可以通过 mapUnderscoreToCamelCase 配置开启，这个基本是必开的，不然数据库的 user_name 映射不到 Java 的 userName。\n一级缓存和二级缓存 MyBatis 有两级缓存，面试也爱问这个。\n一级缓存在 SqlSession 级别，默认开启。同一个 SqlSession 里，相同的查询只会执行一次 SQL，第二次直接从缓存拿。\n// 同一个 SqlSession 内 User user1 = sqlSession.selectOne(\"selectById\", 1); // 走数据库 User user2 = sqlSession.selectOne(\"selectById\", 1); // 走缓存 // user1 == user2 是 true，同一个对象 但是有个坑：在 Spring 里，默认每个方法调用都是新的 SqlSession，所以一级缓存其实没啥用。除非你在同一个事务里多次查询，才能命中。\n二级缓存在 namespace 级别（也就是 Mapper 级别），需要手动开启。多个 SqlSession 可以共享。\n",
+  "wordCount" : "379",
+  "inLanguage": "en",
+  "datePublished": "2024-03-05T00:00:00Z",
+  "dateModified": "2024-03-05T00:00:00Z",
+  "mainEntityOfPage": {
+    "@type": "WebPage",
+    "@id": "http://localhost:49494/posts/mybatis-execution-flow/"
+  },
+  "publisher": {
+    "@type": "Organization",
+    "name": "Weiming's Blog",
+    "logo": {
+      "@type": "ImageObject",
+      "url": "http://localhost:49494/favicon.ico"
+    }
+  }
+}
+</script>
+</head>
+<body id="top">
+    <header class="header">
+    <nav class="nav">
+        <div class="logo">
+            <a href="http://localhost:49494/" accesskey="h" title="Weiming&#39;s Blog (Alt + H)">Weiming&#39;s Blog</a>
+            <div class="logo-switches">
+                <button id="theme-toggle" accesskey="t" title="(Alt + T)" aria-label="Toggle theme">
+                    <svg id="moon" xmlns="http://www.w3.org/2000/svg" width="24" height="18" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                    </svg>
+                    <svg id="sun" xmlns="http://www.w3.org/2000/svg" width="24" height="18" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="5"></circle>
+                        <line x1="12" y1="1" x2="12" y2="3"></line>
+                        <line x1="12" y1="21" x2="12" y2="23"></line>
+                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                        <line x1="1" y1="12" x2="3" y2="12"></line>
+                        <line x1="21" y1="12" x2="23" y2="12"></line>
+                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                    </svg>
+                </button>
+            </div>
+        </div>
+        <ul id="menu">
+            <li>
+                <a href="http://localhost:49494/archives/" title="归档">
+                    <span>归档</span>
+                </a>
+            </li>
+            <li>
+                <a href="http://localhost:49494/categories/" title="分类">
+                    <span>分类</span>
+                </a>
+            </li>
+            <li>
+                <a href="http://localhost:49494/tags/" title="标签">
+                    <span>标签</span>
+                </a>
+            </li>
+            <li>
+                <a href="http://localhost:49494/about/" title="关于">
+                    <span>关于</span>
+                </a>
+            </li>
+        </ul>
+    </nav>
+</header>
+<main class="main">
+
+<article class="post-single">
+  <header class="post-header">
+    <div class="breadcrumbs"><a href="http://localhost:49494/">Home</a>&nbsp;»&nbsp;<a href="http://localhost:49494/posts/">Posts</a></div>
+    <h1 class="post-title entry-hint-parent">
+      MyBatis SQL 执行流程
+    </h1>
+    <div class="post-meta"><span title='2024-03-05 00:00:00 +0000 UTC'>March 5, 2024</span>&nbsp;·&nbsp;<span>2 min</span>
+
+</div>
+  </header> <div class="toc">
+    <details >
+        <summary accesskey="c" title="(Alt + C)">
+            <span class="details">Table of Contents</span>
+        </summary>
+
+        <div class="inner"><ul>
+                <li>
+                    <a href="#mybatis-%e4%b8%80%e6%9d%a1-sql-%e7%9a%84%e6%89%a7%e8%a1%8c%e4%b9%8b%e6%97%85" aria-label="MyBatis 一条 SQL 的执行之旅">MyBatis 一条 SQL 的执行之旅</a><ul>
+                        
+                <li>
+                    <a href="#%e4%bb%8e-mapper-%e6%8e%a5%e5%8f%a3%e8%af%b4%e8%b5%b7" aria-label="从 Mapper 接口说起">从 Mapper 接口说起</a></li>
+                <li>
+                    <a href="#sqlsession-%e6%98%af%e4%bb%80%e4%b9%88" aria-label="SqlSession 是什么">SqlSession 是什么</a></li>
+                <li>
+                    <a href="#executor-%e6%89%a7%e8%a1%8c%e5%99%a8" aria-label="Executor 执行器">Executor 执行器</a></li>
+                <li>
+                    <a href="#statementhandler-%e5%92%8c%e5%8f%82%e6%95%b0%e6%98%a0%e5%b0%84" aria-label="StatementHandler 和参数映射">StatementHandler 和参数映射</a></li>
+                <li>
+                    <a href="#%e7%bb%93%e6%9e%9c%e9%9b%86%e6%98%a0%e5%b0%84" aria-label="结果集映射">结果集映射</a></li>
+                <li>
+                    <a href="#%e4%b8%80%e7%ba%a7%e7%bc%93%e5%ad%98%e5%92%8c%e4%ba%8c%e7%ba%a7%e7%bc%93%e5%ad%98" aria-label="一级缓存和二级缓存">一级缓存和二级缓存</a></li>
+                <li>
+                    <a href="#%e6%95%b4%e4%bd%93%e6%b5%81%e7%a8%8b%e4%b8%b2%e4%b8%80%e4%b8%8b" aria-label="整体流程串一下">整体流程串一下</a>
+                </li>
+            </ul>
+            </li>
+            </ul>
+        </div>
+    </details>
+</div>
+
+  <div class="post-content"><h1 id="mybatis-一条-sql-的执行之旅">MyBatis 一条 SQL 的执行之旅<a hidden class="anchor" aria-hidden="true" href="#mybatis-一条-sql-的执行之旅">#</a></h1>
+<h2 id="从-mapper-接口说起">从 Mapper 接口说起<a hidden class="anchor" aria-hidden="true" href="#从-mapper-接口说起">#</a></h2>
+<p>用 MyBatis 写代码，日常就是定义一个 Mapper 接口，写个 XML 或注解，然后调用方法就完事了。但你有没有想过，你调 <code>userMapper.selectById(1)</code> 的时候，MyBatis 背后到底干了啥？</p>
+<p>我之前一直觉得这东西就是个黑盒，SQL 进去，对象出来，不用管就好。直到有次面试被问&quot;说说 MyBatis 的执行流程&quot;，我直接愣住了。回来之后认真翻了源码，发现整个流程其实挺清晰的，今天来捋一捋。</p>
+<p>简单说，你调 Mapper 方法，其实调的是一个 JDK 动态代理对象。MyBatis 在启动的时候会给每个 Mapper 接口生成代理，拦截方法调用，然后转到 SqlSession 去执行。</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#75715e">// 你以为你在调接口方法</span>
+</span></span><span style="display:flex;"><span>User user <span style="color:#f92672">=</span> userMapper.<span style="color:#a6e22e">selectById</span>(1);
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">// 实际上等价于</span>
+</span></span><span style="display:flex;"><span>User user <span style="color:#f92672">=</span> sqlSession.<span style="color:#a6e22e">selectOne</span>(<span style="color:#e6db74">&#34;com.example.mapper.UserMapper.selectById&#34;</span>, 1);
+</span></span></code></pre></div><p>所以 Mapper 接口本身没有实现类，全靠代理。这个设计挺巧妙的，让你写代码的时候感觉像在调普通方法。</p>
+<h2 id="sqlsession-是什么">SqlSession 是什么<a hidden class="anchor" aria-hidden="true" href="#sqlsession-是什么">#</a></h2>
+<p>SqlSession 是 MyBatis 的核心接口，相当于一次数据库会话。它提供了 selectOne、selectList、insert、update、delete 这些方法。</p>
+<p>不过 SqlSession 自己不干活，它把事情委托给 Executor。你可以把 SqlSession 理解成一个门面，真正干活的是后面的 Executor。</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#66d9ef">public</span> <span style="color:#66d9ef">class</span> <span style="color:#a6e22e">DefaultSqlSession</span> <span style="color:#66d9ef">implements</span> SqlSession {
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">private</span> <span style="color:#66d9ef">final</span> Executor executor;
+</span></span><span style="display:flex;"><span>    
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">@Override</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">public</span> <span style="color:#f92672">&lt;</span>T<span style="color:#f92672">&gt;</span> T <span style="color:#a6e22e">selectOne</span>(String statement, Object parameter) {
+</span></span><span style="display:flex;"><span>        List<span style="color:#f92672">&lt;</span>T<span style="color:#f92672">&gt;</span> list <span style="color:#f92672">=</span> <span style="color:#66d9ef">this</span>.<span style="color:#a6e22e">selectList</span>(statement, parameter);
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">if</span> (list.<span style="color:#a6e22e">size</span>() <span style="color:#f92672">==</span> 1) {
+</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">return</span> list.<span style="color:#a6e22e">get</span>(0);
+</span></span><span style="display:flex;"><span>        }
+</span></span><span style="display:flex;"><span>        <span style="color:#75715e">// ...</span>
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p>话说回来，如果你用的是 Spring + MyBatis，SqlSession 的创建和关闭都被 SqlSessionTemplate 管了，你基本不用操心。</p>
+<h2 id="executor-执行器">Executor 执行器<a hidden class="anchor" aria-hidden="true" href="#executor-执行器">#</a></h2>
+<p>Executor 是真正执行 SQL 的组件。MyBatis 提供了三种 Executor：</p>
+<ul>
+<li><strong>SimpleExecutor</strong>：每次执行都创建新的 Statement，最朴素的方式</li>
+<li><strong>ReuseExecutor</strong>：会复用 Statement，减少创建开销</li>
+<li><strong>BatchExecutor</strong>：批量执行，适合大量 insert/update 的场景</li>
+</ul>
+<p>默认用的是 SimpleExecutor。Executor 拿到 MappedStatement（就是你 XML 里那条 SQL 的所有配置信息），然后交给 StatementHandler 去处理。</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#75715e">// Executor 的核心方法</span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">public</span> <span style="color:#f92672">&lt;</span>E<span style="color:#f92672">&gt;</span> List<span style="color:#f92672">&lt;</span>E<span style="color:#f92672">&gt;</span> <span style="color:#a6e22e">query</span>(MappedStatement ms, Object parameter, 
+</span></span><span style="display:flex;"><span>                          RowBounds rowBounds, ResultHandler resultHandler) {
+</span></span><span style="display:flex;"><span>    BoundSql boundSql <span style="color:#f92672">=</span> ms.<span style="color:#a6e22e">getBoundSql</span>(parameter);
+</span></span><span style="display:flex;"><span>    CacheKey key <span style="color:#f92672">=</span> createCacheKey(ms, parameter, rowBounds, boundSql);
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">return</span> query(ms, parameter, rowBounds, resultHandler, key, boundSql);
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p>注意这里有个 CacheKey，后面讲缓存会用到。</p>
+<h2 id="statementhandler-和参数映射">StatementHandler 和参数映射<a hidden class="anchor" aria-hidden="true" href="#statementhandler-和参数映射">#</a></h2>
+<p>StatementHandler 负责创建 JDBC 的 Statement，设置参数，执行 SQL。</p>
+<p>参数设置这块是 ParameterHandler 干的。它会把你传的 Java 对象映射成 SQL 的参数。这里用到了 TypeHandler，比如把 Java 的 String 映射成 VARCHAR，把 Date 映射成 TIMESTAMP。</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#75715e">// ParameterHandler 设置参数的核心逻辑</span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">public</span> <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">setParameters</span>(PreparedStatement ps) {
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">for</span> (<span style="color:#66d9ef">int</span> i <span style="color:#f92672">=</span> 0; i <span style="color:#f92672">&lt;</span> parameterMappings.<span style="color:#a6e22e">size</span>(); i<span style="color:#f92672">++</span>) {
+</span></span><span style="display:flex;"><span>        ParameterMapping parameterMapping <span style="color:#f92672">=</span> parameterMappings.<span style="color:#a6e22e">get</span>(i);
+</span></span><span style="display:flex;"><span>        Object value <span style="color:#f92672">=</span> <span style="color:#75715e">// 从参数对象中取值</span>
+</span></span><span style="display:flex;"><span>        TypeHandler typeHandler <span style="color:#f92672">=</span> parameterMapping.<span style="color:#a6e22e">getTypeHandler</span>();
+</span></span><span style="display:flex;"><span>        typeHandler.<span style="color:#a6e22e">setParameter</span>(ps, i <span style="color:#f92672">+</span> 1, value, parameterMapping.<span style="color:#a6e22e">getJdbcType</span>());
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p>我之前踩过一个坑：参数是 Map 的时候，XML 里的 <code>#{key}</code> 要和 Map 的 key 对上，不然就是 null。debug 了半天才发现是 key 写错了，大小写不一致。这种问题 MyBatis 不会报错，就默默给你传个 null，很坑。</p>
+<h2 id="结果集映射">结果集映射<a hidden class="anchor" aria-hidden="true" href="#结果集映射">#</a></h2>
+<p>SQL 执行完，ResultSetHandler 负责把 JDBC 的 ResultSet 映射成 Java 对象。</p>
+<p>这个过程大概是：</p>
+<ol>
+<li>根据 resultMap 或 resultType 确定目标类型</li>
+<li>创建目标对象（通过反射）</li>
+<li>遍历每一列，用 TypeHandler 把数据库类型转成 Java 类型</li>
+<li>通过反射设置属性值</li>
+</ol>
+<p>如果你用了 resultMap 还配了 association 和 collection，那就涉及嵌套查询或嵌套结果集映射，逻辑会复杂不少。</p>
+<p>顺便提一下，MyBatis 的自动映射（autoMapping）默认是开的，它会尝试把列名和属性名匹配。驼峰命名转换可以通过 <code>mapUnderscoreToCamelCase</code> 配置开启，这个基本是必开的，不然数据库的 <code>user_name</code> 映射不到 Java 的 <code>userName</code>。</p>
+<h2 id="一级缓存和二级缓存">一级缓存和二级缓存<a hidden class="anchor" aria-hidden="true" href="#一级缓存和二级缓存">#</a></h2>
+<p>MyBatis 有两级缓存，面试也爱问这个。</p>
+<p><strong>一级缓存</strong>在 SqlSession 级别，默认开启。同一个 SqlSession 里，相同的查询只会执行一次 SQL，第二次直接从缓存拿。</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#75715e">// 同一个 SqlSession 内</span>
+</span></span><span style="display:flex;"><span>User user1 <span style="color:#f92672">=</span> sqlSession.<span style="color:#a6e22e">selectOne</span>(<span style="color:#e6db74">&#34;selectById&#34;</span>, 1); <span style="color:#75715e">// 走数据库</span>
+</span></span><span style="display:flex;"><span>User user2 <span style="color:#f92672">=</span> sqlSession.<span style="color:#a6e22e">selectOne</span>(<span style="color:#e6db74">&#34;selectById&#34;</span>, 1); <span style="color:#75715e">// 走缓存</span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">// user1 == user2  是 true，同一个对象</span>
+</span></span></code></pre></div><p>但是有个坑：在 Spring 里，默认每个方法调用都是新的 SqlSession，所以一级缓存其实没啥用。除非你在同一个事务里多次查询，才能命中。</p>
+<p><strong>二级缓存</strong>在 namespace 级别（也就是 Mapper 级别），需要手动开启。多个 SqlSession 可以共享。</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-xml" data-lang="xml"><span style="display:flex;"><span><span style="color:#75715e">&lt;!-- 在 Mapper XML 里加这个就开了 --&gt;</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">&lt;cache</span> <span style="color:#f92672">/&gt;</span>
+</span></span></code></pre></div><p>二级缓存听起来不错，但实际项目里很少用。原因是它的粒度太粗——整个 namespace 共享一个缓存，一有更新操作就全部失效。而且多表关联查询的时候，更新了 A 表但 B 的 Mapper 缓存不会失效，容易出脏数据。</p>
+<p>其实吧，缓存这事别靠 MyBatis，老老实实用 Redis 更靠谱。</p>
+<h2 id="整体流程串一下">整体流程串一下<a hidden class="anchor" aria-hidden="true" href="#整体流程串一下">#</a></h2>
+<p>把整个流程串起来：</p>
+<ol>
+<li>调用 Mapper 接口方法（动态代理拦截）</li>
+<li>SqlSession 接收调用</li>
+<li>Executor 执行查询（先查缓存）</li>
+<li>StatementHandler 创建 Statement</li>
+<li>ParameterHandler 设置参数</li>
+<li>执行 SQL</li>
+<li>ResultSetHandler 映射结果</li>
+<li>返回 Java 对象</li>
+</ol>
+<p>说到这里，MyBatis 的设计还是挺清晰的，每个组件职责分明。理解了这个流程，看源码也不会太懵。面试的时候把这条链路讲清楚，基本就 OK 了。</p>
+<p>有兴趣的话可以自己打断点跟一遍，从 MapperProxy.invoke() 开始，一路跟到 JDBC 执行，印象会深刻很多。</p>
+
+
+  </div>
+
+  <footer class="post-footer">
+    <ul class="post-tags">
+      <li><a href="http://localhost:49494/tags/java/">Java</a></li>
+      <li><a href="http://localhost:49494/tags/mybatis/">MyBatis</a></li>
+      <li><a href="http://localhost:49494/tags/orm/">ORM</a></li>
+    </ul>
+<nav class="paginav">
+  <a class="prev" href="http://localhost:49494/posts/redis-distributed-lock/">
+    <span class="title">« Prev</span>
+    <br>
+    <span>Redis 分布式锁笔记</span>
+  </a>
+  <a class="next" href="http://localhost:49494/posts/redis-data-structures/">
+    <span class="title">Next »</span>
+    <br>
+    <span>Redis 五种数据结构</span>
+  </a>
+</nav>
+
+  </footer>
+</article>
+    </main>
+    
+<footer class="footer">
+        <span>&copy; 2026 <a href="http://localhost:49494/">Weiming&#39;s Blog</a></span> · 
+
+    <span>
+        Powered by
+        <a href="https://gohugo.io/" rel="noopener noreferrer" target="_blank">Hugo</a> &
+        <a href="https://github.com/adityatelange/hugo-PaperMod/" rel="noopener" target="_blank">PaperMod</a>
+    </span>
+</footer>
+<a href="#top" aria-label="go to top" title="Go to Top (Alt + G)" class="top-link" id="top-link" accesskey="g">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 12 6" fill="currentColor">
+        <path d="M12 6H0l6-6z" />
+    </svg>
+</a>
+
+<script>
+    let menu = document.getElementById('menu');
+    if (menu) {
+        
+        const scrollPosition = localStorage.getItem("menu-scroll-position");
+        if (scrollPosition) {
+            menu.scrollLeft = parseInt(scrollPosition, 10);
+        }
+        
+        menu.onscroll = function () {
+            localStorage.setItem("menu-scroll-position", menu.scrollLeft);
+        }
+    }
+
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener("click", function (e) {
+            e.preventDefault();
+            var id = this.getAttribute("href").substr(1);
+            if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView({
+                    behavior: "smooth"
+                });
+            } else {
+                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView();
+            }
+            if (id === "top") {
+                history.replaceState(null, null, " ");
+            } else {
+                history.pushState(null, null, `#${id}`);
+            }
+        });
+    });
+
+</script>
+<script>
+    var mybutton = document.getElementById("top-link");
+    window.onscroll = function () {
+        if (document.body.scrollTop > 800 || document.documentElement.scrollTop > 800) {
+            mybutton.style.visibility = "visible";
+            mybutton.style.opacity = "1";
+        } else {
+            mybutton.style.visibility = "hidden";
+            mybutton.style.opacity = "0";
+        }
+    };
+
+</script>
+<script>
+    document.getElementById("theme-toggle").addEventListener("click", () => {
+        const html = document.querySelector("html");
+        if (html.dataset.theme === "dark") {
+            html.dataset.theme = 'light';
+            localStorage.setItem("pref-theme", 'light');
+        } else {
+            html.dataset.theme = 'dark';
+            localStorage.setItem("pref-theme", 'dark');
+        }
+    })
+
+</script>
+<script>
+    document.querySelectorAll('pre > code').forEach((codeblock) => {
+        const container = codeblock.parentNode.parentNode;
+
+        const copybutton = document.createElement('button');
+        copybutton.classList.add('copy-code');
+        copybutton.innerHTML = 'copy';
+
+        function copyingDone() {
+            copybutton.innerHTML = 'copied!';
+            setTimeout(() => {
+                copybutton.innerHTML = 'copy';
+            }, 2000);
+        }
+
+        copybutton.addEventListener('click', (cb) => {
+            if ('clipboard' in navigator) {
+                navigator.clipboard.writeText(codeblock.textContent);
+                copyingDone();
+                return;
+            }
+
+            const range = document.createRange();
+            range.selectNodeContents(codeblock);
+            const selection = window.getSelection();
+            selection.removeAllRanges();
+            selection.addRange(range);
+            try {
+                document.execCommand('copy');
+                copyingDone();
+            } catch (e) { };
+            selection.removeRange(range);
+        });
+
+        if (container.classList.contains("highlight")) {
+            container.appendChild(copybutton);
+        } else if (container.parentNode.firstChild == container) {
+            
+        } else if (codeblock.parentNode.parentNode.parentNode.parentNode.parentNode.nodeName == "TABLE") {
+            
+            codeblock.parentNode.parentNode.parentNode.parentNode.parentNode.appendChild(copybutton);
+        } else {
+            
+            codeblock.parentNode.appendChild(copybutton);
+        }
+    });
+</script>
+</body>
+
+</html>

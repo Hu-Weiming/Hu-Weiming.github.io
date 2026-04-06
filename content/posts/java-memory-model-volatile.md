@@ -1,5 +1,5 @@
 ---
-title: "volatile 到底能保证什么"
+title: "volatile 与 Java 内存模型"
 date: 2023-07-20
 categories: ["Java基础"]
 tags: ["Java", "JMM", "并发"]

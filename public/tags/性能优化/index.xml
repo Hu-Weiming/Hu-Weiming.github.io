@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:content="http://purl.org/rss/1.0/modules/content/">
+  <channel>
+    <title>性能优化 on Weiming&#39;s Blog</title>
+    <link>http://localhost:49494/tags/%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96/</link>
+    <description>Recent content in 性能优化 on Weiming&#39;s Blog</description>
+    <generator>Hugo</generator>
+    <language>zh-cn</language>
+    <lastBuildDate>Sat, 15 Jun 2024 00:00:00 +0000</lastBuildDate>
+    <atom:link href="http://localhost:49494/tags/%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>MySQL 索引优化</title>
+      <link>http://localhost:49494/posts/mysql-index-optimization/</link>
+      <pubDate>Sat, 15 Jun 2024 00:00:00 +0000</pubDate>
+      <guid>http://localhost:49494/posts/mysql-index-optimization/</guid>
+      <description>&lt;h1 id=&#34;mysql-索引优化别再全表扫描了&#34;&gt;MySQL 索引优化，别再全表扫描了&lt;/h1&gt;
+&lt;p&gt;上学期数据库课的大作业，我写了个选课系统。数据量小的时候跑得飞快，一导入几万条测试数据就卡得不行。一查原因——全表扫描。那时候才真正意识到索引有多重要。&lt;/p&gt;
+&lt;h2 id=&#34;b树索引的底层结构&#34;&gt;B+树——索引的底层结构&lt;/h2&gt;
+&lt;p&gt;MySQL 的 InnoDB 引擎用 B+树组织索引。&lt;/p&gt;
+&lt;p&gt;&lt;img alt=&#34;B-tree 结构示意图&#34; loading=&#34;lazy&#34; src=&#34;https://upload.wikimedia.org/wikipedia/commons/thumb/6/65/B-tree-definition.svg/831px-B-tree-definition.svg.png&#34;&gt;&lt;/p&gt;
+&lt;p&gt;B+树的特点：&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;非叶子节点只存 key，不存数据&lt;/li&gt;
+&lt;li&gt;叶子节点存所有数据，用链表串起来&lt;/li&gt;
+&lt;li&gt;查询都走到叶子节点，效率稳定&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;为啥不用红黑树？磁盘 IO 是瓶颈。B+树很矮很胖，三层就能存上千万行数据，查一条记录最多三次磁盘 IO。&lt;/p&gt;
+&lt;p&gt;算一笔账：主键 bigint 8 字节，指针 6 字节，一个 16KB 的页存约 1170 个 key。叶子节点假设每行 1KB，一页 16 行。三层就是 1170 x 1170 x 16 约两千万行。&lt;/p&gt;
+&lt;h2 id=&#34;聚簇索引-vs-非聚簇索引&#34;&gt;聚簇索引 vs 非聚簇索引&lt;/h2&gt;
+&lt;p&gt;&lt;strong&gt;聚簇索引&lt;/strong&gt;（主键索引）：叶子节点直接存整行数据。一张表只能有一个。&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;非聚簇索引&lt;/strong&gt;（二级索引）：叶子节点存的是主键值。查到主键后还要去聚簇索引查完整数据——&lt;strong&gt;回表&lt;/strong&gt;。&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;&#34;&gt;&lt;code class=&#34;language-sql&#34; data-lang=&#34;sql&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;-- name 上有索引
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;SELECT&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;FROM&lt;/span&gt; student &lt;span style=&#34;color:#66d9ef&#34;&gt;WHERE&lt;/span&gt; name &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#39;张三&amp;#39;&lt;/span&gt;;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;-- 1. name 索引树找到主键 id=1001
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;-- 2. 拿 id=1001 去聚簇索引查整行 → 回表
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;回表就是两次 B+树查找，数据量大时开销不小。&lt;/p&gt;
+&lt;h2 id=&#34;最左匹配原则&#34;&gt;最左匹配原则&lt;/h2&gt;
+&lt;p&gt;联合索引 &lt;code&gt;(a, b, c)&lt;/code&gt; 的匹配规则：&lt;/p&gt;</description>
+    </item>
+  </channel>
+</rss>

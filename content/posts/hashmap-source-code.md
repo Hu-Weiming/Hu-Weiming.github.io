@@ -1,5 +1,5 @@
 ---
-title: "HashMap 源码我读了三遍才看懂"
+title: "HashMap 源码笔记"
 date: 2022-09-15
 categories: ["Java基础"]
 tags: ["Java", "集合框架", "源码"]

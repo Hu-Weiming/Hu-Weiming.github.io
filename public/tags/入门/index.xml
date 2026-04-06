@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:content="http://purl.org/rss/1.0/modules/content/">
+  <channel>
+    <title>入门 on Weiming&#39;s Blog</title>
+    <link>http://localhost:49494/tags/%E5%85%A5%E9%97%A8/</link>
+    <description>Recent content in 入门 on Weiming&#39;s Blog</description>
+    <generator>Hugo</generator>
+    <language>zh-cn</language>
+    <lastBuildDate>Tue, 10 Jun 2025 00:00:00 +0000</lastBuildDate>
+    <atom:link href="http://localhost:49494/tags/%E5%85%A5%E9%97%A8/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>大语言模型（LLM）入门</title>
+      <link>http://localhost:49494/posts/llm-introduction/</link>
+      <pubDate>Tue, 10 Jun 2025 00:00:00 +0000</pubDate>
+      <guid>http://localhost:49494/posts/llm-introduction/</guid>
+      <description>&lt;h1 id=&#34;大模型入门到底什么是-llm&#34;&gt;大模型入门：到底什么是 LLM&lt;/h1&gt;
+&lt;h2 id=&#34;transformer-到底是什么&#34;&gt;Transformer 到底是什么&lt;/h2&gt;
+&lt;p&gt;最近到处都在聊大模型、AI，感觉不了解点 LLM 都不好意思说自己学计算机的。但说实话，一开始我也是一头雾水。GPT、Transformer、Token，这些词满天飞，搜了好多资料才慢慢理出头绪。&lt;/p&gt;
+&lt;p&gt;LLM，Large Language Model，大语言模型。说白了就是一个超大的神经网络，用海量文本训练出来的，学会了&amp;quot;语言&amp;quot;这件事。你给它一段文字，它能接着往下写——本质上就是在预测下一个 Token。&lt;/p&gt;
+&lt;p&gt;底层架构叫 Transformer。2017 年 Google 那篇 &amp;ldquo;Attention is All You Need&amp;rdquo; 提出的，改变了整个 NLP 领域。&lt;/p&gt;
+&lt;p&gt;&lt;img alt=&#34;Transformer 架构&#34; loading=&#34;lazy&#34; src=&#34;https://upload.wikimedia.org/wikipedia/commons/thumb/8/8f/The-Transformer-model-architecture.png/440px-The-Transformer-model-architecture.png&#34;&gt;&lt;/p&gt;
+&lt;p&gt;Transformer 的核心是注意力机制（Attention）。不用纠结数学细节，可以这么理解：模型处理一个词的时候，会&amp;quot;看&amp;quot;句子里所有其他词，判断谁跟它关系更密切。比如&amp;quot;我去银行取钱&amp;quot;，处理&amp;quot;银行&amp;quot;时模型注意到&amp;quot;取钱&amp;quot;，就知道这是金融机构不是河岸。&lt;/p&gt;
+&lt;p&gt;之前的 RNN/LSTM 按顺序一个词一个词处理，长文本又慢效果又差。Transformer 可以并行处理所有位置，效率高太多了。这也是大模型能做到几百亿参数的关键原因。&lt;/p&gt;
+&lt;h2 id=&#34;预训练和微调&#34;&gt;预训练和微调&lt;/h2&gt;
+&lt;p&gt;大模型训练分两个阶段。&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;预训练&lt;/strong&gt;：拿海量文本数据（网页、书籍、代码、论文……），让模型学习预测下一个词。就这么简单的目标，在足够大的数据量和模型规模上，涌现出了各种能力——写代码、翻译、推理，都是&amp;quot;学&amp;quot;出来的。&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;微调&lt;/strong&gt;：预训练完的模型像一个&amp;quot;什么都懂但不听话&amp;quot;的人。微调让它更符合人类期望。常见方法是 RLHF（基于人类反馈的强化学习）——人类给模型的回答打分，模型根据反馈调整行为。&lt;/p&gt;
+&lt;p&gt;ChatGPT 之所以好用，很大功劳在微调阶段。没经过微调的 base model，你问它问题它不会好好回答，只会一直&amp;quot;接龙&amp;quot;下去。&lt;/p&gt;
+&lt;h2 id=&#34;token-和上下文窗口&#34;&gt;Token 和上下文窗口&lt;/h2&gt;
+&lt;p&gt;大模型不按&amp;quot;字&amp;quot;处理文本，而是按 Token。一个 Token 大概对应一个常见的词或子词片段。英文里一个单词通常 1-2 个 Token，中文一个字大概 1-2 个 Token。&lt;/p&gt;
+&lt;p&gt;上下文窗口（Context Window）是模型一次能处理的最大 Token 数。GPT-4 是 128K，Claude 支持到 200K。窗口越大，模型能&amp;quot;看到&amp;quot;的内容越多。&lt;/p&gt;
+&lt;p&gt;上下文窗口很重要——模型只能&amp;quot;看到&amp;quot;窗口以内的内容。跟它聊天聊久了，早期的对话超出窗口就被&amp;quot;遗忘&amp;quot;了。&lt;/p&gt;
+&lt;p&gt;Token 数也直接关系到使用成本。API 按 Token 收费，input 和 output 分开计价。所以写 Prompt 的时候别废话太多，能省就省。&lt;/p&gt;</description>
+    </item>
+  </channel>
+</rss>

@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:content="http://purl.org/rss/1.0/modules/content/">
+  <channel>
+    <title>源码 on Weiming&#39;s Blog</title>
+    <link>http://localhost:49494/tags/%E6%BA%90%E7%A0%81/</link>
+    <description>Recent content in 源码 on Weiming&#39;s Blog</description>
+    <generator>Hugo</generator>
+    <language>zh-cn</language>
+    <lastBuildDate>Thu, 15 Sep 2022 00:00:00 +0000</lastBuildDate>
+    <atom:link href="http://localhost:49494/tags/%E6%BA%90%E7%A0%81/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>HashMap 源码笔记</title>
+      <link>http://localhost:49494/posts/hashmap-source-code/</link>
+      <pubDate>Thu, 15 Sep 2022 00:00:00 +0000</pubDate>
+      <guid>http://localhost:49494/posts/hashmap-source-code/</guid>
+      <description>&lt;h1 id=&#34;hashmap-源码我读了三遍才看懂&#34;&gt;HashMap 源码我读了三遍才看懂&lt;/h1&gt;
+&lt;p&gt;大二下学期面试实习的时候，面试官问我 HashMap 的底层原理，我支支吾吾说了个&amp;quot;数组加链表&amp;quot;就说不下去了。回来之后就下定决心要把源码读一遍。结果读了三遍才算真正搞明白，这玩意比我想象的要精妙得多。&lt;/p&gt;
+&lt;p&gt;&lt;img alt=&#34;Hash Table 示意图&#34; loading=&#34;lazy&#34; src=&#34;https://upload.wikimedia.org/wikipedia/commons/thumb/5/5e/Hash_table_5_0_1_1_1_1_0_SP.svg/380px-Hash_table_5_0_1_1_1_1_0_SP.svg.png&#34;&gt;&lt;/p&gt;
+&lt;h2 id=&#34;先说说-hashmap-的内部结构&#34;&gt;先说说 HashMap 的内部结构&lt;/h2&gt;
+&lt;p&gt;你打开 HashMap 的源码，会看到一个叫 &lt;code&gt;Node&amp;lt;K,V&amp;gt;[] table&lt;/code&gt; 的数组。这就是 HashMap 的骨架。&lt;/p&gt;
+&lt;p&gt;每个 Node 长这样：&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;&#34;&gt;&lt;code class=&#34;language-java&#34; data-lang=&#34;java&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;static&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;class&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;Node&lt;/span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;&lt;/span&gt;K,V&lt;span style=&#34;color:#f92672&#34;&gt;&amp;gt;&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;implements&lt;/span&gt; Map.&lt;span style=&#34;color:#a6e22e&#34;&gt;Entry&lt;/span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;&lt;/span&gt;K,V&lt;span style=&#34;color:#f92672&#34;&gt;&amp;gt;&lt;/span&gt; {
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;final&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;int&lt;/span&gt; hash;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;final&lt;/span&gt; K key;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    V value;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    Node&lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;&lt;/span&gt;K,V&lt;span style=&#34;color:#f92672&#34;&gt;&amp;gt;&lt;/span&gt; next;  &lt;span style=&#34;color:#75715e&#34;&gt;// 看到没，链表结构&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;}
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;本质就是：一个数组，数组的每个位置可以挂一条链表。你 put 一个 key-value 进去，先算 key 的 hash 值，定位到数组的某个下标，然后挂到那个位置的链表上。&lt;/p&gt;
+&lt;p&gt;JDK8 加了个重要改动：当链表长度超过 8 的时候，链表会转成红黑树。为啥呢？链表查找是 O(n)，红黑树是 O(log n)，hash 冲突严重的时候性能差距很大。&lt;/p&gt;
+&lt;p&gt;你可能会问，为什么阈值是 8？源码注释里写了，按泊松分布计算，链表长度达到 8 的概率大概是千万分之六。正常使用根本不会触发，这纯粹是个保底策略。&lt;/p&gt;
+&lt;h2 id=&#34;put-一个元素到底经历了什么&#34;&gt;put 一个元素到底经历了什么&lt;/h2&gt;
+&lt;p&gt;来看 &lt;code&gt;putVal&lt;/code&gt; 方法的核心逻辑，我把它拆开讲：&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;算 hash。不是直接用 &lt;code&gt;key.hashCode()&lt;/code&gt;，而是做了个扰动：&lt;code&gt;(h = key.hashCode()) ^ (h &amp;gt;&amp;gt;&amp;gt; 16)&lt;/code&gt;。高 16 位和低 16 位异或一下，让 hash 分布更均匀。&lt;/li&gt;
+&lt;li&gt;定位下标。用 &lt;code&gt;(n - 1) &amp;amp; hash&lt;/code&gt; 算出数组下标，n 是数组长度，后面会讲为啥要是 2 的幂。&lt;/li&gt;
+&lt;li&gt;如果那个位置是空的，直接放进去。&lt;/li&gt;
+&lt;li&gt;如果有东西，看 key 是不是一样的，一样就覆盖 value。&lt;/li&gt;
+&lt;li&gt;不一样的话，看当前节点是不是 TreeNode（红黑树节点），是的话走红黑树的插入逻辑。&lt;/li&gt;
+&lt;li&gt;不是树节点就遍历链表，找到末尾插入。插入之后看链表长度有没有到 8，到了就转红黑树。&lt;/li&gt;
+&lt;/ol&gt;
+&lt;p&gt;我之前踩过一个坑：以为 HashMap 的链表是头插法，结果 debug 了半天发现 JDK8 改成尾插法了。JDK7 确实是头插的，但头插法在多线程 resize 的时候会形成环链表，导致死循环。这个 bug 挺经典的，面试也爱问。&lt;/p&gt;</description>
+    </item>
+  </channel>
+</rss>
