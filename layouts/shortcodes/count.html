@@ -1,0 +1,7 @@
+{{- $type := .Get "type" | default "posts" -}}
+{{- $section := site.GetPage $type -}}
+{{- if $section -}}
+  {{- len $section.Pages -}}
+{{- else -}}
+  0
+{{- end -}}

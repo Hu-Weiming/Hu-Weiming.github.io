@@ -1,0 +1,35 @@
+languageCode = "zh-cn"
+languageName = "中文"
+weight = 1
+
+[params]
+  displayName = "中文"
+  isoCode = "zh-cn"
+
+[params.author]
+  name = "Weiming"
+  headline = "Java 开发 / 大模型爱好者"
+  bio = "大三在读，写 Java，折腾大模型"
+  links = [
+    { github = "https://github.com/Hu-Weiming" },
+  ]
+
+[[menus.main]]
+  name = "博客"
+  pageRef = "posts"
+  weight = 10
+
+[[menus.main]]
+  name = "分类"
+  pageRef = "categories"
+  weight = 20
+
+[[menus.main]]
+  name = "标签"
+  pageRef = "tags"
+  weight = 30
+
+[[menus.main]]
+  name = "关于"
+  pageRef = "about"
+  weight = 40

@@ -1,0 +1,15 @@
+baseURL = "https://hu-weiming.github.io/"
+languageCode = "zh-cn"
+defaultContentLanguage = "zh-cn"
+title = "Weiming's Blog"
+theme = "blowfish"
+paginate = 10
+enableRobotsTXT = true
+summaryLength = 30
+
+[outputs]
+  home = ["HTML", "RSS", "JSON"]
+
+[markup]
+  [markup.highlight]
+    noClasses = false
