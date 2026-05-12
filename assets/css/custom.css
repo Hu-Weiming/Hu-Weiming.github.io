@@ -1,0 +1,358 @@
+:root {
+  --naval-paper: #fff;
+  --naval-ink: #070707;
+  --naval-muted: #777;
+  --naval-soft: #e7e7e7;
+  --naval-accent: #db0042;
+}
+
+html,
+html.dark {
+  background: var(--naval-paper) !important;
+}
+
+body {
+  max-width: 900px !important;
+  min-height: 100vh;
+  background: var(--naval-paper) !important;
+  color: var(--naval-ink) !important;
+  font-family: "Avenir Next", "Segoe UI", "Helvetica Neue", "PingFang SC", "Microsoft YaHei", sans-serif;
+  font-size: 18px;
+  font-weight: 500;
+  line-height: 1.65;
+  padding-left: 60px !important;
+  padding-right: 60px !important;
+}
+
+a {
+  color: #777;
+  text-decoration: none;
+  text-underline-offset: 0.18em;
+  transition: color 160ms ease, border-color 160ms ease;
+}
+
+a:hover,
+.bf-icon-color-hover:hover {
+  color: var(--naval-accent) !important;
+}
+
+.main-menu {
+  padding: 43px 0 35px !important;
+  color: var(--naval-muted);
+}
+
+.main-menu > a {
+  color: var(--naval-accent) !important;
+  font-family: Georgia, "Times New Roman", "Noto Serif SC", serif;
+  font-size: 22px !important;
+  font-weight: 700 !important;
+  letter-spacing: 0;
+}
+
+.main-menu nav {
+  gap: 20px;
+}
+
+.main-menu nav a,
+.main-menu button {
+  color: #929292 !important;
+  font-size: 17px !important;
+  font-weight: 500 !important;
+}
+
+#main-content {
+  padding-top: 48px;
+}
+
+.naval-home {
+  padding-bottom: 84px;
+}
+
+.naval-intro {
+  margin: 0 0 66px;
+  max-width: 660px;
+}
+
+.naval-kicker {
+  margin: 0 0 10px;
+  color: var(--naval-accent);
+  font-family: "IBM Plex Mono", "SFMono-Regular", Consolas, monospace;
+  font-size: 15px;
+  font-weight: 600;
+  line-height: 1.7;
+}
+
+.naval-intro h1 {
+  margin: 0 0 16px;
+  color: var(--naval-ink);
+  font-family: Georgia, "Times New Roman", "Noto Serif SC", serif;
+  font-size: clamp(42px, 8vw, 76px);
+  font-weight: 700;
+  line-height: 0.95;
+  letter-spacing: 0;
+}
+
+.naval-bio,
+.naval-intro-content {
+  margin: 0 0 18px;
+  max-width: 620px;
+  color: #333;
+  font-size: 19px;
+  line-height: 1.7;
+}
+
+.naval-intro-content p {
+  margin: 0;
+}
+
+.naval-links {
+  margin-top: 20px;
+  font-size: 22px;
+}
+
+.naval-links a {
+  color: var(--naval-accent);
+}
+
+.naval-feed-section {
+  border-top: 1.5px solid var(--naval-soft);
+  padding-top: 32px;
+}
+
+.naval-section-title {
+  margin: 0 0 12px;
+  color: rgba(0, 0, 0, 0.42);
+  font-family: "IBM Plex Mono", "SFMono-Regular", Consolas, monospace;
+  font-size: 17px;
+  font-weight: 700;
+  letter-spacing: 0;
+  line-height: 1.75;
+}
+
+.naval-feed {
+  display: grid;
+  gap: 0;
+}
+
+.naval-post-row {
+  display: grid;
+  grid-template-columns: 148px minmax(0, 1fr);
+  gap: 28px;
+  padding: 36px 0 38px;
+  border-bottom: 1.5px solid var(--naval-soft);
+}
+
+.naval-post-meta {
+  padding-top: 6px;
+  color: #999;
+  font-family: "IBM Plex Mono", "SFMono-Regular", Consolas, monospace;
+  font-size: 13px;
+  line-height: 1.55;
+}
+
+.naval-post-meta time {
+  display: block;
+  color: #8b8b8b;
+  white-space: nowrap;
+}
+
+.naval-post-cats {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin-top: 12px;
+}
+
+.naval-post-cats a {
+  color: #aaa;
+}
+
+.naval-post-body h2 {
+  margin: 0 0 12px;
+  font-size: 24px;
+  font-weight: 700;
+  line-height: 1.35;
+  letter-spacing: 0;
+}
+
+.naval-post-body h2 a {
+  color: var(--naval-ink);
+}
+
+.naval-post-body h2 a:hover {
+  color: var(--naval-accent) !important;
+}
+
+.naval-post-body p {
+  margin: 0 0 16px;
+  max-width: 620px;
+  color: #555;
+  font-size: 17px;
+  font-weight: 500;
+  line-height: 1.7;
+}
+
+.naval-read-link,
+.naval-more-link {
+  color: #555 !important;
+  font-size: 13px;
+  font-weight: 700;
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+}
+
+.naval-read-link:hover,
+.naval-more-link:hover {
+  color: var(--naval-accent) !important;
+}
+
+.naval-more-link {
+  display: inline-block;
+  margin-top: 34px;
+  color: var(--naval-accent) !important;
+  font-size: 16px;
+  text-decoration: none;
+}
+
+.naval-draft {
+  display: inline-block;
+  margin-bottom: 10px;
+  color: var(--naval-accent);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+#single_header {
+  max-width: 680px !important;
+  margin-top: 12px !important;
+  padding-bottom: 26px;
+  border-bottom: 1.5px solid var(--naval-soft);
+}
+
+#single_header h1 {
+  color: var(--naval-ink) !important;
+  font-family: Georgia, "Times New Roman", "Noto Serif SC", serif;
+  font-size: clamp(38px, 6vw, 58px) !important;
+  font-weight: 700 !important;
+  line-height: 1.08 !important;
+  letter-spacing: 0;
+}
+
+.article-content {
+  max-width: 680px !important;
+  color: #333;
+  font-size: 18px;
+  line-height: 1.75;
+}
+
+.article-content a {
+  color: var(--naval-ink);
+  text-decoration: underline;
+}
+
+.article-content h2 {
+  margin-top: 42px !important;
+  padding-bottom: 20px;
+  border-bottom: 1.5px solid var(--naval-soft);
+  color: var(--naval-accent) !important;
+  font-size: 24px !important;
+  line-height: 1.4 !important;
+}
+
+.article-content h1 {
+  color: var(--naval-ink) !important;
+  font-size: 34px !important;
+  line-height: 1.22 !important;
+  letter-spacing: 0;
+}
+
+.article-content h3 {
+  color: var(--naval-ink) !important;
+  font-size: 21px !important;
+}
+
+.article-content strong {
+  color: var(--naval-ink);
+}
+
+.article-content pre,
+.article-content code {
+  font-family: "IBM Plex Mono", "SFMono-Regular", Consolas, monospace;
+}
+
+body > footer,
+footer {
+  color: #999;
+}
+
+@media (max-width: 767px) {
+  body {
+    padding-left: 25px !important;
+    padding-right: 25px !important;
+    font-size: 16px;
+    line-height: 1.65;
+  }
+
+  .main-menu {
+    padding: 20px 0 16px !important;
+    border-bottom: 2px solid #f2f2f2;
+  }
+
+  #main-content {
+    padding-top: 36px;
+  }
+
+  .naval-intro {
+    margin-bottom: 46px;
+  }
+
+  .naval-intro h1 {
+    font-size: 46px;
+  }
+
+  .naval-bio,
+  .naval-intro-content {
+    font-size: 16px;
+    line-height: 1.75;
+  }
+
+  .naval-post-row {
+    display: block;
+    padding: 30px 0 32px;
+  }
+
+  .naval-post-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px 14px;
+    margin-bottom: 14px;
+    padding-top: 0;
+  }
+
+  .naval-post-cats {
+    flex-direction: row;
+    gap: 10px;
+    margin-top: 0;
+  }
+
+  .naval-post-body h2 {
+    font-size: 20px;
+    line-height: 1.45;
+  }
+
+  .naval-post-body p,
+  .article-content {
+    font-size: 16px;
+    line-height: 1.75;
+  }
+
+  .article-content h1 {
+    font-size: 27px !important;
+    line-height: 1.28 !important;
+  }
+
+  #single_header h1 {
+    font-size: 36px !important;
+    line-height: 1.16 !important;
+  }
+}

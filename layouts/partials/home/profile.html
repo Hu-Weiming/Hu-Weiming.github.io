@@ -1,0 +1,17 @@
+<article class="naval-home">
+  <header class="naval-intro">
+    <p class="naval-kicker">{{ .Site.Params.Author.headline | markdownify }}</p>
+    <h1>{{ .Site.Params.Author.name | default .Site.Title }}</h1>
+    {{ with .Site.Params.Author.bio }}
+      <p class="naval-bio">{{ . | markdownify }}</p>
+    {{ end }}
+    <div class="naval-intro-content">
+      {{ .Content }}
+    </div>
+    <div class="naval-links">
+      {{ partialCached "author-links.html" . }}
+    </div>
+  </header>
+
+  {{ partial "recent-articles/main.html" . }}
+</article>

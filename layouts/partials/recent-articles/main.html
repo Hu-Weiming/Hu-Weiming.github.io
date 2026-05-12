@@ -1,0 +1,23 @@
+{{ $recentArticles := 5 }}
+{{ $showMoreLinkDest := "/posts/" }}
+{{ if .Site.Params.homepage.showRecent | default false }}
+  {{ if index .Site.Params.homepage "showRecentItems" }}
+    {{ $recentArticles = .Site.Params.homepage.showRecentItems }}
+  {{ end }}
+  {{ if index .Site.Params.homepage "showMoreLinkDest" }}
+    {{ $showMoreLinkDest = .Site.Params.homepage.showMoreLinkDest }}
+  {{ end }}
+
+  <section class="naval-feed-section">
+    <h2 class="naval-section-title">Latest writing</h2>
+    <div class="naval-feed">
+      {{ range first $recentArticles (.Paginate (where .Site.RegularPages "Type" "in" .Site.Params.mainSections)).Pages }}
+        {{ partial "article-link/simple.html" . }}
+      {{ end }}
+    </div>
+
+    {{ if .Site.Params.homepage.showMoreLink | default false }}
+      <a class="naval-more-link" href="{{ $showMoreLinkDest | relLangURL }}">Read more</a>
+    {{ end }}
+  </section>
+{{ end }}

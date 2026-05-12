@@ -1,0 +1,36 @@
+{{ $page := .Page }}
+<article class="naval-post-row">
+  <aside class="naval-post-meta">
+    {{ if not .Date.IsZero }}
+      <time datetime="{{ .Date.Format "2006-01-02" }}">{{ .Date.Format "Jan 2 2006" }}</time>
+    {{ end }}
+    {{ with .GetTerms "categories" }}
+      <div class="naval-post-cats">
+        {{ range first 2 . }}
+          <a href="{{ .RelPermalink }}">{{ .LinkTitle }}</a>
+        {{ end }}
+      </div>
+    {{ end }}
+  </aside>
+
+  <div class="naval-post-body">
+    <h2>
+      <a
+        {{ with $page.Params.externalUrl }}
+          href="{{ . }}" target="_blank" rel="external"
+        {{ else }}
+          href="{{ $page.RelPermalink }}"
+        {{ end }}>
+        {{ .Title | emojify }}
+      </a>
+    </h2>
+    {{ if and .Draft .Site.Params.article.showDraftLabel }}
+      <span class="naval-draft">{{ i18n "article.draft" | emojify }}</span>
+    {{ end }}
+    {{ if .Params.showSummary | default (site.Params.list.showSummary | default false) }}
+      {{ $summary := .Description | default (.Summary | plainify) }}
+      <p>{{ $summary | htmlUnescape | replaceRE "#+" "" | strings.TrimSpace | truncate 150 }}</p>
+    {{ end }}
+    <a class="naval-read-link" href="{{ $page.RelPermalink }}">Continue reading</a>
+  </div>
+</article>
