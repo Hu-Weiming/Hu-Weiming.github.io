@@ -1,0 +1,22 @@
+{{ if not .Site.IsServer }}
+  <script src="https://identity.netlify.com/v1/netlify-identity-widget.js"></script>
+  <script>
+    (function () {
+      if (!window.netlifyIdentity) return;
+
+      var hash = window.location.hash || "";
+      if (/^#(invite_token|confirmation_token|recovery_token|email_change_token)=/.test(hash)) {
+        window.location.replace("/admin/" + hash);
+        return;
+      }
+
+      window.netlifyIdentity.on("init", function (user) {
+        if (!user) {
+          window.netlifyIdentity.on("login", function () {
+            window.location.href = "/admin/";
+          });
+        }
+      });
+    })();
+  </script>
+{{ end }}
