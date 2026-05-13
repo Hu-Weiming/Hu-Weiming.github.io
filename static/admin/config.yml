@@ -1,0 +1,96 @@
+backend:
+  name: git-gateway
+  branch: master
+
+publish_mode: editorial_workflow
+media_folder: "static/uploads"
+public_folder: "/uploads"
+site_url: "https://axerzone.cn"
+display_url: "https://axerzone.cn"
+locale: "zh_Hans"
+
+collections:
+  - name: "posts"
+    label: "文章"
+    label_singular: "文章"
+    folder: "content/posts"
+    create: true
+    delete: true
+    extension: "md"
+    format: "frontmatter"
+    slug: "{{year}}-{{month}}-{{day}}-{{slug}}"
+    preview_path: "posts/{{slug}}"
+    summary: "{{title}} - {{year}}/{{month}}/{{day}}"
+    sortable_fields: ["date", "title", "draft"]
+    view_filters:
+      - label: "已发布"
+        field: "draft"
+        pattern: false
+      - label: "草稿"
+        field: "draft"
+        pattern: true
+    fields:
+      - label: "标题"
+        name: "title"
+        widget: "string"
+      - label: "发布日期"
+        name: "date"
+        widget: "datetime"
+        format: "YYYY-MM-DD"
+        date_format: "YYYY-MM-DD"
+        time_format: false
+      - label: "分类"
+        name: "categories"
+        widget: "list"
+        required: false
+        allow_add: true
+        summary: "{{fields.category}}"
+        field:
+          label: "分类名"
+          name: "category"
+          widget: "string"
+      - label: "标签"
+        name: "tags"
+        widget: "list"
+        required: false
+        allow_add: true
+        summary: "{{fields.tag}}"
+        field:
+          label: "标签名"
+          name: "tag"
+          widget: "string"
+      - label: "草稿"
+        name: "draft"
+        widget: "boolean"
+        default: false
+      - label: "正文"
+        name: "body"
+        widget: "markdown"
+
+  - name: "pages"
+    label: "页面"
+    files:
+      - label: "首页介绍"
+        name: "home"
+        file: "content/_index.md"
+        fields:
+          - label: "标题"
+            name: "title"
+            widget: "string"
+          - label: "描述"
+            name: "description"
+            widget: "string"
+            required: false
+          - label: "正文"
+            name: "body"
+            widget: "markdown"
+      - label: "关于页面"
+        name: "about"
+        file: "content/about/index.md"
+        fields:
+          - label: "标题"
+            name: "title"
+            widget: "string"
+          - label: "正文"
+            name: "body"
+            widget: "markdown"
