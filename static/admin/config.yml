@@ -2,11 +2,10 @@ backend:
   name: git-gateway
   branch: master
 
-publish_mode: editorial_workflow
 media_folder: "static/uploads"
 public_folder: "/uploads"
-site_url: "https://axerzone.cn"
-display_url: "https://axerzone.cn"
+site_url: "https://enchanting-vacherin-946011.netlify.app"
+display_url: "https://enchanting-vacherin-946011.netlify.app"
 locale: "zh_Hans"
 
 collections:
@@ -18,17 +17,11 @@ collections:
     delete: true
     extension: "md"
     format: "frontmatter"
-    slug: "{{year}}-{{month}}-{{day}}-{{slug}}"
-    preview_path: "posts/{{slug}}"
-    summary: "{{title}} - {{year}}/{{month}}/{{day}}"
+    slug: "{{slug}}"
+    preview_path: "posts/{{slug}}/"
+    identifier_field: "title"
+    summary: "{{title}}"
     sortable_fields: ["date", "title", "draft"]
-    view_filters:
-      - label: "已发布"
-        field: "draft"
-        pattern: false
-      - label: "草稿"
-        field: "draft"
-        pattern: true
     fields:
       - label: "标题"
         name: "title"
@@ -36,15 +29,16 @@ collections:
       - label: "发布日期"
         name: "date"
         widget: "datetime"
-        format: "YYYY-MM-DD"
-        date_format: "YYYY-MM-DD"
-        time_format: false
+        default: "{{now}}"
+      - label: "摘要"
+        name: "description"
+        widget: "text"
+        required: false
       - label: "分类"
         name: "categories"
         widget: "list"
         required: false
         allow_add: true
-        summary: "{{fields.category}}"
         field:
           label: "分类名"
           name: "category"
@@ -54,7 +48,6 @@ collections:
         widget: "list"
         required: false
         allow_add: true
-        summary: "{{fields.tag}}"
         field:
           label: "标签名"
           name: "tag"
@@ -70,27 +63,31 @@ collections:
   - name: "pages"
     label: "页面"
     files:
-      - label: "首页介绍"
+      - label: "首页"
         name: "home"
         file: "content/_index.md"
         fields:
           - label: "标题"
             name: "title"
             widget: "string"
-          - label: "描述"
+          - label: "摘要"
             name: "description"
-            widget: "string"
+            widget: "text"
             required: false
           - label: "正文"
             name: "body"
             widget: "markdown"
-      - label: "关于页面"
+      - label: "关于"
         name: "about"
         file: "content/about/index.md"
         fields:
           - label: "标题"
             name: "title"
             widget: "string"
+          - label: "摘要"
+            name: "description"
+            widget: "text"
+            required: false
           - label: "正文"
             name: "body"
             widget: "markdown"

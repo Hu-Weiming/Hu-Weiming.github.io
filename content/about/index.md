@@ -1,24 +1,8 @@
 ---
-title: "关于我"
-url: "/about/"
-summary: about
+title: "关于"
+description: "关于这个博客和我正在关注的主题。"
 ---
 
-## Hi
+我是 Weiming。这里是我的公开笔记，用来沉淀学习、项目实践和一些阶段性的判断。
 
-我是 Weiming，一名大三在读学生，主要写 Java。
-
-平时折腾 Spring Boot、Redis、MySQL 这些，最近对大模型很感兴趣，在研究 LangChain4j 和 Spring AI。
-
-这个博客主要记录我学习过程中的一些笔记和踩坑经历，希望对你也有帮助。
-
-## 技术栈
-
-- Java / Spring Boot / Spring Cloud
-- MySQL / Redis / Kafka
-- Docker / K8s
-- Python（写点脚本和 AI 相关的东西）
-
-## 联系方式
-
-- GitHub: [Hu-Weiming](https://github.com/Hu-Weiming)
+这个站点现在由 Hugo、Netlify 和 Decap CMS 驱动。以后可以直接从后台发布文章，内容会提交到 GitHub，并由 Netlify 自动构建上线。

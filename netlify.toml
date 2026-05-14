@@ -5,3 +5,8 @@
 [build.environment]
   HUGO_VERSION = "0.160.0"
   HUGO_ENVIRONMENT = "production"
+
+[[headers]]
+  for = "/admin/*"
+  [headers.values]
+    X-Robots-Tag = "noindex"

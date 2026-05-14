@@ -1,7 +1,7 @@
-baseURL = "https://hu-weiming.github.io/"
+baseURL = "https://enchanting-vacherin-946011.netlify.app/"
 languageCode = "zh-cn"
 defaultContentLanguage = "zh-cn"
-title = "Weiming's Blog"
+title = "AxerZone"
 theme = "blowfish"
 paginate = 10
 enableRobotsTXT = true
@@ -10,6 +10,13 @@ summaryLength = 30
 [outputs]
   home = ["HTML", "RSS", "JSON"]
 
+[taxonomies]
+  category = "categories"
+  tag = "tags"
+
 [markup]
   [markup.highlight]
     noClasses = false
+  [markup.goldmark]
+    [markup.goldmark.renderer]
+      unsafe = true

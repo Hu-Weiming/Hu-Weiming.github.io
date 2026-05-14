@@ -1,0 +1,4 @@
+<footer class="az-footer">
+  <p>{{ replace .Site.Params.copyright "{ year }" (now.Format "2006") | markdownify }}</p>
+  <p><a href="/admin/">Admin</a></p>
+</footer>

@@ -1,0 +1,39 @@
+{{ $tagText := "" }}
+{{ with .Params.tags }}
+  {{ $tagText = delimit . " " }}
+{{ end }}
+{{ $categoryText := "" }}
+{{ with .Params.categories }}
+  {{ $categoryText = delimit . " " }}
+{{ end }}
+<article
+  class="az-post-row"
+  data-title="{{ .Title | plainify }}"
+  data-summary="{{ (.Description | default (.Summary | plainify)) }}"
+  data-tags="{{ $tagText }}"
+  data-categories="{{ $categoryText }}">
+  <div class="az-post-date">
+    {{ if not .Date.IsZero }}
+      <time datetime="{{ .Date.Format "2006-01-02T15:04:05Z07:00" }}">{{ .Date.Format "Jan 2 2006" }}</time>
+    {{ end }}
+    {{ with .Params.categories }}
+      <span>{{ index . 0 }}</span>
+    {{ end }}
+  </div>
+  <div class="az-post-main">
+    <h2><a href="{{ .RelPermalink }}">{{ .Title }}</a></h2>
+    {{ with .Description }}
+      <p>{{ . }}</p>
+    {{ else }}
+      <p>{{ .Summary | plainify | truncate 150 }}</p>
+    {{ end }}
+    {{ with .Params.tags }}
+      <div class="az-post-tags" aria-label="文章关键词">
+        {{ range first 4 . }}
+          <a href="{{ printf "/tags/%s/" (. | urlize) | relLangURL }}">#{{ . }}</a>
+        {{ end }}
+      </div>
+    {{ end }}
+    <a class="az-read-link" href="{{ .RelPermalink }}">Continue reading</a>
+  </div>
+</article>

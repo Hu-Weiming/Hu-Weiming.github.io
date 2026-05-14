@@ -8,14 +8,14 @@ weight = 1
 
 [params.author]
   name = "Weiming"
-  headline = "Java 开发 / 大模型爱好者"
-  bio = "大三在读，写 Java，折腾大模型"
+  headline = "Java / AI / Systems"
+  bio = "记录工程、模型和长期学习。"
   links = [
     { github = "https://github.com/Hu-Weiming" },
   ]
 
 [[menus.main]]
-  name = "博客"
+  name = "文章"
   pageRef = "posts"
   weight = 10
 
@@ -33,3 +33,8 @@ weight = 1
   name = "关于"
   pageRef = "about"
   weight = 40
+
+[[menus.main]]
+  name = "管理"
+  url = "/admin/"
+  weight = 50

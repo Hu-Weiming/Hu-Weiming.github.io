@@ -1,0 +1,61 @@
+{{ define "main" }}
+  {{ $posts := where .Site.RegularPages "Section" "posts" }}
+  {{ $posts = where $posts "Params.draft" "ne" true }}
+
+  <section class="az-section az-home-writing">
+    <div class="az-section-head">
+      <h2>Writing</h2>
+      <a href="{{ "/posts/" | relLangURL }}">All posts</a>
+    </div>
+    <div class="az-post-list">
+      {{ range first 8 $posts.ByDate.Reverse }}
+        {{ partial "post-row.html" . }}
+      {{ else }}
+        <p class="az-empty">还没有文章。你可以从 <a href="/admin/">Admin</a> 新建第一篇。</p>
+      {{ end }}
+    </div>
+  </section>
+
+  <script>
+    (function () {
+      var input = document.getElementById("az-site-search");
+      var status = document.getElementById("az-search-status");
+      var rows = Array.prototype.slice.call(document.querySelectorAll(".az-post-row"));
+
+      function normalize(value) {
+        return (value || "").toString().trim().toLowerCase();
+      }
+
+      function searchable(row) {
+        return [
+          row.dataset.title,
+          row.dataset.summary,
+          row.dataset.tags,
+          row.dataset.categories
+        ].join(" ").toLowerCase();
+      }
+
+      function applyFilters() {
+        var query = normalize(input && input.value);
+        var visible = 0;
+
+        rows.forEach(function (row) {
+          var haystack = searchable(row);
+          var matchesQuery = !query || haystack.indexOf(query) !== -1;
+          var show = matchesQuery;
+
+          row.hidden = !show;
+          if (show) visible += 1;
+        });
+
+        if (status) {
+          status.textContent = query ? visible + " 篇匹配" : rows.length + " 篇文章";
+        }
+      }
+
+      if (input) {
+        input.addEventListener("input", applyFilters);
+      }
+    })();
+  </script>
+{{ end }}

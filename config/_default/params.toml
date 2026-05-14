@@ -1,12 +1,11 @@
-# Blowfish Theme Params
-
 colorScheme = "one-light"
 defaultAppearance = "light"
 autoSwitchAppearance = false
-enableSearch = true
+enableSearch = false
 enableCodeCopy = true
+description = "Weiming 的个人写作空间，记录工程、AI 和长期学习。"
+copyright = "© { year } Weiming"
 
-# Homepage
 [homepage]
   layout = "profile"
   homepageImage = ""
@@ -18,7 +17,6 @@ enableCodeCopy = true
   cardViewScreenWidth = false
   layoutBackgroundBlur = false
 
-# Article
 [article]
   showDate = true
   showViews = false
@@ -26,19 +24,18 @@ enableCodeCopy = true
   showDateUpdated = false
   showAuthor = false
   showHero = false
-  showBreadcrumbs = true
+  showBreadcrumbs = false
   showDraftLabel = true
   showEdit = false
   showHeadingAnchors = true
   showPagination = true
   showReadingTime = true
-  showTableOfContents = true
+  showTableOfContents = false
   showTaxonomies = true
-  showWordCount = true
+  showWordCount = false
   showSummary = true
   sharingLinks = false
 
-# List
 [list]
   showBreadcrumbs = false
   showViews = false
@@ -50,7 +47,6 @@ enableCodeCopy = true
   cardView = false
   cardViewScreenWidth = false
 
-# Taxonomy
 [taxonomy]
   showTermCount = true
   showHero = false
@@ -60,18 +56,15 @@ enableCodeCopy = true
   showTableOfContents = false
   cardView = false
 
-# Sitemap
 [sitemap]
   excludedKinds = []
 
-# Header
 [header]
   layout = "basic"
 
-# Footer
 [footer]
   showMenu = true
   showCopyright = true
   showThemeAttribution = false
   showAppearanceSwitcher = false
-  showScrollToTop = true
+  showScrollToTop = false

@@ -1,4 +1,8 @@
 public/
 resources/
 .hugo_build.lock
+.hugo-server.*.log
+hugo-preview.*.log
+.codex-tools/
+.superpowers/
 .DS_Store

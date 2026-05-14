@@ -1,0 +1,74 @@
+{{ define "main" }}
+  {{ $isPostsList := and .IsSection (eq .Section "posts") }}
+
+  {{ if not $isPostsList }}
+    <section class="az-page-head">
+      <h1>{{ .Title }}</h1>
+      {{ with .Description }}
+        <p>{{ . }}</p>
+      {{ end }}
+      {{ if .Content }}
+        <div class="az-page-copy">{{ .Content }}</div>
+      {{ end }}
+    </section>
+  {{ end }}
+
+  <section class="az-section{{ if $isPostsList }} az-home-writing{{ end }}">
+    <div class="az-post-list">
+      {{ range .Paginator.Pages }}
+        {{ partial "post-row.html" . }}
+      {{ else }}
+        <p class="az-empty">这里暂时还没有内容。</p>
+      {{ end }}
+    </div>
+    {{ partial "pagination.html" . }}
+  </section>
+
+  {{ if $isPostsList }}
+    <script>
+      (function () {
+        var input = document.getElementById("az-site-search");
+        var status = document.getElementById("az-search-status");
+        var rows = Array.prototype.slice.call(document.querySelectorAll(".az-post-row"));
+        var params = new URLSearchParams(window.location.search);
+        var initialQuery = params.get("q") || "";
+
+        function normalize(value) {
+          return (value || "").toString().trim().toLowerCase();
+        }
+
+        function searchable(row) {
+          return [
+            row.dataset.title,
+            row.dataset.summary,
+            row.dataset.tags,
+            row.dataset.categories
+          ].join(" ").toLowerCase();
+        }
+
+        function applyFilters() {
+          var query = normalize(input && input.value);
+          var visible = 0;
+
+          rows.forEach(function (row) {
+            var show = !query || searchable(row).indexOf(query) !== -1;
+            row.hidden = !show;
+            if (show) visible += 1;
+          });
+
+          if (status) {
+            status.textContent = query ? visible + " 篇匹配" : rows.length + " 篇文章";
+          }
+        }
+
+        if (input) {
+          if (initialQuery) {
+            input.value = initialQuery;
+          }
+          input.addEventListener("input", applyFilters);
+          applyFilters();
+        }
+      })();
+    </script>
+  {{ end }}
+{{ end }}
