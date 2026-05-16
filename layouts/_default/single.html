@@ -2,59 +2,79 @@
   <article class="az-reader-shell">
     <nav class="az-mobile-article-tools" aria-label="Article tools">
       <a href="{{ "/posts/" | relLangURL }}">文章</a>
+      {{ with .Params.categories }}
+        <a href="{{ printf "/categories/%s/" (index . 0 | urlize) | relLangURL }}">{{ index . 0 }}</a>
+      {{ end }}
       {{ with .Params.tags }}
         <a href="{{ printf "/tags/%s/" (index . 0 | urlize) | relLangURL }}">#{{ index . 0 }}</a>
       {{ end }}
-      <a href="{{ "/posts/" | relLangURL }}#az-site-search">搜索</a>
     </nav>
 
     <div class="az-reader-layout">
-      <aside class="az-reader-note" aria-label="Article metadata">
-        <a class="az-back-link" href="{{ "/posts/" | relLangURL }}">Writing</a>
-        <div class="az-reader-note-block">
-          <span>Read time</span>
-          <strong>{{ .ReadingTime }} min</strong>
-        </div>
-        {{ if not .Date.IsZero }}
+      <div class="az-reader-sidebar">
+        <aside class="az-reader-note" aria-label="Article metadata">
+          <a class="az-back-link" href="{{ "/posts/" | relLangURL }}">Writing</a>
           <div class="az-reader-note-block">
-            <span>Date</span>
-            <time datetime="{{ .Date.Format "2006-01-02T15:04:05Z07:00" }}">{{ .Date.Format "2006.01.02" }}</time>
+            <span>Read time</span>
+            <strong>{{ .ReadingTime }} min</strong>
           </div>
-        {{ end }}
-        {{ with .TableOfContents }}
-          <div class="az-reader-note-block az-reader-toc">
-            <span>Contents</span>
-            {{ . }}
-          </div>
-        {{ end }}
-      </aside>
-
-      <div class="az-article-paper">
-        <header class="az-article-head">
-          <p class="az-kicker">Post / {{ .ReadingTime }} min read</p>
-          <h1>{{ .Title }}</h1>
-          <div class="az-article-meta">
-            {{ if not .Date.IsZero }}
-              <time datetime="{{ .Date.Format "2006-01-02T15:04:05Z07:00" }}">{{ .Date.Format "Jan 2 2006" }}</time>
-            {{ end }}
-            {{ with .Params.categories }}
-              <span>{{ delimit . " / " }}</span>
-            {{ end }}
-          </div>
-          {{ with .Description }}
-            <p class="az-article-description">{{ . }}</p>
-          {{ end }}
-          {{ with .Params.tags }}
-            <div class="az-tags az-tags-inline" aria-label="文章关键词">
-              {{ range . }}
-                <a href="{{ printf "/tags/%s/" (. | urlize) | relLangURL }}">#{{ . }}</a>
-              {{ end }}
+          {{ if not .Date.IsZero }}
+            <div class="az-reader-note-block">
+              <span>Date</span>
+              <time datetime="{{ .Date.Format "2006-01-02T15:04:05Z07:00" }}">{{ .Date.Format "2006.01.02" }}</time>
             </div>
           {{ end }}
-        </header>
+          {{ with .TableOfContents }}
+            <div class="az-reader-note-block az-reader-toc">
+              <span>Contents</span>
+              {{ . }}
+            </div>
+          {{ end }}
+        </aside>
+      </div>
 
-        <div class="az-article-content">
-          {{ .Content }}
+      <div class="az-reader-body">
+        <div class="az-article-paper">
+          <header class="az-article-head">
+            <p class="az-kicker">Post / {{ .ReadingTime }} min read</p>
+            <h1>{{ .Title }}</h1>
+            <div class="az-article-meta">
+              {{ if not .Date.IsZero }}
+                <time datetime="{{ .Date.Format "2006-01-02T15:04:05Z07:00" }}">{{ .Date.Format "Jan 2 2006" }}</time>
+              {{ end }}
+            </div>
+            {{ with .Description }}
+              <p class="az-article-description">{{ . }}</p>
+            {{ end }}
+          </header>
+
+          <div class="az-article-content">
+            {{ .Content }}
+          </div>
+
+          <footer class="az-article-tail">
+            {{ with .Params.categories }}
+              <div class="az-article-tail-block">
+                <span>Category</span>
+                <div class="az-tags">
+                  {{ range . }}
+                    <a href="{{ printf "/categories/%s/" (. | urlize) | relLangURL }}">{{ . }}</a>
+                  {{ end }}
+                </div>
+              </div>
+            {{ end }}
+
+            {{ with .Params.tags }}
+              <div class="az-article-tail-block">
+                <span>Tags</span>
+                <div class="az-tags">
+                  {{ range . }}
+                    <a href="{{ printf "/tags/%s/" (. | urlize) | relLangURL }}">#{{ . }}</a>
+                  {{ end }}
+                </div>
+              </div>
+            {{ end }}
+          </footer>
         </div>
       </div>
     </div>

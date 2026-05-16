@@ -13,7 +13,7 @@
     </section>
   {{ end }}
 
-  <section class="az-section{{ if $isPostsList }} az-home-writing{{ end }}">
+  <section class="az-home-writing az-list-shell{{ if $isPostsList }} az-list-shell--posts{{ else }} az-list-shell--archive{{ end }}">
     <div class="az-post-list">
       {{ range .Paginator.Pages }}
         {{ partial "post-row.html" . }}
@@ -47,7 +47,7 @@
         }
 
         function applyFilters() {
-          var query = normalize(input && input.value);
+          var query = normalize((input && input.value) || initialQuery);
           var visible = 0;
 
           rows.forEach(function (row) {
@@ -61,13 +61,18 @@
           }
         }
 
-        if (input) {
-          if (initialQuery) {
-            input.value = initialQuery;
-          }
-          input.addEventListener("input", applyFilters);
-          applyFilters();
+        if (input && initialQuery) {
+          input.value = initialQuery;
         }
+
+        if (input) {
+          input.addEventListener("input", function () {
+            initialQuery = "";
+            applyFilters();
+          });
+        }
+
+        applyFilters();
       })();
     </script>
   {{ end }}

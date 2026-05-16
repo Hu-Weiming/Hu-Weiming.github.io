@@ -1,0 +1,33 @@
+{{ define "main" }}
+  {{ $title := .Title }}
+  {{ $label := "索引" }}
+  {{ if eq .Data.Plural "tags" }}
+    {{ $title = "标签" }}
+    {{ $label = "Tags" }}
+  {{ else if eq .Data.Plural "categories" }}
+    {{ $title = "分类" }}
+    {{ $label = "Categories" }}
+  {{ end }}
+
+  <section class="az-taxonomy-page">
+    <header class="az-taxonomy-head">
+      <span class="az-taxonomy-label">{{ $label }}</span>
+      <h1>{{ $title }}</h1>
+      <p>这里收纳了 {{ len .Data.Terms }} 个写作关键词，按主题继续翻阅文章。</p>
+    </header>
+
+    <div class="az-term-grid" aria-label="{{ $title }}">
+      {{ range .Data.Terms.Alphabetical }}
+        <a class="az-term-chip" href="{{ .Page.RelPermalink }}">
+          <span class="az-term-symbol">{{ substr .Name 0 1 }}</span>
+          <span class="az-term-copy">
+            <strong>{{ .Name }}</strong>
+            <em>{{ .Count }} 篇文章</em>
+          </span>
+        </a>
+      {{ else }}
+        <p class="az-empty">这里暂时还没有关键词。</p>
+      {{ end }}
+    </div>
+  </section>
+{{ end }}

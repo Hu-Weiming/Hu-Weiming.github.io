@@ -1,21 +1,35 @@
-<header class="az-header">
+{{ $showSearch := .IsHome }}
+<header class="az-header{{ if $showSearch }} az-header--home{{ else }} az-header--plain{{ end }}">
   <a class="az-brand" href="{{ "/" | relLangURL }}" aria-label="{{ .Site.Title }} home">
     {{ .Site.Title }}
   </a>
-  {{ $posts := where .Site.RegularPages "Section" "posts" }}
-  {{ $posts = where $posts "Params.draft" "ne" true }}
-  <form class="az-header-search" action="{{ "/posts/" | relLangURL }}" role="search" aria-label="搜索文章">
-    <label class="az-search-box" for="az-site-search">
-      <span>Search</span>
-      <input id="az-site-search" name="q" type="search" placeholder="搜索文章或关键词..." autocomplete="off">
-    </label>
-    <span class="az-search-result az-search-status" id="az-search-status" aria-live="polite">
-      {{ len $posts }} 篇文章
-    </span>
-  </form>
-  <nav class="az-nav" aria-label="Main navigation">
-    {{ range .Site.Menus.main }}
-      <a href="{{ .URL | relLangURL }}">{{ .Name }}</a>
+
+  <div class="az-header-bar">
+    {{ if $showSearch }}
+      {{ $posts := where .Site.RegularPages "Section" "posts" }}
+      {{ $posts = where $posts "Params.draft" "ne" true }}
+      <div class="az-header-searchwrap">
+        <form class="az-header-search" action="{{ "/posts/" | relLangURL }}" role="search" aria-label="搜索文章">
+          <label class="az-search-box" for="az-site-search">
+            <span>Search</span>
+            <input
+              id="az-site-search"
+              name="q"
+              type="search"
+              placeholder="搜索文章或关键词..."
+              autocomplete="off">
+          </label>
+        </form>
+        <span class="az-search-status" id="az-search-status" aria-live="polite">
+          {{ len $posts }} 篇文章
+        </span>
+      </div>
     {{ end }}
-  </nav>
+
+    <nav class="az-nav" aria-label="Main navigation">
+      {{ range .Site.Menus.main }}
+        <a href="{{ .URL | relLangURL }}">{{ .Name }}</a>
+      {{ end }}
+    </nav>
+  </div>
 </header>

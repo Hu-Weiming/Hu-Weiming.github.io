@@ -1,0 +1,27 @@
+{{ define "main" }}
+  {{ $termTitle := .Data.Term | default .Title }}
+  {{ $termLabel := .Data.Singular | default "Term" }}
+  {{ if eq $termLabel "tag" }}
+    {{ $termLabel = "标签" }}
+  {{ else if eq $termLabel "category" }}
+    {{ $termLabel = "分类" }}
+  {{ end }}
+
+  <section class="az-taxonomy-page az-taxonomy-page--term">
+    <header class="az-taxonomy-head az-taxonomy-head--term">
+      <span class="az-taxonomy-label">{{ $termLabel }}</span>
+      <h1>{{ $termTitle }}</h1>
+      <p>这个关键词下共有 {{ len .Pages }} 篇文章。</p>
+    </header>
+
+    <div class="az-post-list az-taxonomy-post-list">
+      {{ range .Paginator.Pages }}
+        {{ partial "post-row.html" . }}
+      {{ else }}
+        <p class="az-empty">这里暂时还没有文章。</p>
+      {{ end }}
+    </div>
+
+    {{ partial "pagination.html" . }}
+  </section>
+{{ end }}
