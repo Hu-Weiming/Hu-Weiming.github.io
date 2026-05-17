@@ -37,21 +37,27 @@ collections:
       - label: "分类"
         name: "categories"
         widget: "list"
+        hint: "只填写分类名，不要带 #。例如：情感、AI、随笔。"
         required: false
         allow_add: true
         field:
           label: "分类名"
           name: "category"
           widget: "string"
+          hint: "不要输入 #，只填名称。"
+          pattern: ["^[^#]+$", "不要包含 #，例如填写 情感 而不是 #情感。"]
       - label: "标签"
         name: "tags"
         widget: "list"
+        hint: "只填写标签名，不要带 #；页面会自动显示 #。例如：情感、鸡汤。"
         required: false
         allow_add: true
         field:
           label: "标签名"
           name: "tag"
           widget: "string"
+          hint: "不要输入 #，只填名称。"
+          pattern: ["^[^#]+$", "不要包含 #，例如填写 情感 而不是 #情感。"]
       - label: "草稿"
         name: "draft"
         widget: "boolean"
