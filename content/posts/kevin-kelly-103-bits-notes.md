@@ -3,7 +3,7 @@ title: "Kevin Kelly：那些越早知道越好的建议"
 date: 2026-05-17T10:00:00+08:00
 description: "这是一篇关于 Kevin Kelly《103 Bits of Advice I Wish I Had Known》的中文导读：判断、关系、工作和生活常识。"
 categories:
-  - 人生
+  - b
 tags:
   - 建议
   - 判断力

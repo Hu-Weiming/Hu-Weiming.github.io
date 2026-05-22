@@ -3,7 +3,7 @@ title: "Paul Graham：创造者时间和管理者时间"
 date: 2026-05-17T10:30:00+08:00
 description: "这是一篇关于 Paul Graham《Maker's Schedule, Manager's Schedule》的中文导读：专注、会议和深度工作。"
 categories:
-  - 工作方式
+  - a
 tags:
   - 专注
   - 创作者

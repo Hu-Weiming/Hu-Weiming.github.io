@@ -3,7 +3,7 @@ title: "Wait But Why：人生真正剩下多少时间"
 date: 2026-05-17T09:40:00+08:00
 description: "这是一篇关于 Tim Urban《The Tail End》的中文导读：时间、亲密关系和人生剩余量。"
 categories:
-  - 时间
+  - s
 tags:
   - 时间
   - 亲密关系

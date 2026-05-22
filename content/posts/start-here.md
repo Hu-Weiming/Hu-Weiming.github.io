@@ -3,7 +3,7 @@ title: "从这里开始"
 date: 2026-05-13T18:00:00+08:00
 description: "博客重构后的第一篇示例文章，用来验证 Netlify 和 Decap CMS 的发布链路。"
 categories:
-  - Notes
+  - b
 tags:
   - Netlify
   - Decap CMS

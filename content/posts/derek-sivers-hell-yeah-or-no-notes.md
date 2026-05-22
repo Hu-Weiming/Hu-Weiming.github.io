@@ -3,7 +3,7 @@ title: "Derek Sivers：不是强烈想做，就拒绝"
 date: 2026-05-17T10:40:00+08:00
 description: "这是一篇关于 Derek Sivers《No yes. Either HELL YEAH! or no.》的中文导读：取舍、机会成本和决策。"
 categories:
-  - 决策
+  - b
 tags:
   - 取舍
   - 决策

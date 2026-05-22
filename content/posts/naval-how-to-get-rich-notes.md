@@ -3,7 +3,7 @@ title: "重读 Naval：如何不靠出卖时间变富"
 date: 2026-05-17T09:10:00+08:00
 description: "这是一篇关于 Naval Ravikant《How to Get Rich》的中文导读：财富、杠杆、判断力和长期复利。"
 categories:
-  - 财富
+  - s+
 tags:
   - 杠杆
   - 判断力

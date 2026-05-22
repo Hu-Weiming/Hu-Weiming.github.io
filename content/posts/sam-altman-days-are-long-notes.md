@@ -3,7 +3,7 @@ title: "Sam Altman：日子很长，十年很短"
 date: 2026-05-17T09:50:00+08:00
 description: "这是一篇关于 Sam Altman《The days are long but the decades are short》的中文导读：人生建议、选择和长期视角。"
 categories:
-  - 人生
+  - b
 tags:
   - 人生建议
   - 长期主义

@@ -9,25 +9,65 @@
     {{ $label = "Categories" }}
   {{ end }}
 
-  <section class="az-taxonomy-page">
-    <header class="az-taxonomy-head">
-      <span class="az-taxonomy-label">{{ $label }}</span>
-      <h1>{{ $title }}</h1>
-      <p>这里收纳了 {{ len .Data.Terms }} 个写作关键词，按主题继续翻阅文章。</p>
-    </header>
+  {{ if eq .Data.Plural "categories" }}
+    {{ $grades := slice
+      (dict "key" "s++" "name" "S++" "mark" "S++" "summary" "能改变问题框架，值得反复回看。" "note" "放置那些读完以后会改变判断坐标的文章：它们不是提供情绪价值，而是重新定义问题、方法和长期方向。")
+      (dict "key" "s+" "name" "S+" "mark" "S+" "summary" "思想密度很高，能持续触发追问。" "note" "这些文章通常有清晰论点和强解释力，读完会留下可迁移的判断，而不是只记住一句漂亮话。")
+      (dict "key" "s" "name" "S" "mark" "S" "summary" "有明确启发，适合建立主题骨架。" "note" "它们能帮助理解一个重要领域或概念，适合被收藏、链接，并在之后的写作里继续使用。")
+      (dict "key" "a" "name" "A" "mark" "A" "summary" "有实践价值，能改善做事方式。" "note" "这一档偏向可操作的方法、职业判断和产品意识，文章质量稳定，但框架冲击力弱于 S 档。")
+      (dict "key" "b" "name" "B" "mark" "B" "summary" "有可读性，但更多是温和提醒。" "note" "这类文章仍有记录价值，不过读后留下的结构性思考较少，更适合作为轻量补充。")
+      (dict "key" "c" "name" "C" "mark" "C" "summary" "低密度、测试或偏鸡汤内容。" "note" "保留它们是为了完整记录，但不会把它们放进核心阅读路径。")
+    }}
 
-    <div class="az-term-grid" aria-label="{{ $title }}">
-      {{ range .Data.Terms.Alphabetical }}
-        <a class="az-term-chip" href="{{ .Page.RelPermalink }}">
-          <span class="az-term-symbol">{{ substr .Name 0 1 }}</span>
-          <span class="az-term-copy">
-            <strong>{{ .Name }}</strong>
-            <em>{{ .Count }} 篇文章</em>
-          </span>
-        </a>
-      {{ else }}
-        <p class="az-empty">这里暂时还没有关键词。</p>
-      {{ end }}
-    </div>
-  </section>
+    <section class="az-taxonomy-page az-rank-page">
+      <header class="az-rank-head">
+        <span class="az-taxonomy-label">Reading rank</span>
+        <h1>分类</h1>
+        <p>分类现在固定为六个阅读等级。这里按“是否真实引发思考”整理文章，而不是按题材堆关键词。</p>
+      </header>
+
+      <div class="az-rank-board" aria-label="文章等级分类">
+        {{ range $index, $grade := $grades }}
+          {{ $term := index $.Data.Terms $grade.key }}
+          {{ $count := 0 }}
+          {{ $href := printf "/categories/%s/" ($grade.key | urlize) | relLangURL }}
+          {{ with $term }}
+            {{ $count = .Count }}
+            {{ $href = .Page.RelPermalink }}
+          {{ end }}
+          <a class="az-rank-card az-rank-card--{{ $grade.key | anchorize }}" href="{{ $href }}" style="--rank-index: {{ $index }};">
+            <span class="az-rank-orb" aria-hidden="true">{{ $grade.mark }}</span>
+            <span class="az-rank-copy">
+              <strong>{{ $grade.name }}</strong>
+              <em>{{ $count }} 篇文章</em>
+              <span>{{ $grade.summary }}</span>
+            </span>
+            <small>{{ $grade.note }}</small>
+          </a>
+        {{ end }}
+      </div>
+    </section>
+  {{ else }}
+    <section class="az-taxonomy-page">
+      <header class="az-taxonomy-head">
+        <span class="az-taxonomy-label">{{ $label }}</span>
+        <h1>{{ $title }}</h1>
+        <p>这里收纳了 {{ len .Data.Terms }} 个写作关键词，按主题继续翻阅文章。</p>
+      </header>
+
+      <div class="az-term-grid" aria-label="{{ $title }}">
+        {{ range .Data.Terms.Alphabetical }}
+          <a class="az-term-chip" href="{{ .Page.RelPermalink }}">
+            <span class="az-term-symbol">{{ substr .Name 0 1 }}</span>
+            <span class="az-term-copy">
+              <strong>{{ .Name }}</strong>
+              <em>{{ .Count }} 篇文章</em>
+            </span>
+          </a>
+        {{ else }}
+          <p class="az-empty">这里暂时还没有关键词。</p>
+        {{ end }}
+      </div>
+    </section>
+  {{ end }}
 {{ end }}

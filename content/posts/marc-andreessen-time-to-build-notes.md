@@ -3,7 +3,7 @@ title: "Marc Andreessen：是时候重新开始建造"
 date: 2026-05-17T10:20:00+08:00
 description: "这是一篇关于 Marc Andreessen《It's Time to Build》的中文导读：建造、制度能力、技术和现实世界。"
 categories:
-  - 建造
+  - a
 tags:
   - 建造
   - 生产力

@@ -3,7 +3,7 @@ title: "Paul Graham：如何做出真正重要的工作"
 date: 2026-05-17T09:20:00+08:00
 description: "这是一篇关于 Paul Graham《How to Do Great Work》的中文导读：好奇心、品味、野心和长期投入。"
 categories:
-  - 创造
+  - s+
 tags:
   - 创造力
   - 长期主义

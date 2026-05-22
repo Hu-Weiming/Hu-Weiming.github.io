@@ -3,7 +3,7 @@ title: "《Attention Is All You Need》为什么改变了 AI 世界"
 date: 2026-05-17T09:30:00+08:00
 description: "这是一篇关于 Transformer 论文《Attention Is All You Need》的中文导读：注意力机制、并行计算和大模型时代的起点。"
 categories:
-  - AI
+  - s
 tags:
   - Transformer
   - 注意力
