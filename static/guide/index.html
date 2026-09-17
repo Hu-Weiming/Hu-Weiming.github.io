@@ -1,0 +1,147 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="《火影忍者》手游好友切磋图文攻略：决斗场、忍术对战、好友切磋、邀请好友。">
+  <title>火影忍者手游好友切磋怎么进入｜图文攻略</title>
+  <style>
+    :root { --accent:#e65a2c; --ink:#242a30; --muted:#727a82; --line:#e8eaed; --paper:#fff; --bg:#f5f6f8; }
+    * { box-sizing:border-box; }
+    html { scroll-behavior:smooth; }
+    body { margin:0; color:var(--ink); background:var(--bg); font:15px/1.7 -apple-system,BlinkMacSystemFont,"Microsoft YaHei","PingFang SC",sans-serif; }
+    a { color:inherit; text-decoration:none; }
+    button { font:inherit; }
+    .topbar { background:#293139; color:#cbd0d4; font-size:12px; }
+    .topbar .wrap { display:flex; align-items:center; justify-content:space-between; min-height:34px; }
+    .topbar a:hover, .footer a:hover { color:var(--accent); }
+    .toplinks { display:flex; gap:20px; }
+    .wrap { width:min(1180px,calc(100% - 32px)); margin:auto; }
+    .masthead { background:#fff; border-bottom:1px solid var(--line); }
+    .masthead .wrap { display:flex; align-items:center; justify-content:space-between; min-height:86px; gap:28px; }
+    .brand { display:flex; align-items:center; gap:10px; white-space:nowrap; }
+    .brand-mark { display:grid; place-items:center; width:39px; height:39px; border-radius:8px; background:var(--accent); color:#fff; font-weight:900; font-size:22px; }
+    .brand strong { display:block; font-size:22px; letter-spacing:.03em; line-height:1.1; }
+    .brand small { display:block; color:#959ba0; font-size:10px; letter-spacing:.1em; line-height:1.2; margin-top:4px; }
+    .mainnav { display:flex; align-items:center; align-self:stretch; gap:36px; font-weight:600; }
+    .mainnav a { display:flex; align-items:center; position:relative; }
+    .mainnav a.active { color:var(--accent); }
+    .mainnav a.active:after { content:""; position:absolute; bottom:0; height:3px; background:var(--accent); left:0; right:0; }
+    .mainnav a:hover { color:var(--accent); }
+    .subnav { background:#fff; border-bottom:1px solid var(--line); }
+    .subnav .wrap { display:flex; flex-wrap:wrap; gap:25px; padding:9px 0; color:#697179; font-size:13px; }
+    .subnav a:hover { color:var(--accent); }
+    .breadcrumb { color:#858d94; padding:20px 0 14px; font-size:13px; }
+    .breadcrumb span { margin:0 8px; color:#b0b6bc; }
+    .breadcrumb b { color:#4f5962; font-weight:400; }
+    .layout { display:grid; grid-template-columns:minmax(0,860px) 290px; gap:24px; align-items:start; }
+    .article, .sidebox { background:var(--paper); border:1px solid var(--line); min-width:0; }
+    .article-header { padding:28px 34px 24px; border-bottom:1px solid var(--line); }
+    .eyebrow { display:inline-block; color:var(--accent); background:#fff0eb; border-radius:3px; padding:2px 8px; font-size:12px; font-weight:700; }
+    h1 { font-size:28px; line-height:1.35; margin:13px 0 12px; letter-spacing:-.02em; }
+    .meta { color:#9aa1a7; font-size:13px; display:flex; flex-wrap:wrap; gap:18px; }
+    .tabs { display:flex; border-bottom:1px solid var(--line); padding:0 34px; gap:32px; color:#626a72; font-weight:600; }
+    .tabs a { display:block; padding:14px 0; position:relative; }
+    .tabs a.selected { color:var(--accent); }
+    .tabs a.selected:after { content:""; position:absolute; bottom:-1px; height:2px; background:var(--accent); left:0; right:0; }
+    .article-body { padding:24px 34px 36px; }
+    .lead { margin:0 0 20px; color:#4c555d; }
+    .quickpath { background:#f8f9fa; border-left:3px solid var(--accent); padding:12px 15px; margin-bottom:26px; font-size:14px; }
+    h2 { font-size:20px; line-height:1.4; margin:30px 0 15px; padding-left:12px; border-left:3px solid var(--accent); }
+    .step { margin:0 0 32px; scroll-margin-top:18px; }
+    .step-head { display:flex; gap:11px; align-items:baseline; margin:0 0 12px; }
+    .step-num { color:var(--accent); font-size:21px; font-weight:800; font-style:italic; line-height:1; }
+    .step-head h3 { margin:0; font-size:17px; }
+    .step-head p { margin:0 0 0 auto; color:#9aa1a7; font-size:12px; white-space:nowrap; }
+    .shot { position:relative; width:100%; overflow:hidden; background:#1c2229; border:1px solid #ddd; border-radius:3px; aspect-ratio:2374/1080; }
+    .shot img { width:100%; height:100%; display:block; object-fit:contain; }
+    .hotspot { position:absolute; z-index:1; border:0; cursor:pointer; background:transparent; padding:0; color:#fff; transform:translate(-50%,-50%); }
+    .hotspot .ring { display:grid; place-items:center; width:37px; height:37px; margin:auto; border:3px solid #fff; border-radius:50%; background:#e85a2b; box-shadow:0 0 0 5px rgba(232,90,43,.35),0 2px 9px rgba(0,0,0,.45); font-weight:800; font-size:17px; }
+    .hotspot .label { position:absolute; bottom:calc(100% + 11px); left:50%; transform:translateX(-50%); padding:5px 9px; border-radius:3px; background:#e85a2b; white-space:nowrap; box-shadow:0 2px 7px rgba(0,0,0,.25); font-size:12px; font-weight:700; }
+    .hotspot .label:after { content:""; position:absolute; left:calc(50% - 5px); top:100%; border:5px solid transparent; border-top-color:#e85a2b; }
+    .hotspot:hover .ring, .hotspot:focus-visible .ring { background:#b93e1c; box-shadow:0 0 0 7px rgba(232,90,43,.4),0 2px 9px rgba(0,0,0,.45); }
+    .hotspot:focus-visible { outline:2px solid #fff; outline-offset:6px; }
+    .caption { margin:9px 0 0; color:#5c656d; font-size:14px; }
+    .caption strong { color:#353d44; }
+    .special-note { margin:2px 0 30px; padding:15px 18px; border-left:3px solid var(--accent); background:#f8f9fa; scroll-margin-top:18px; }
+    .special-note h3 { margin:0 0 5px; font-size:16px; }
+    .special-note p { margin:0; color:#58616a; font-size:14px; }
+    .version { border-top:1px solid var(--line); padding-top:4px; scroll-margin-top:18px; }
+    .version p { margin:9px 0 13px; color:#58616a; }
+    .version p strong { color:#343d45; }
+    .version .source { color:#8b949b; font-size:12px; }
+    .source a { color:#d2522b; text-decoration:underline; text-underline-offset:2px; }
+    .aside { position:sticky; top:18px; }
+    .sidebox { padding:20px; margin-bottom:18px; }
+    .sidebox h2 { margin:0 0 14px; padding:0 0 10px; font-size:17px; border-left:0; border-bottom:1px solid var(--line); }
+    .sidebox h2:before { content:""; display:inline-block; background:var(--accent); width:4px; height:15px; margin-right:9px; vertical-align:-2px; }
+    .side-links { display:grid; gap:3px; }
+    .side-links a { padding:8px 0; border-bottom:1px dashed #eceef0; color:#626b72; font-size:14px; }
+    .side-links a:last-child { border:0; }
+    .side-links a:hover { color:var(--accent); }
+    .game-meta { display:grid; grid-template-columns:1fr 1fr; gap:10px; font-size:13px; }
+    .game-meta span { display:block; color:#9aa1a7; }
+    .game-meta strong { font-weight:500; }
+    .tip { color:#767f87; font-size:13px; margin:0; }
+    .footer { text-align:center; color:#9aa1a7; font-size:12px; padding:26px 10px 35px; }
+    .toast { position:fixed; left:50%; bottom:28px; transform:translate(-50%,15px); background:#273039; color:#fff; padding:10px 16px; border-radius:4px; box-shadow:0 5px 20px #0003; opacity:0; pointer-events:none; transition:.2s; z-index:5; white-space:nowrap; }
+    .toast.show { opacity:1; transform:translate(-50%,0); }
+    @media(max-width:900px) { .layout { grid-template-columns:minmax(0,1fr); } .aside { position:static; display:grid; grid-template-columns:1fr 1fr; gap:16px; } .sidebox { margin:0; } .mainnav { gap:18px; font-size:14px; } }
+    @media(max-width:640px) { .toplinks,.subnav { display:none; } .masthead .wrap { min-height:65px; } .brand strong { font-size:18px; } .brand small { display:none; } .brand-mark { width:32px; height:32px; font-size:18px; } .mainnav { gap:13px; font-size:13px; } .mainnav a:nth-child(2),.mainnav a:nth-child(3) { display:none; } .breadcrumb { padding:14px 0 10px; } .article-header { padding:20px; } h1 { font-size:22px; } .tabs { padding:0 20px; } .article-body { padding:20px; } .aside { display:block; } .sidebox { margin-bottom:14px; } .step-head { flex-wrap:wrap; } .step-head p { width:100%; margin:-8px 0 0 31px; } .hotspot .ring { width:25px; height:25px; border-width:2px; box-shadow:0 0 0 3px rgba(232,90,43,.35); font-size:12px; } .hotspot .label { font-size:10px; padding:2px 5px; bottom:calc(100% + 7px); } .caption { font-size:13px; } }
+    @media(prefers-reduced-motion:reduce) { html { scroll-behavior:auto; } .toast { transition:none; } }
+  </style>
+</head>
+<body>
+  <div class="topbar"><div class="wrap"><span>游戏攻略 · 图文指引</span><div class="toplinks"><a href="#steps">操作步骤</a><a href="#version">版本动态</a></div></div></div>
+  <header class="masthead"><div class="wrap"><a class="brand" href="#top" aria-label="返回页面顶部"><span class="brand-mark">攻</span><span><strong>游戏攻略站</strong><small>GAME GUIDE</small></span></a><nav class="mainnav" aria-label="主导航"><a href="#top">首页</a><a href="#steps">手机游戏</a><a href="#version" class="active">攻略资讯</a><a href="#version">版本动态</a></nav></div></header>
+  <div class="subnav"><div class="wrap"><a href="#steps">动作游戏</a><a href="#steps">格斗竞技</a><a href="#steps">新手指引</a><a href="#steps">好友玩法</a><a href="#version">更新资讯</a></div></div>
+  <div class="wrap" id="top">
+    <div class="breadcrumb">当前位置：首页 <span>›</span> 手机游戏 <span>›</span> 游戏攻略 <span>›</span> <b>火影忍者手游好友切磋</b></div>
+    <div class="layout">
+      <main class="article">
+        <div class="article-header"><span class="eyebrow">玩法攻略</span><h1>火影忍者手游好友切磋怎么进入？</h1><div class="meta"><span>更新时间：2026-09-17</span><span>图文教程</span><span>共 4 张截图</span></div></div>
+        <nav class="tabs" aria-label="页面内容"><a href="#steps" class="selected">切磋流程</a><a href="#version">最新版本</a></nav>
+        <div class="article-body">
+          <p class="lead">《火影忍者》手游是腾讯魔方工作室群研发的正版忍术格斗手游，玩家可以使用鸣人、佐助等忍者，在决斗场体验连招和奥义对战。想和认识的人练习，可以使用“好友切磋”功能，按下面四张图依次进入。</p>
+          <p class="lead">截至 2026 年 9 月 17 日，游戏当前最新版本为 <strong>1.79.79.9</strong>，于 9 月 10 日更新。新版更换了宇智波鼬「晓·朱」主题的决斗场背景；详细更新内容见文末。</p>
+          <div class="quickpath"><strong>快速路径：</strong>主页 → 决斗场 → 忍术对战 → 好友切磋 → 邀请好友</div>
+          <section id="steps" aria-label="好友切磋步骤">
+            <h2>好友切磋操作步骤</h2>
+            <section class="step" id="step1"><div class="step-head"><span class="step-num">01</span><h3>从游戏主页进入决斗场</h3><p>图片1 · 主页</p></div><div class="shot"><img src="/guide/图片.jpg" alt="火影忍者手游主页，画面中间偏右可见决斗场入口"><button class="hotspot" style="left:50.5%;top:52%" data-next="step2" aria-label="决斗场，点击查看下一步"><span class="ring">1</span><span class="label">决斗场</span></button></div><p class="caption">打开《火影忍者》手游并停留在游戏主页，找到画面中间偏右、写着<strong>“决斗场”</strong>的入口，点击后进入对战玩法页面。</p></section>
+            <section class="step" id="step2"><div class="step-head"><span class="step-num">02</span><h3>选择忍术对战</h3><p>图片2 · 决斗场入口</p></div><div class="shot"><img src="/guide/图片2.jpg" loading="lazy" alt="决斗场入口页面，底部左侧有忍术对战按钮"><button class="hotspot" style="left:27.5%;top:88%" data-next="step3" aria-label="忍术对战，点击查看下一步"><span class="ring">2</span><span class="label">忍术对战</span></button></div><p class="caption">进入决斗场后，先看屏幕底部的模式栏，找到位于左下区域的<strong>“忍术对战”</strong>按钮并点击，随后会打开对应的对战界面。</p></section>
+            <section class="step" id="step3"><div class="step-head"><span class="step-num">03</span><h3>打开好友切磋</h3><p>图片3 · 忍术对战</p></div><div class="shot"><img src="/guide/图片3.jpg" loading="lazy" alt="忍术对战页面，右侧有好友切磋入口"><button class="hotspot" style="left:86%;top:43%" data-next="step4" aria-label="好友切磋，点击查看下一步"><span class="ring">3</span><span class="label">好友切磋</span></button></div><p class="caption">在忍术对战界面中，留意屏幕右侧的功能入口，点击标有<strong>“好友切磋”</strong>的图标，就能进入和好友约战的房间页面。</p></section>
+            <section class="step" id="step4"><div class="step-head"><span class="step-num">04</span><h3>邀请好友并开始</h3><p>图片4 · 好友切磋房间</p></div><div class="shot"><img src="/guide/图片4.jpg" loading="lazy" alt="好友切磋房间，左侧好友列表可邀请，中央有开始切磋按钮"><button class="hotspot" style="left:36.5%;top:28%" data-message="先在左侧好友列表发送切磋邀请" aria-label="邀请好友，示意标记"><span class="ring">4</span><span class="label">邀请好友</span></button><button class="hotspot" style="left:64.5%;top:72%" data-message="好友同意后，在游戏中点击开始切磋" aria-label="开始切磋，示意标记"><span class="ring">5</span><span class="label">开始切磋</span></button></div><p class="caption">进入好友切磋房间后，在左侧好友列表中选择想邀请的好友并发送邀请，等对方同意且进入房间后，再点击中间的<strong>“开始切磋”</strong>。</p></section>
+            <aside class="special-note" id="special-note"><h3>特别说明</h3><p>房主可以勾选“战力带入”和“忍者禁选”，也可以切换为“武斗赛”或“全随机”模式。房间右侧设有观战席，最多可邀请 10 位好友进入观看比赛。</p></aside>
+          </section>
+          <section class="version" id="version"><h2>最新版本动态</h2>
+            <p><strong>版本与新内容：</strong>当前最新版本为 1.79.79.9，9 月 10 日更新。官方公布的新忍者包括宇智波鼬「晓·朱」、大蛇丸「传说中的三忍」、角都「晓·北」等；角色等级上限升至 175 级，修罗副本新增第九章。登录动画、加载界面和决斗场背景也换成宇智波鼬「晓·朱」主题。</p>
+            <p><strong>决斗场功能：</strong>练习场新增“纯净模式”，可隐藏对局界面和按钮；还增加了禁止自动回血、总时间与每秒伤害统计。战报现在会显示玩法名称与对局时间，练习场的“复位”按钮也调整了位置，并新增音乐快捷按钮。</p>
+            <p><strong>忍者平衡调整：</strong>宇智波带土「十尾人柱力」的“求道焦土”攻击判定范围缩小；无「二代目土影」优化了分身普攻衔接，并可在受击时消耗奥义点结束分身；勘九郎「指导上忍」的“黑蚁”扩大攻击判定范围、缩短后摇；宇智波鼬「红夜之刃」的“诀别斩”判定高度降低，奥义后摇增加。不同忍者的手感变化，可在切磋时重点留意。</p>
+            <p><strong>日常调整：</strong>每日 40／80／100 活跃度宝箱的金币合计由 60 提高到 90，并新增“决斗场造成 900 万伤害”的每日任务，完成后可得 15 点活跃度。</p>
+            <p class="source">资料来源：<a href="https://hyrz.qq.com/web202003/newsDetails.html?aid=18853074" target="_blank" rel="noopener noreferrer">《火影忍者》手游官网 9 月 10 日新版本停机公告</a>、<a href="https://www.taptap.cn/app/2247/all-info" target="_blank" rel="noopener noreferrer">TapTap 当前版本记录</a>。截图中的入口位置以实际游戏界面为准。</p>
+          </section>
+        </div>
+      </main>
+      <aside class="aside" aria-label="攻略侧栏"><div class="sidebox"><h2>攻略目录</h2><div class="side-links"><a href="#step1">01　进入主页与决斗场</a><a href="#step2">02　选择忍术对战</a><a href="#step3">03　打开好友切磋</a><a href="#step4">04　邀请好友并开始</a><a href="#special-note">特别说明</a><a href="#version">最新版本动态</a></div></div><div class="sidebox"><h2>游戏信息</h2><div class="game-meta"><div><span>游戏</span><strong>火影忍者手游</strong></div><div><span>类型</span><strong>动作格斗</strong></div><div><span>玩法</span><strong>好友切磋</strong></div><div><span>形式</span><strong>图文攻略</strong></div></div></div><div class="sidebox"><h2>小提示</h2><p class="tip">页面上的橙色标记仅用于演示；点击后会跳到下一张图或显示提示，不会操作游戏。</p></div></aside>
+    </div>
+  </div>
+  <footer class="footer">火影忍者手游好友切磋图文攻略 · 本地静态页面</footer>
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+  <script>
+    (function () {
+      var toast = document.getElementById('toast');
+      var timer;
+      document.querySelectorAll('.hotspot').forEach(function (button) {
+        button.addEventListener('click', function () {
+          var next = button.getAttribute('data-next');
+          if (next) { document.getElementById(next).scrollIntoView({behavior:'smooth',block:'start'}); return; }
+          toast.textContent = button.getAttribute('data-message');
+          toast.classList.add('show');
+          clearTimeout(timer);
+          timer = setTimeout(function () { toast.classList.remove('show'); }, 2500);
+        });
+      });
+    }());
+  </script>
+</body>
+</html>
