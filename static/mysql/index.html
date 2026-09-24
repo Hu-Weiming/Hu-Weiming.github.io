@@ -944,6 +944,25 @@ FROM orders;</pre>
   </div>
 
   <div class="basic-block">
+    <h3>进阶 04 · 日期、字符串与空值处理</h3>
+    <p>假设 <code>orders</code> 再增加 <code>created_at</code> 和 <code>remark</code> 字段。业务查询经常需要处理时间范围、拼接展示字段和提供默认值；筛选索引列时，应尽量让原字段保持不变。</p>
+    <pre><span class="cmt">-- 查询 2026 年 9 月的订单：使用左闭右开区间</span>
+SELECT id, user_id, amount
+FROM orders
+WHERE created_at &gt;= '2026-09-01'
+  AND created_at &lt;  '2026-10-01';
+
+<span class="cmt">-- 格式化日期、拼接说明，并给 NULL 设置默认值</span>
+SELECT id,
+       DATE_FORMAT(created_at, '%Y-%m-%d') AS order_date,
+       CONCAT('订单金额：', amount) AS summary,
+       COALESCE(remark, '无备注') AS remark
+FROM orders;</pre>
+    <p>筛选时间时，<code>created_at &gt;= 起点 AND created_at &lt; 终点</code> 能覆盖带时分秒的数据。避免写 <code>DATE(created_at) = ...</code>，对索引列套函数可能让普通索引无法直接用于范围定位。</p>
+    <p><strong>快速自测：</strong>查询最近 7 天订单，可以写 <code>created_at &gt;= CURRENT_DATE - INTERVAL 7 DAY</code>。</p>
+  </div>
+
+  <div class="basic-block">
     <h3>统计与分组</h3>
     <pre>SELECT user_id, COUNT(*) AS order_count, SUM(amount) AS total
 FROM orders
