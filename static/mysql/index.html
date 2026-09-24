@@ -1004,6 +1004,26 @@ COMMIT;
   </div>
 
   <div class="basic-block">
+    <h3>进阶 07 · CTE 与窗口函数</h3>
+    <p>MySQL 8 可以用 <code>WITH</code> 把复杂查询拆成有名字的步骤。窗口函数在保留每一行的同时完成排名、累计或前后行比较，不会像 <code>GROUP BY</code> 那样把多行合并成一行。</p>
+    <pre><span class="cmt">-- 先汇总每位用户的消费，再按总金额排名</span>
+WITH user_totals AS (
+  SELECT u.id, u.name,
+         COUNT(o.id) AS order_count,
+         COALESCE(SUM(o.amount), 0) AS total_amount
+  FROM users AS u
+  LEFT JOIN orders AS o ON o.user_id = u.id
+  GROUP BY u.id, u.name
+)
+SELECT id, name, order_count, total_amount,
+       DENSE_RANK() OVER (ORDER BY total_amount DESC) AS amount_rank
+FROM user_totals
+ORDER BY amount_rank, id;</pre>
+    <p><code>ROW_NUMBER()</code> 给每行唯一序号；<code>RANK()</code> 遇到并列会跳号；<code>DENSE_RANK()</code> 遇到并列不会跳号。窗口中的 <code>PARTITION BY</code> 可以让排名在每个分组内重新开始。</p>
+    <p><strong>快速自测：</strong>要计算每位用户自己的订单金额累计值，可写 <code>SUM(amount) OVER (PARTITION BY user_id ORDER BY id)</code>。</p>
+  </div>
+
+  <div class="basic-block">
     <h3>统计与分组</h3>
     <pre>SELECT user_id, COUNT(*) AS order_count, SUM(amount) AS total
 FROM orders
