@@ -316,6 +316,22 @@ pre .hl{background:rgba(52,211,153,.08);display:inline}
   padding:13px 16px;margin:0 0 28px;border-radius:0 7px 7px 0;
   color:var(--text2);font-size:.83rem;
 }
+.basic-review{
+  background:var(--surface);border:1px solid var(--border);
+  border-radius:var(--radius);overflow:hidden;margin-bottom:34px;
+}
+.basic-intro{padding:20px 22px;border-bottom:1px solid var(--border);color:var(--text2);font-size:.84rem;line-height:1.8}
+.basic-block{padding:19px 22px;border-bottom:1px solid var(--border)}
+.basic-block:last-child{border-bottom:0}
+.basic-block h3{font-size:.92rem;color:var(--cyan);margin-bottom:10px}
+.basic-block p{font-size:.82rem;color:var(--text2);line-height:1.75;margin-top:10px}
+.basic-block pre{margin:0;border-radius:7px;padding:16px 18px}
+.basic-block code,.self-test code{
+  font-family:'JetBrains Mono',monospace;font-size:.88em;color:var(--cyan);
+  background:var(--code-bg);padding:1px 5px;border-radius:3px;
+}
+.self-test{background:rgba(96,165,250,.06);border-left:3px solid var(--blue);padding:18px 22px}
+.self-test h3{color:var(--blue)}
 .business-case{
   background:var(--surface);border:1px solid var(--border);
   border-radius:var(--radius);margin-bottom:16px;overflow:hidden;
@@ -802,6 +818,92 @@ pre .hl{background:rgba(52,211,153,.08);display:inline}
   </article>
 </div>
 <div class="memory-line"><strong>一条主线：</strong>先保证结果正确，再减少扫描行数，最后控制锁范围与事务时间。好的 SQL 同时考虑正确性、可读性、并发和可恢复性。</div>
+</div>
+
+<div class="teach-section">
+<h2>基础语法快速回顾 — 两张表串起常用能力</h2>
+<div class="basic-review">
+  <div class="basic-intro">
+    用两张表快速回顾：<code>users(id, name)</code> 和 <code>orders(id, user_id, amount)</code>。先记住基本查询骨架，再依次复习筛选、分页、连接、聚合和数据修改。
+  </div>
+
+  <div class="basic-block">
+    <h3>基本查询骨架</h3>
+    <pre>SELECT 列名
+FROM 表名
+WHERE 行筛选条件
+GROUP BY 分组列
+HAVING 分组筛选条件
+ORDER BY 排序列 DESC
+LIMIT 条数 OFFSET 跳过条数;</pre>
+  </div>
+
+  <div class="basic-block">
+    <h3>常用基础查询</h3>
+    <pre>SELECT * FROM users;                         <span class="cmt">-- 所有列</span>
+SELECT id, name FROM users;                  <span class="cmt">-- 指定列</span>
+SELECT DISTINCT name FROM users;             <span class="cmt">-- 去重</span>
+SELECT * FROM users WHERE id = 3;            <span class="cmt">-- 筛选</span>
+SELECT * FROM users WHERE name LIKE '张%';   <span class="cmt">-- 以“张”开头</span>
+SELECT * FROM users WHERE id IN (1, 2, 3);   <span class="cmt">-- 多个值</span>
+SELECT * FROM users WHERE name IS NULL;      <span class="cmt">-- 判断空值</span>
+SELECT * FROM users ORDER BY id DESC;        <span class="cmt">-- 降序</span></pre>
+    <p>判断 <code>NULL</code> 要用 <code>IS NULL</code>，不能写 <code>= NULL</code>。</p>
+  </div>
+
+  <div class="basic-block">
+    <h3>分页查询</h3>
+    <pre><span class="cmt">-- 第 1 页，每页 10 条</span>
+SELECT * FROM users ORDER BY id LIMIT 10 OFFSET 0;
+
+<span class="cmt">-- 第 3 页，每页 10 条：跳过 (3 - 1) × 10 = 20 条</span>
+SELECT * FROM users ORDER BY id LIMIT 10 OFFSET 20;</pre>
+    <p>MySQL 也支持 <code>LIMIT 20, 10</code>，含义是“跳过 20 条，取 10 条”。分页要配合 <code>ORDER BY</code>，否则每页的顺序不可靠。</p>
+  </div>
+
+  <div class="basic-block">
+    <h3>左连接与右连接</h3>
+    <pre><span class="cmt">-- 保留所有用户；没有订单的用户也会出现，订单列为 NULL</span>
+SELECT u.name, o.amount
+FROM users AS u
+LEFT JOIN orders AS o ON o.user_id = u.id;
+
+<span class="cmt">-- 保留所有订单；找不到对应用户的订单也会出现，用户列为 NULL</span>
+SELECT u.name, o.amount
+FROM users AS u
+RIGHT JOIN orders AS o ON o.user_id = u.id;</pre>
+    <p><strong>LEFT JOIN 保留左表全部行，RIGHT JOIN 保留右表全部行</strong>；匹配不上的另一侧填 <code>NULL</code>。调换表的书写顺序，右连接通常可以改写成左连接。</p>
+  </div>
+
+  <div class="basic-block">
+    <h3>统计与分组</h3>
+    <pre>SELECT user_id, COUNT(*) AS order_count, SUM(amount) AS total
+FROM orders
+GROUP BY user_id
+HAVING COUNT(*) &gt;= 2
+ORDER BY total DESC;</pre>
+    <p><code>WHERE</code> 筛选分组之前的行，<code>HAVING</code> 筛选分组之后的结果。常用统计函数有 <code>COUNT()</code>、<code>SUM()</code>、<code>AVG()</code>、<code>MAX()</code>、<code>MIN()</code>。</p>
+  </div>
+
+  <div class="basic-block">
+    <h3>增加、修改与删除</h3>
+    <pre>INSERT INTO users (name) VALUES ('小王');
+
+UPDATE users SET name = '王同学' WHERE id = 3;
+
+DELETE FROM users WHERE id = 3;</pre>
+    <p>执行 <code>UPDATE</code> 和 <code>DELETE</code> 前要仔细检查 <code>WHERE</code>；省略它会影响整张表。生产环境建议先用相同条件执行 SELECT，确认影响范围。</p>
+  </div>
+
+  <div class="basic-block self-test">
+    <h3>30 秒自测：查出没有订单的用户</h3>
+    <p>思路是保留全部用户，再筛选右表没有匹配成功的行。</p>
+    <pre>SELECT u.*
+FROM users AS u
+LEFT JOIN orders AS o ON o.user_id = u.id
+WHERE o.id IS NULL;</pre>
+  </div>
+</div>
 </div>
 
 <div class="teach-section">
