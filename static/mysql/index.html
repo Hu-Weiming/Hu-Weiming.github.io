@@ -923,6 +923,27 @@ WHERE NOT EXISTS (
   </div>
 
   <div class="basic-block">
+    <h3>进阶 03 · CASE 条件表达式</h3>
+    <p><code>CASE</code> 可以在查询中完成分类、状态翻译和条件统计。它不会修改原数据，只负责根据条件计算当前结果列。</p>
+    <pre><span class="cmt">-- 按金额给订单分级</span>
+SELECT id, amount,
+       CASE
+         WHEN amount &gt;= 1000 THEN '大额订单'
+         WHEN amount &gt;= 100  THEN '普通订单'
+         ELSE '小额订单'
+       END AS amount_level
+FROM orders;
+
+<span class="cmt">-- 一次查询统计不同金额区间</span>
+SELECT COUNT(*) AS total_orders,
+       SUM(CASE WHEN amount &gt;= 1000 THEN 1 ELSE 0 END) AS large_orders,
+       SUM(CASE WHEN amount &lt; 1000 THEN amount ELSE 0 END) AS other_amount
+FROM orders;</pre>
+    <p>多个 <code>WHEN</code> 按书写顺序判断，匹配第一项后就停止。范围条件应从更具体或更高的阈值开始，否则前面的宽泛条件会提前截获数据。</p>
+    <p><strong>快速自测：</strong>把没有订单的用户显示为“未消费”，可以对左连接后的 <code>o.id</code> 写 <code>CASE WHEN o.id IS NULL THEN '未消费' ELSE '已消费' END</code>。</p>
+  </div>
+
+  <div class="basic-block">
     <h3>统计与分组</h3>
     <pre>SELECT user_id, COUNT(*) AS order_count, SUM(amount) AS total
 FROM orders
