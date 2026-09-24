@@ -876,6 +876,26 @@ RIGHT JOIN orders AS o ON o.user_id = u.id;</pre>
   </div>
 
   <div class="basic-block">
+    <h3>进阶 01 · INNER JOIN 与多表查询</h3>
+    <p><code>INNER JOIN</code> 只返回两边能够匹配的行。连接多张表时，每个 <code>JOIN</code> 都写清楚关联条件，并始终给表设置简短别名，避免同名字段含义不清。</p>
+    <pre><span class="cmt">-- 查询有订单的用户及其订单金额</span>
+SELECT u.id, u.name, o.id AS order_id, o.amount
+FROM users AS u
+INNER JOIN orders AS o ON o.user_id = u.id
+ORDER BY o.id DESC;
+
+<span class="cmt">-- 统计每位下过单的用户的订单数和总金额</span>
+SELECT u.id, u.name,
+       COUNT(o.id) AS order_count,
+       SUM(o.amount) AS total_amount
+FROM users AS u
+JOIN orders AS o ON o.user_id = u.id
+GROUP BY u.id, u.name;</pre>
+    <p><code>JOIN</code> 默认就是 <code>INNER JOIN</code>。一对多连接会让用户行重复，这是正常结果；需要“一位用户一行”时，再使用 <code>GROUP BY</code> 聚合。</p>
+    <p><strong>快速自测：</strong>只查询订单金额大于 100 的用户和订单，应把 <code>o.amount &gt; 100</code> 放在哪里？答案：放在 <code>WHERE</code> 中。</p>
+  </div>
+
+  <div class="basic-block">
     <h3>统计与分组</h3>
     <pre>SELECT user_id, COUNT(*) AS order_count, SUM(amount) AS total
 FROM orders
