@@ -896,6 +896,33 @@ GROUP BY u.id, u.name;</pre>
   </div>
 
   <div class="basic-block">
+    <h3>进阶 02 · 子查询与 EXISTS</h3>
+    <p>子查询把一个查询的结果交给另一个查询使用。返回单个值时可以直接比较；只关心“是否存在”时优先使用 <code>EXISTS</code>，数据库找到第一条匹配记录后即可停止继续查找。</p>
+    <pre><span class="cmt">-- 查询订单金额高于平均订单金额的订单</span>
+SELECT id, user_id, amount
+FROM orders
+WHERE amount &gt; (SELECT AVG(amount) FROM orders);
+
+<span class="cmt">-- 查询至少下过一单的用户</span>
+SELECT u.id, u.name
+FROM users AS u
+WHERE EXISTS (
+  SELECT 1
+  FROM orders AS o
+  WHERE o.user_id = u.id
+);
+
+<span class="cmt">-- 查询从未下过订单的用户</span>
+SELECT u.id, u.name
+FROM users AS u
+WHERE NOT EXISTS (
+  SELECT 1 FROM orders AS o WHERE o.user_id = u.id
+);</pre>
+    <p><code>NOT IN</code> 的子查询结果一旦包含 NULL，判断可能全部变成未知；表达“没有关联记录”时，<code>NOT EXISTS</code> 通常更直观稳妥。</p>
+    <p><strong>快速自测：</strong>查询至少有一笔金额大于 500 的订单的用户，只需在 EXISTS 子查询中再添加 <code>AND o.amount &gt; 500</code>。</p>
+  </div>
+
+  <div class="basic-block">
     <h3>统计与分组</h3>
     <pre>SELECT user_id, COUNT(*) AS order_count, SUM(amount) AS total
 FROM orders
