@@ -963,6 +963,26 @@ FROM orders;</pre>
   </div>
 
   <div class="basic-block">
+    <h3>进阶 05 · 索引与 EXPLAIN</h3>
+    <p>索引帮助 MySQL 少扫描数据。设计联合索引时，从实际查询出发，把常用等值条件放在前面，再考虑范围、排序和需要覆盖的列。</p>
+    <pre><span class="cmt">-- 支持“某用户按订单 id 倒序查看订单”</span>
+CREATE INDEX idx_orders_user_id_id
+ON orders (user_id, id);
+
+EXPLAIN
+SELECT id, amount
+FROM orders
+WHERE user_id = 10
+ORDER BY id DESC
+LIMIT 20;</pre>
+    <p>阅读执行计划时先看 <code>type</code> 是否为 ALL，再看 <code>key</code> 是否命中预期索引、<code>rows</code> 预计扫描多少行，以及 Extra 中是否出现 <code>Using filesort</code> 或 <code>Using temporary</code>。索引越多，写入维护成本也越高。</p>
+    <pre><span class="cmt">-- MySQL 8：实际执行查询并展示每个步骤的真实耗时和行数</span>
+EXPLAIN ANALYZE
+SELECT id, amount FROM orders WHERE user_id = 10;</pre>
+    <p><strong>快速自测：</strong>联合索引是 <code>(user_id, id)</code> 时，只按 <code>id</code> 查询能否稳定使用它？不一定，因为跳过了最左列 <code>user_id</code>。</p>
+  </div>
+
+  <div class="basic-block">
     <h3>统计与分组</h3>
     <pre>SELECT user_id, COUNT(*) AS order_count, SUM(amount) AS total
 FROM orders
