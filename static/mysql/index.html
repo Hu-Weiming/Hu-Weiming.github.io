@@ -983,6 +983,27 @@ SELECT id, amount FROM orders WHERE user_id = 10;</pre>
   </div>
 
   <div class="basic-block">
+    <h3>进阶 06 · 事务、回滚与行锁</h3>
+    <p>事务把多条 SQL 视为一个整体：全部成功就 <code>COMMIT</code>，任何一步失败就 <code>ROLLBACK</code>。需要“先读取、再根据结果修改”时，可以用 <code>FOR UPDATE</code> 锁住将要修改的记录。</p>
+    <pre>START TRANSACTION;
+
+<span class="cmt">-- 锁定订单 1001，其他事务暂时不能修改这条记录</span>
+SELECT id, amount
+FROM orders
+WHERE id = 1001
+FOR UPDATE;
+
+UPDATE orders
+SET amount = amount + 20
+WHERE id = 1001;
+
+COMMIT;
+<span class="cmt">-- 发生异常时执行 ROLLBACK;</span></pre>
+    <p><code>FOR UPDATE</code> 必须在事务中使用才有实际意义。事务应尽量短，不要在持锁期间等待网络请求或人工操作；多个业务流程按一致顺序锁定记录，可以减少死锁。</p>
+    <p><strong>快速自测：</strong>第二条 UPDATE 失败后，能否继续 COMMIT 第一条修改？通常不应这样做，应捕获异常并执行 <code>ROLLBACK</code>，让业务保持完整。</p>
+  </div>
+
+  <div class="basic-block">
     <h3>统计与分组</h3>
     <pre>SELECT user_id, COUNT(*) AS order_count, SUM(amount) AS total
 FROM orders
