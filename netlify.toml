@@ -6,11 +6,11 @@
   HUGO_VERSION = "0.160.0"
   HUGO_ENVIRONMENT = "production"
 
-# Temporary homepage for the Naruto friend-match guide.
+# Temporary homepage for the MySQL review page.
 # Remove this block to restore the blog homepage.
 [[redirects]]
   from = "/"
-  to = "/guide/index.html"
+  to = "/mysql/index.html"
   status = 200
   force = true
 

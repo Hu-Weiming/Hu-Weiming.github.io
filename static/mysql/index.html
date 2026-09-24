@@ -1,0 +1,1308 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MySQL 快速复习与实战</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Noto+Sans+SC:wght@300;400;500;600;700;900&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #07080c;
+  --surface: #0f1117;
+  --surface2: #161921;
+  --surface3: #1c1f2b;
+  --border: #232838;
+  --border2: #2d3348;
+  --green: #34d399;
+  --green-dim: rgba(52,211,153,.08);
+  --blue: #60a5fa;
+  --blue-dim: rgba(96,165,250,.08);
+  --cyan: #22d3ee;
+  --orange: #fb923c;
+  --orange-dim: rgba(251,146,60,.08);
+  --yellow: #fbbf24;
+  --red: #f87171;
+  --purple: #a78bfa;
+  --text: #e2e8f0;
+  --text2: #94a3b8;
+  --text3: #64748b;
+  --text4: #475569;
+  --code-bg: #0a0c12;
+  --radius: 10px;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{
+  background:var(--bg);color:var(--text);
+  font-family:'Noto Sans SC',system-ui,sans-serif;
+  font-weight:400;min-height:100vh;
+  -webkit-font-smoothing:antialiased;
+  line-height:1.7;
+}
+body::before{
+  content:'';position:fixed;inset:0;
+  background-image:radial-gradient(rgba(52,211,153,.05) 1px,transparent 1px);
+  background-size:28px 28px;pointer-events:none;z-index:0;
+}
+
+/* ── HEADER ── */
+.header{position:relative;z-index:1;text-align:center;padding:50px 20px 32px}
+.header h1{
+  font-family:'JetBrains Mono',monospace;font-size:2.8rem;font-weight:700;
+  letter-spacing:-2px;color:var(--green);
+}
+.header h1 span{color:var(--blue)}
+.header .sub{margin-top:6px;color:var(--text3);font-size:.88rem;letter-spacing:.5px}
+
+/* ── NAV ── */
+.nav{
+  position:sticky;top:0;z-index:100;
+  display:flex;justify-content:center;gap:2px;
+  padding:10px 20px;
+  background:rgba(7,8,12,.9);backdrop-filter:blur(16px);
+  border-bottom:1px solid var(--border);
+}
+.nav-btn{
+  font-family:'JetBrains Mono',monospace;font-size:.75rem;font-weight:600;
+  padding:8px 22px;background:transparent;border:1px solid transparent;
+  color:var(--text4);border-radius:6px;cursor:pointer;transition:all .2s;
+  text-transform:uppercase;letter-spacing:1px;
+}
+.nav-btn:hover{color:var(--text);background:var(--surface)}
+.nav-btn.active{background:var(--green-dim);border-color:var(--green);color:var(--green)}
+
+/* ── LAYOUT ── */
+.wrap{position:relative;z-index:1;max-width:880px;margin:0 auto;padding:32px 20px 120px}
+.panel{display:none}.panel.active{display:block}
+
+/* ── TEACH COMMON ── */
+.teach-section{margin-bottom:48px}
+.teach-section > h2{
+  font-family:'JetBrains Mono',monospace;font-size:1.05rem;font-weight:700;
+  color:var(--green);margin-bottom:16px;
+  display:flex;align-items:center;gap:10px;
+}
+.teach-section > h2::before{content:'#';opacity:.35;font-weight:400}
+
+.card{
+  background:var(--surface);border:1px solid var(--border);
+  border-radius:var(--radius);padding:22px 26px;margin-bottom:12px;
+  transition:border-color .25s;
+}
+.card:hover{border-color:var(--border2)}
+.card h3{font-size:.92rem;font-weight:600;margin-bottom:8px;color:var(--text)}
+.card .note{font-size:.84rem;color:var(--text2);margin-bottom:14px;line-height:1.7}
+.card .note strong{color:var(--text);font-weight:600}
+.card .note code{
+  font-family:'JetBrains Mono',monospace;font-size:.88em;
+  background:var(--code-bg);padding:1px 6px;border-radius:3px;color:var(--cyan);
+}
+
+pre{
+  background:var(--code-bg);border:1px solid var(--border);
+  border-radius:8px;padding:16px 20px;overflow-x:auto;
+  font-family:'JetBrains Mono',monospace;font-size:.8rem;
+  line-height:1.8;color:#cbd5e1;tab-size:2;margin-top:4px;
+}
+pre .kw{color:var(--green);font-weight:600}
+pre .fn{color:var(--cyan)}
+pre .str{color:var(--yellow)}
+pre .num{color:var(--orange)}
+pre .cmt{color:var(--text4);font-style:italic}
+pre .null{color:var(--red);font-weight:600}
+pre .hl{background:rgba(52,211,153,.08);display:inline}
+
+/* ── DATA TABLE (visual) ── */
+.data-table-wrap{overflow-x:auto;margin:12px 0}
+.data-table{
+  width:100%;border-collapse:collapse;font-size:.82rem;
+  font-family:'JetBrains Mono',monospace;
+}
+.data-table th{
+  font-size:.72rem;text-transform:uppercase;letter-spacing:1px;
+  color:var(--green);padding:8px 14px;text-align:left;
+  border-bottom:2px solid var(--border);background:var(--surface2);
+}
+.data-table td{
+  padding:7px 14px;border-bottom:1px solid var(--border);color:var(--text2);
+}
+.data-table .tname{
+  font-size:.7rem;color:var(--text4);text-transform:uppercase;
+  letter-spacing:1px;padding:6px 14px;background:var(--surface);
+  border-bottom:1px solid var(--border);
+}
+.data-table td.null-val{color:var(--red);font-style:italic}
+.data-table tr.highlight td{background:rgba(52,211,153,.04)}
+.data-table tr.dim td{opacity:.45}
+
+/* ── VENN / DIAGRAM ── */
+.join-diagram{
+  display:flex;gap:24px;flex-wrap:wrap;justify-content:center;
+  margin:20px 0 8px;
+}
+.join-box{
+  background:var(--surface2);border:1px solid var(--border);
+  border-radius:var(--radius);padding:18px 22px;
+  text-align:center;min-width:180px;flex:1;max-width:220px;
+}
+.join-box .label{
+  font-family:'JetBrains Mono',monospace;font-size:.78rem;font-weight:700;
+  margin-bottom:10px;text-transform:uppercase;letter-spacing:1px;
+}
+.join-box .label.green{color:var(--green)}
+.join-box .label.blue{color:var(--blue)}
+.join-box .label.orange{color:var(--orange)}
+.join-box .desc{font-size:.78rem;color:var(--text3);line-height:1.5}
+.join-box svg{margin:8px auto;display:block}
+
+/* ── KEY POINT ── */
+.key-point{
+  background:var(--green-dim);border:1px solid rgba(52,211,153,.2);
+  border-radius:8px;padding:14px 20px;margin:14px 0;
+  font-size:.84rem;color:var(--green);line-height:1.7;
+}
+.key-point strong{font-weight:700}
+.key-point code{
+  font-family:'JetBrains Mono',monospace;font-size:.9em;
+  background:rgba(52,211,153,.1);padding:1px 5px;border-radius:3px;
+}
+
+.warn-point{
+  background:var(--orange-dim);border:1px solid rgba(251,146,60,.2);
+  border-radius:8px;padding:14px 20px;margin:14px 0;
+  font-size:.84rem;color:var(--orange);line-height:1.7;
+}
+
+/* ── COMPARE ── */
+.compare{
+  display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:14px 0;
+}
+.compare-col{
+  background:var(--surface2);border:1px solid var(--border);
+  border-radius:8px;padding:16px 18px;
+}
+.compare-col h4{
+  font-family:'JetBrains Mono',monospace;font-size:.78rem;font-weight:700;
+  margin-bottom:8px;text-transform:uppercase;letter-spacing:1px;
+}
+.compare-col.left-col h4{color:var(--green)}
+.compare-col.right-col h4{color:var(--blue)}
+.compare-col p{font-size:.82rem;color:var(--text2);line-height:1.6}
+
+/* ══════ PRACTICE PANEL ══════ */
+.practice-intro{
+  background:var(--surface);border:1px solid var(--border);
+  border-radius:var(--radius);padding:24px 28px;margin-bottom:24px;
+}
+.practice-intro h2{
+  font-family:'JetBrains Mono',monospace;font-size:1rem;font-weight:700;
+  color:var(--green);margin-bottom:14px;
+}
+.practice-intro .note{font-size:.84rem;color:var(--text2);line-height:1.7}
+
+.schema-block{
+  background:var(--surface2);border:1px solid var(--border);
+  border-radius:8px;padding:16px 20px;margin:14px 0;
+}
+.schema-block h4{
+  font-family:'JetBrains Mono',monospace;font-size:.78rem;font-weight:700;
+  color:var(--cyan);margin-bottom:8px;text-transform:uppercase;letter-spacing:1px;
+}
+
+/* ── TASK CARD ── */
+.task-card{
+  background:var(--surface);border:1px solid var(--border);
+  border-radius:var(--radius);padding:24px 28px;margin-bottom:16px;
+  transition:border-color .3s;
+}
+.task-header{
+  display:flex;align-items:center;justify-content:space-between;
+  gap:12px;margin-bottom:14px;flex-wrap:wrap;
+}
+.task-num{
+  font-family:'JetBrains Mono',monospace;font-size:.72rem;font-weight:700;
+  color:var(--text4);text-transform:uppercase;letter-spacing:2px;
+}
+.diff-tag{
+  font-family:'JetBrains Mono',monospace;font-size:.65rem;font-weight:700;
+  padding:2px 10px;border-radius:3px;text-transform:uppercase;letter-spacing:1px;
+}
+.diff-tag.easy{background:rgba(52,211,153,.1);color:var(--green)}
+.diff-tag.medium{background:rgba(251,146,60,.1);color:var(--orange)}
+.diff-tag.hard{background:rgba(248,113,113,.1);color:var(--red)}
+
+.task-desc{font-size:.9rem;line-height:1.75;margin-bottom:16px;color:var(--text)}
+.task-desc code{
+  font-family:'JetBrains Mono',monospace;font-size:.88em;
+  background:var(--code-bg);padding:1px 6px;border-radius:3px;color:var(--cyan);
+}
+
+.task-hint{
+  font-size:.8rem;color:var(--text4);margin-bottom:14px;
+  padding:10px 14px;background:var(--surface2);border-radius:6px;
+  border-left:3px solid var(--border2);line-height:1.6;
+}
+.task-hint code{
+  font-family:'JetBrains Mono',monospace;font-size:.9em;color:var(--text3);
+}
+
+/* ── ANSWER TOGGLE ── */
+.answer-wrap{margin-top:16px}
+.answer-toggle{
+  font-family:'JetBrains Mono',monospace;font-size:.76rem;font-weight:600;
+  padding:8px 18px;background:var(--surface2);
+  border:1px solid var(--border);border-radius:6px;
+  color:var(--text3);cursor:pointer;transition:all .2s;
+  text-transform:uppercase;letter-spacing:1px;
+  display:inline-flex;align-items:center;gap:6px;
+}
+.answer-toggle:hover{border-color:var(--green);color:var(--green)}
+.answer-toggle.open{border-color:var(--green);color:var(--green);background:var(--green-dim)}
+
+.answer-body{
+  display:none;margin-top:12px;
+  background:var(--code-bg);border:1px solid rgba(52,211,153,.15);
+  border-radius:8px;padding:18px 22px;
+  animation:fadeIn .3s ease;
+}
+.answer-body.show{display:block}
+.answer-body .answer-label{
+  font-family:'JetBrains Mono',monospace;font-size:.68rem;font-weight:700;
+  color:var(--green);text-transform:uppercase;letter-spacing:2px;
+  margin-bottom:10px;display:block;
+}
+.answer-body pre{border:none;padding:0;margin:0;background:transparent}
+.answer-body .answer-note{
+  margin-top:14px;padding-top:14px;border-top:1px solid var(--border);
+  font-size:.82rem;color:var(--text3);line-height:1.7;
+}
+.answer-body .answer-note code{
+  font-family:'JetBrains Mono',monospace;font-size:.9em;
+  background:rgba(96,165,250,.08);padding:1px 5px;border-radius:3px;color:var(--blue);
+}
+.answer-body .answer-note strong{color:var(--text2);font-weight:600}
+
+/* ══════ REVIEW / SHOWCASE PANEL ══════ */
+.review-hero{
+  background:linear-gradient(135deg,rgba(52,211,153,.09),rgba(96,165,250,.05));
+  border:1px solid rgba(52,211,153,.22);border-radius:var(--radius);
+  padding:26px 28px;margin-bottom:24px;
+}
+.review-hero .kicker{
+  font-family:'JetBrains Mono',monospace;color:var(--green);
+  font-size:.72rem;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;
+}
+.review-hero h2{font-size:1.35rem;margin:6px 0 8px;line-height:1.4}
+.review-hero p{font-size:.86rem;color:var(--text2);line-height:1.8}
+.review-route{display:flex;flex-wrap:wrap;gap:8px;margin-top:16px}
+.review-route span{
+  padding:4px 10px;border:1px solid var(--border2);border-radius:999px;
+  color:var(--text2);background:rgba(7,8,12,.5);font-size:.74rem;
+}
+.review-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin-bottom:34px}
+.review-card{
+  background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);
+  padding:20px 22px;
+}
+.review-card h3{font-size:.9rem;color:var(--cyan);margin-bottom:8px}
+.review-card p,.review-card li{font-size:.81rem;color:var(--text2);line-height:1.75}
+.review-card ul{padding-left:18px;margin-top:6px}
+.review-card code,.business-note code{
+  font-family:'JetBrains Mono',monospace;font-size:.88em;color:var(--cyan);
+  background:var(--code-bg);padding:1px 5px;border-radius:3px;
+}
+.memory-line{
+  border-left:3px solid var(--green);background:var(--green-dim);
+  padding:13px 16px;margin:0 0 28px;border-radius:0 7px 7px 0;
+  color:var(--text2);font-size:.83rem;
+}
+.business-case{
+  background:var(--surface);border:1px solid var(--border);
+  border-radius:var(--radius);margin-bottom:16px;overflow:hidden;
+}
+.business-head{padding:18px 22px 14px;border-bottom:1px solid var(--border)}
+.business-head .tag{
+  font-family:'JetBrains Mono',monospace;color:var(--orange);font-size:.68rem;
+  font-weight:700;letter-spacing:1px;text-transform:uppercase;
+}
+.business-head h3{font-size:.96rem;margin:3px 0 5px}
+.business-head p{font-size:.8rem;color:var(--text3);line-height:1.65}
+.business-case pre{border:0;border-radius:0;margin:0;padding:18px 22px}
+.business-note{padding:13px 22px 16px;color:var(--text2);font-size:.8rem;line-height:1.7;border-top:1px solid var(--border)}
+.review-checklist{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.review-checklist div{
+  border:1px solid var(--border);background:var(--surface);border-radius:8px;
+  padding:12px 15px;color:var(--text2);font-size:.8rem;
+}
+.review-checklist b{color:var(--green);margin-right:5px}
+
+@keyframes fadeIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+
+/* ── RESPONSIVE ── */
+@media(max-width:640px){
+  .header h1{font-size:1.8rem}
+  .nav{justify-content:flex-start;overflow-x:auto}
+  .nav-btn{padding:8px 16px;white-space:nowrap}
+  .compare{grid-template-columns:1fr}
+  .review-grid,.review-checklist{grid-template-columns:1fr}
+  .review-hero{padding:21px 18px}
+  .task-card{padding:18px 16px}
+  .join-diagram{flex-direction:column;align-items:center}
+}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>mysql<span>_lab</span></h1>
+  <div class="sub">从理解到上手 · 真实场景练习</div>
+</div>
+
+<div class="nav">
+  <button class="nav-btn active" data-tab="teach">教学</button>
+  <button class="nav-btn" data-tab="showcase">展示</button>
+  <button class="nav-btn" data-tab="practice">练习</button>
+</div>
+
+<div class="wrap">
+
+<!-- ╔═══════════════════════════════════════════════╗ -->
+<!-- ║              TEACH PANEL                      ║ -->
+<!-- ╚═══════════════════════════════════════════════╝ -->
+<div id="teach" class="panel active">
+
+<!-- ────────── 1. CRUD ────────── -->
+<div class="teach-section">
+<h2>基础 CRUD — 增删改查</h2>
+
+<div class="card">
+<h3>SELECT — 查询</h3>
+<div class="note">从表里取数据。可以选列、加条件、排序。</div>
+<pre><span class="cmt">-- 查所有列</span>
+<span class="kw">SELECT</span> * <span class="kw">FROM</span> users;
+
+<span class="cmt">-- 指定列 + 条件 + 排序</span>
+<span class="kw">SELECT</span> name, age <span class="kw">FROM</span> users
+<span class="kw">WHERE</span> age >= <span class="num">18</span>
+<span class="kw">ORDER BY</span> age <span class="kw">DESC</span>;</pre>
+</div>
+
+<div class="card">
+<h3>INSERT — 插入</h3>
+<pre><span class="kw">INSERT INTO</span> users (name, age, email)
+<span class="kw">VALUES</span> (<span class="str">'张三'</span>, <span class="num">25</span>, <span class="str">'zs@mail.com'</span>);</pre>
+</div>
+
+<div class="card">
+<h3>UPDATE — 更新</h3>
+<div class="note">⚠️ 一定要加 <code>WHERE</code>，不然更新整张表。</div>
+<pre><span class="kw">UPDATE</span> users
+<span class="kw">SET</span> age = <span class="num">26</span>, email = <span class="str">'new@mail.com'</span>
+<span class="kw">WHERE</span> id = <span class="num">1</span>;</pre>
+</div>
+
+<div class="card">
+<h3>DELETE — 删除</h3>
+<pre><span class="cmt">-- 删一行</span>
+<span class="kw">DELETE FROM</span> users <span class="kw">WHERE</span> id = <span class="num">1</span>;
+
+<span class="cmt">-- 清空表（快，但不可回滚，重置自增ID）</span>
+<span class="kw">TRUNCATE TABLE</span> users;</pre>
+</div>
+</div>
+
+<!-- ────────── 2. WHERE 条件 ────────── -->
+<div class="teach-section">
+<h2>WHERE 条件大全</h2>
+
+<div class="card">
+<div class="note">WHERE 后面可以接各种条件表达式，这些是最常用的：</div>
+<pre><span class="cmt">-- 比较</span>
+<span class="kw">WHERE</span> price > <span class="num">100</span>
+<span class="kw">WHERE</span> status != <span class="num">1</span>      <span class="cmt">-- 也可以写 &lt;&gt;</span>
+
+<span class="cmt">-- 范围</span>
+<span class="kw">WHERE</span> age <span class="kw">BETWEEN</span> <span class="num">18</span> <span class="kw">AND</span> <span class="num">30</span>
+
+<span class="cmt">-- 多值匹配</span>
+<span class="kw">WHERE</span> status <span class="kw">IN</span> (<span class="num">1</span>, <span class="num">2</span>, <span class="num">3</span>)
+
+<span class="cmt">-- 模糊搜索</span>
+<span class="kw">WHERE</span> name <span class="kw">LIKE</span> <span class="str">'%张%'</span>     <span class="cmt">-- 包含"张"</span>
+<span class="kw">WHERE</span> email <span class="kw">LIKE</span> <span class="str">'%@gmail.com'</span>  <span class="cmt">-- 以 @gmail.com 结尾</span>
+
+<span class="cmt">-- NULL 判断（不能用 = NULL）</span>
+<span class="kw">WHERE</span> phone <span class="kw">IS NULL</span>
+<span class="kw">WHERE</span> phone <span class="kw">IS NOT NULL</span>
+
+<span class="cmt">-- 组合条件</span>
+<span class="kw">WHERE</span> age > <span class="num">18</span> <span class="kw">AND</span> status = <span class="num">1</span>
+<span class="kw">WHERE</span> role = <span class="str">'admin'</span> <span class="kw">OR</span> role = <span class="str">'superadmin'</span></pre>
+</div>
+</div>
+
+<!-- ────────── 3. 分页 ────────── -->
+<div class="teach-section">
+<h2>分页查询 — LIMIT / OFFSET</h2>
+
+<div class="card">
+<div class="note">
+  分页的核心就两个参数：<strong>跳过几条</strong>（OFFSET）和<strong>取几条</strong>（LIMIT）。<br>
+  公式：<code>OFFSET = (页码 - 1) × 每页条数</code>
+</div>
+<pre><span class="cmt">-- 第 1 页，每页 10 条</span>
+<span class="kw">SELECT</span> * <span class="kw">FROM</span> products <span class="kw">LIMIT</span> <span class="num">10</span> <span class="kw">OFFSET</span> <span class="num">0</span>;
+
+<span class="cmt">-- 第 2 页</span>
+<span class="kw">SELECT</span> * <span class="kw">FROM</span> products <span class="kw">LIMIT</span> <span class="num">10</span> <span class="kw">OFFSET</span> <span class="num">10</span>;
+
+<span class="cmt">-- 第 5 页</span>
+<span class="kw">SELECT</span> * <span class="kw">FROM</span> products <span class="kw">LIMIT</span> <span class="num">10</span> <span class="kw">OFFSET</span> <span class="num">40</span>;
+
+<span class="cmt">-- 简写形式（注意：LIMIT 偏移量, 条数 — 顺序相反！）</span>
+<span class="kw">SELECT</span> * <span class="kw">FROM</span> products <span class="kw">LIMIT</span> <span class="num">40</span>, <span class="num">10</span>;</pre>
+</div>
+</div>
+
+<!-- ────────── 4. JOIN — 重点 ────────── -->
+<div class="teach-section">
+<h2>JOIN 连接 — 完整讲解</h2>
+
+<div class="card">
+<h3>为什么需要 JOIN？</h3>
+<div class="note">
+  在真实项目中，数据分散在不同的表。比如 <code>users</code> 存用户信息，<code>orders</code> 存订单信息。
+  你想查「每个用户的订单」就需要把两张表<strong>连起来</strong>。这就是 JOIN。
+</div>
+</div>
+
+<div class="card">
+<h3>先看数据</h3>
+<div class="note">假设我们有这两张表，下面所有 JOIN 的讲解都用这份数据：</div>
+
+<div class="data-table-wrap">
+<table class="data-table">
+<tr><td class="tname" colspan="3">users 表</td></tr>
+<tr><th>id</th><th>name</th><th>city</th></tr>
+<tr><td>1</td><td>张三</td><td>北京</td></tr>
+<tr><td>2</td><td>李四</td><td>上海</td></tr>
+<tr><td>3</td><td>王五</td><td>广州</td></tr>
+<tr><td>4</td><td>赵六</td><td>深圳</td></tr>
+</table>
+</div>
+
+<div class="data-table-wrap">
+<table class="data-table">
+<tr><td class="tname" colspan="3">orders 表</td></tr>
+<tr><th>id</th><th>user_id</th><th>product</th></tr>
+<tr><td>101</td><td>1</td><td>iPhone</td></tr>
+<tr><td>102</td><td>1</td><td>AirPods</td></tr>
+<tr><td>103</td><td>2</td><td>MacBook</td></tr>
+<tr><td>104</td><td>99</td><td>iPad</td></tr>
+</table>
+</div>
+
+<div class="note" style="margin-top:10px">
+  注意看：<strong>张三</strong>下了 2 单，<strong>李四</strong>下了 1 单，<strong>王五和赵六没下过单</strong>，
+  而订单 104 的 user_id=99 <strong>在 users 里根本不存在</strong>。
+</div>
+</div>
+
+<!-- INNER JOIN -->
+<div class="card" style="border-left:3px solid var(--purple)">
+<h3>INNER JOIN — 只取交集</h3>
+<div class="note">只返回<strong>两边都能匹配上</strong>的行。匹配不上的直接丢掉。</div>
+<pre><span class="kw">SELECT</span> u.name, o.product
+<span class="kw">FROM</span> users u
+<span class="kw">INNER JOIN</span> orders o <span class="kw">ON</span> u.id = o.user_id;</pre>
+
+<div class="note" style="margin-top:12px">结果：</div>
+<div class="data-table-wrap">
+<table class="data-table">
+<tr><th>name</th><th>product</th></tr>
+<tr><td>张三</td><td>iPhone</td></tr>
+<tr><td>张三</td><td>AirPods</td></tr>
+<tr><td>李四</td><td>MacBook</td></tr>
+</table>
+</div>
+<div class="note" style="margin-top:6px">
+  王五、赵六（没下单）→ <strong>丢掉</strong><br>
+  订单 104（user_id=99 不存在）→ <strong>丢掉</strong>
+</div>
+</div>
+
+<!-- LEFT JOIN -->
+<div class="card" style="border-left:3px solid var(--green)">
+<h3>LEFT JOIN — 左表为主</h3>
+<div class="note">
+  <strong>左表的每一行都保留</strong>。右表匹配不上的列填 NULL。<br>
+  「左表」就是 FROM 后面的那张表。
+</div>
+<pre><span class="kw">SELECT</span> u.name, o.product
+<span class="kw">FROM</span> users u                  <span class="cmt">-- ← 这是左表</span>
+<span class="kw">LEFT JOIN</span> orders o <span class="kw">ON</span> u.id = o.user_id;</pre>
+
+<div class="note" style="margin-top:12px">结果：</div>
+<div class="data-table-wrap">
+<table class="data-table">
+<tr><th>name</th><th>product</th></tr>
+<tr><td>张三</td><td>iPhone</td></tr>
+<tr><td>张三</td><td>AirPods</td></tr>
+<tr><td>李四</td><td>MacBook</td></tr>
+<tr class="highlight"><td>王五</td><td class="null-val">NULL</td></tr>
+<tr class="highlight"><td>赵六</td><td class="null-val">NULL</td></tr>
+</table>
+</div>
+<div class="note" style="margin-top:6px">
+  王五、赵六没下过单，但<strong>作为左表的行，它们不会丢失</strong>，product 列填 NULL。<br>
+  订单 104（user_id=99）在左表 users 里没有对应行 → <strong>不出现</strong>。
+</div>
+<div class="key-point">
+  <strong>LEFT JOIN 最常见的用途：</strong>找出「没有关联数据」的行。<br>
+  比如「没下过单的用户」：<code>LEFT JOIN ... WHERE o.id IS NULL</code>
+</div>
+</div>
+
+<!-- RIGHT JOIN -->
+<div class="card" style="border-left:3px solid var(--blue)">
+<h3>RIGHT JOIN — 右表为主</h3>
+<div class="note">
+  和 LEFT JOIN 镜像相反。<strong>右表的每一行都保留</strong>，左表匹配不上的填 NULL。<br>
+  「右表」就是 JOIN 后面的那张表。
+</div>
+<pre><span class="kw">SELECT</span> u.name, o.product
+<span class="kw">FROM</span> users u
+<span class="kw">RIGHT JOIN</span> orders o <span class="kw">ON</span> u.id = o.user_id;  <span class="cmt">-- ← orders 是右表</span></pre>
+
+<div class="note" style="margin-top:12px">结果：</div>
+<div class="data-table-wrap">
+<table class="data-table">
+<tr><th>name</th><th>product</th></tr>
+<tr><td>张三</td><td>iPhone</td></tr>
+<tr><td>张三</td><td>AirPods</td></tr>
+<tr><td>李四</td><td>MacBook</td></tr>
+<tr class="highlight"><td class="null-val">NULL</td><td>iPad</td></tr>
+</table>
+</div>
+<div class="note" style="margin-top:6px">
+  订单 104 (iPad, user_id=99) 虽然找不到对应用户，但<strong>作为右表它被保留</strong>了，name 填 NULL。<br>
+  王五、赵六（没下单）→ 在右表 orders 中没有对应行 → <strong>不出现</strong>。
+</div>
+</div>
+
+<!-- COMPARISON -->
+<div class="card">
+<h3>一图理清三种 JOIN</h3>
+
+<div class="join-diagram">
+<div class="join-box">
+  <div class="label" style="color:var(--purple)">INNER JOIN</div>
+  <svg width="120" height="70" viewBox="0 0 120 70">
+    <circle cx="42" cy="35" r="28" fill="none" stroke="var(--text4)" stroke-width="1.5"/>
+    <circle cx="78" cy="35" r="28" fill="none" stroke="var(--text4)" stroke-width="1.5"/>
+    <path d="M60,10 A28,28,0,0,1,60,60 A28,28,0,0,1,60,10Z" fill="var(--purple)" opacity="0.25"/>
+    <text x="28" y="38" fill="var(--text4)" font-size="9" font-family="JetBrains Mono">L</text>
+    <text x="90" y="38" fill="var(--text4)" font-size="9" font-family="JetBrains Mono">R</text>
+  </svg>
+  <div class="desc">只要交集</div>
+</div>
+
+<div class="join-box">
+  <div class="label green">LEFT JOIN</div>
+  <svg width="120" height="70" viewBox="0 0 120 70">
+    <circle cx="42" cy="35" r="28" fill="var(--green)" opacity="0.15" stroke="var(--green)" stroke-width="1.5"/>
+    <circle cx="78" cy="35" r="28" fill="none" stroke="var(--text4)" stroke-width="1.5"/>
+    <text x="22" y="38" fill="var(--green)" font-size="9" font-family="JetBrains Mono" font-weight="700">L</text>
+    <text x="90" y="38" fill="var(--text4)" font-size="9" font-family="JetBrains Mono">R</text>
+  </svg>
+  <div class="desc">左边全要<br>右边匹配不上填 NULL</div>
+</div>
+
+<div class="join-box">
+  <div class="label blue">RIGHT JOIN</div>
+  <svg width="120" height="70" viewBox="0 0 120 70">
+    <circle cx="42" cy="35" r="28" fill="none" stroke="var(--text4)" stroke-width="1.5"/>
+    <circle cx="78" cy="35" r="28" fill="var(--blue)" opacity="0.15" stroke="var(--blue)" stroke-width="1.5"/>
+    <text x="28" y="38" fill="var(--text4)" font-size="9" font-family="JetBrains Mono">L</text>
+    <text x="84" y="38" fill="var(--blue)" font-size="9" font-family="JetBrains Mono" font-weight="700">R</text>
+  </svg>
+  <div class="desc">右边全要<br>左边匹配不上填 NULL</div>
+</div>
+</div>
+
+<div class="warn-point">
+  <strong>实际开发中 RIGHT JOIN 极少使用。</strong>任何 RIGHT JOIN 都可以通过交换表的位置改写为 LEFT JOIN，可读性更好。团队代码里基本只用 LEFT JOIN 和 INNER JOIN。
+</div>
+</div>
+
+<!-- LEFT JOIN 经典模式 -->
+<div class="card">
+<h3>LEFT JOIN 的经典用法</h3>
+
+<div class="note"><strong>模式 1：找出「没有关联数据」的行</strong></div>
+<pre><span class="cmt">-- 没下过单的用户</span>
+<span class="kw">SELECT</span> u.*
+<span class="kw">FROM</span> users u
+<span class="kw">LEFT JOIN</span> orders o <span class="kw">ON</span> u.id = o.user_id
+<span class="kw">WHERE</span> o.id <span class="kw">IS NULL</span>;</pre>
+
+<div class="note" style="margin-top:18px"><strong>模式 2：展示全量 + 关联统计</strong></div>
+<pre><span class="cmt">-- 每个用户的订单数（包括 0 单的用户）</span>
+<span class="kw">SELECT</span> u.name, <span class="fn">COUNT</span>(o.id) <span class="kw">AS</span> order_count
+<span class="kw">FROM</span> users u
+<span class="kw">LEFT JOIN</span> orders o <span class="kw">ON</span> u.id = o.user_id
+<span class="kw">GROUP BY</span> u.id, u.name;</pre>
+<div class="note">注意这里用 <code>COUNT(o.id)</code> 而不是 <code>COUNT(*)</code>，因为 NULL 不会被 COUNT 计入，所以没下单的用户会正确显示 0。</div>
+</div>
+</div>
+
+<!-- ────────── 5. GROUP BY ────────── -->
+<div class="teach-section">
+<h2>聚合与分组 — GROUP BY</h2>
+
+<div class="card">
+<div class="note">把行按某一列分成几组，然后对每组做聚合计算。</div>
+<pre><span class="cmt">-- 每个部门有多少人、平均工资</span>
+<span class="kw">SELECT</span> department,
+       <span class="fn">COUNT</span>(*) <span class="kw">AS</span> headcount,
+       <span class="fn">AVG</span>(salary) <span class="kw">AS</span> avg_salary
+<span class="kw">FROM</span> employees
+<span class="kw">GROUP BY</span> department;</pre>
+
+<div class="note" style="margin-top:14px"><strong>常用聚合函数：</strong></div>
+<pre><span class="fn">COUNT</span>(*)          <span class="cmt">-- 总行数</span>
+<span class="fn">COUNT</span>(column)     <span class="cmt">-- 非 NULL 的行数</span>
+<span class="fn">SUM</span>(column)       <span class="cmt">-- 求和</span>
+<span class="fn">AVG</span>(column)       <span class="cmt">-- 平均值</span>
+<span class="fn">MAX</span>(column)       <span class="cmt">-- 最大值</span>
+<span class="fn">MIN</span>(column)       <span class="cmt">-- 最小值</span></pre>
+</div>
+
+<div class="card">
+<h3>WHERE vs HAVING</h3>
+<div class="compare">
+<div class="compare-col left-col">
+  <h4>WHERE</h4>
+  <p>在分组<strong>之前</strong>过滤行<br>不能用聚合函数</p>
+</div>
+<div class="compare-col right-col">
+  <h4>HAVING</h4>
+  <p>在分组<strong>之后</strong>过滤组<br>可以用聚合函数</p>
+</div>
+</div>
+<pre><span class="cmt">-- WHERE 先过滤掉离职员工，再按部门分组，HAVING 只要人数 > 5 的部门</span>
+<span class="kw">SELECT</span> department, <span class="fn">COUNT</span>(*) <span class="kw">AS</span> cnt
+<span class="kw">FROM</span> employees
+<span class="kw">WHERE</span> status = <span class="str">'active'</span>
+<span class="kw">GROUP BY</span> department
+<span class="kw">HAVING</span> <span class="fn">COUNT</span>(*) > <span class="num">5</span>;</pre>
+</div>
+</div>
+
+<!-- ────────── 6. 子查询 ────────── -->
+<div class="teach-section">
+<h2>子查询</h2>
+<div class="card">
+<div class="note">把一个查询的结果当作另一个查询的条件或数据源。</div>
+<pre><span class="cmt">-- 工资高于公司平均的员工</span>
+<span class="kw">SELECT</span> * <span class="kw">FROM</span> employees
+<span class="kw">WHERE</span> salary > (<span class="kw">SELECT</span> <span class="fn">AVG</span>(salary) <span class="kw">FROM</span> employees);
+
+<span class="cmt">-- 买过 iPhone 的用户</span>
+<span class="kw">SELECT</span> * <span class="kw">FROM</span> users
+<span class="kw">WHERE</span> id <span class="kw">IN</span> (
+  <span class="kw">SELECT</span> user_id <span class="kw">FROM</span> orders <span class="kw">WHERE</span> product = <span class="str">'iPhone'</span>
+);</pre>
+</div>
+</div>
+
+<!-- ────────── 7. 执行顺序 ────────── -->
+<div class="teach-section">
+<h2>SQL 执行顺序</h2>
+<div class="card">
+<div class="note">你<strong>写</strong>的顺序和数据库<strong>执行</strong>的顺序不一样。理解这个能避免很多坑（比如为什么 WHERE 里不能用别名）。</div>
+<pre><span class="str">1. FROM / JOIN</span>       <span class="cmt">→ 确定数据源、连表</span>
+<span class="str">2. WHERE</span>             <span class="cmt">→ 过滤行</span>
+<span class="str">3. GROUP BY</span>          <span class="cmt">→ 分组</span>
+<span class="str">4. HAVING</span>            <span class="cmt">→ 过滤组</span>
+<span class="str">5. SELECT</span>            <span class="cmt">→ 选列 / 计算 / 起别名</span>
+<span class="str">6. DISTINCT</span>          <span class="cmt">→ 去重</span>
+<span class="str">7. ORDER BY</span>          <span class="cmt">→ 排序（可以用别名，因为 SELECT 已执行）</span>
+<span class="str">8. LIMIT / OFFSET</span>   <span class="cmt">→ 分页</span></pre>
+</div>
+</div>
+
+</div><!-- #teach -->
+
+<!-- ╔═══════════════════════════════════════════════╗ -->
+<!-- ║             SHOWCASE PANEL                    ║ -->
+<!-- ╚═══════════════════════════════════════════════╝ -->
+<div id="showcase" class="panel">
+
+<div class="review-hero">
+  <span class="kicker">Rapid Review</span>
+  <h2>先恢复知识地图，再看业务 SQL</h2>
+  <p>这一页不出题，只负责快速唤醒记忆。先用十分钟扫完核心概念，再阅读下面的业务写法；看到陌生点时，再回到“教学”或“练习”标签页深入。</p>
+  <div class="review-route">
+    <span>表设计</span><span>查询顺序</span><span>索引</span><span>EXPLAIN</span>
+    <span>事务与锁</span><span>窗口函数</span><span>业务 SQL</span>
+  </div>
+</div>
+
+<div class="teach-section">
+<h2>纯文字速查 — 忘了就看这里</h2>
+<div class="review-grid">
+  <article class="review-card">
+    <h3>01 · 表设计与字段类型</h3>
+    <p>金额用 <code>DECIMAL</code>，不要用 FLOAT；时间点常用 DATETIME，自动时间戳可用 TIMESTAMP。字符串长度可控时用 VARCHAR，大文本再用 TEXT。主键通常使用无业务含义的 BIGINT；业务唯一性由 UNIQUE 约束保证。</p>
+  </article>
+  <article class="review-card">
+    <h3>02 · NULL 与三值逻辑</h3>
+    <p>NULL 表示未知，不等于空字符串或 0。判断必须写 <code>IS NULL</code>。聚合时 COUNT(*) 统计行，COUNT(col) 忽略 NULL；计算结果可能为 NULL 时，用 COALESCE 提供默认值。</p>
+  </article>
+  <article class="review-card">
+    <h3>03 · 查询执行顺序</h3>
+    <p>记住 FROM/JOIN → WHERE → GROUP BY → HAVING → SELECT → DISTINCT → ORDER BY → LIMIT。WHERE 过滤原始行，HAVING 过滤分组；SELECT 的别名通常不能在 WHERE 中使用。</p>
+  </article>
+  <article class="review-card">
+    <h3>04 · JOIN 的选择</h3>
+    <p>INNER JOIN 只保留匹配数据；LEFT JOIN 保留左表全集。想找“没有订单的用户”，使用 LEFT JOIN 后判断右表主键 IS NULL。右表过滤条件放错到 WHERE，可能会把 LEFT JOIN 变成 INNER JOIN。</p>
+  </article>
+  <article class="review-card">
+    <h3>05 · 索引的基本规则</h3>
+    <p>索引适合高选择性的查询、关联、排序字段。联合索引遵守最左前缀；等值条件通常放前面，范围和排序放后面。索引不是越多越好，它会增加写入成本与磁盘占用。</p>
+  </article>
+  <article class="review-card">
+    <h3>06 · 常见索引失效</h3>
+    <ul><li>对索引列使用函数或计算</li><li>LIKE 以通配符开头</li><li>隐式类型转换</li><li>联合索引跳过最左列</li><li>数据量太小或返回比例太高，优化器选择全表扫描</li></ul>
+  </article>
+  <article class="review-card">
+    <h3>07 · EXPLAIN 看什么</h3>
+    <p>先看 type，通常 const/ref/range 优于 ALL；再看 key 是否使用预期索引、rows 预计扫描量、Extra 是否出现 Using filesort 或 Using temporary。EXPLAIN ANALYZE 能看到实际耗时与行数。</p>
+  </article>
+  <article class="review-card">
+    <h3>08 · 事务与锁</h3>
+    <p>事务满足 ACID。InnoDB 默认隔离级别是 REPEATABLE READ。普通 SELECT 是一致性读；SELECT ... FOR UPDATE 会锁定匹配记录。事务要短，更新顺序要一致，降低死锁概率。</p>
+  </article>
+  <article class="review-card">
+    <h3>09 · 分页与排序</h3>
+    <p>分页必须有稳定 ORDER BY。深分页 OFFSET 会扫描并丢弃大量记录；数据量大时改用“上一页最后一个排序键”的游标分页，并为排序键建立合适索引。</p>
+  </article>
+  <article class="review-card">
+    <h3>10 · CTE 与窗口函数</h3>
+    <p>MySQL 8 可用 WITH 拆分复杂查询。ROW_NUMBER 适合分组取 Top N，SUM(...) OVER 适合累计值。窗口函数保留明细行，GROUP BY 会把多行压成一行。</p>
+  </article>
+  <article class="review-card">
+    <h3>11 · 写入安全</h3>
+    <p>UPDATE、DELETE 先用同样的 WHERE 执行 SELECT 确认范围；关键写入放进事务。幂等写入可依赖唯一键配合 INSERT ... ON DUPLICATE KEY UPDATE，而不是先查再插。</p>
+  </article>
+  <article class="review-card">
+    <h3>12 · 慢查询排查顺序</h3>
+    <p>先确认 SQL 与参数，再看执行计划、扫描行数和索引；随后检查锁等待、返回数据量与网络。不要一上来就加索引，也不要只看单次测试，真实数据分布会影响执行计划。</p>
+  </article>
+</div>
+<div class="memory-line"><strong>一条主线：</strong>先保证结果正确，再减少扫描行数，最后控制锁范围与事务时间。好的 SQL 同时考虑正确性、可读性、并发和可恢复性。</div>
+</div>
+
+<div class="teach-section">
+<h2>业务 SQL 展示 — 可以借鉴的写法</h2>
+
+<article class="business-case">
+  <div class="business-head"><span class="tag">Order Center</span><h3>订单列表：游标分页，避免深 OFFSET</h3><p>按创建时间倒序加载下一页；created_at 相同时用 id 保证顺序稳定。</p></div>
+  <pre>SELECT id, order_no, user_id, pay_amount, status, created_at
+FROM orders
+WHERE user_id = ?
+  AND status IN ('PAID', 'SHIPPED', 'FINISHED')
+  AND (created_at, id) &lt; (?, ?)
+ORDER BY created_at DESC, id DESC
+LIMIT 20;</pre>
+  <div class="business-note">多个状态一起查询时，推荐先评估索引 <code>(user_id, created_at, id)</code>，让范围扫描与排序复用索引，status 再做过滤。第一页不传游标条件，下一页传上一页最后一条记录的 created_at 与 id。</div>
+</article>
+
+<article class="business-case">
+  <div class="business-head"><span class="tag">Inventory</span><h3>扣减库存：在一条 UPDATE 中完成校验</h3><p>防止“先查库存再扣减”产生并发超卖。</p></div>
+  <pre>UPDATE sku_stock
+SET available_stock = available_stock - ?,
+    version = version + 1,
+    updated_at = NOW()
+WHERE sku_id = ?
+  AND available_stock &gt;= ?;
+
+-- 应用层检查 affected_rows：1 表示成功，0 表示库存不足或商品不存在</pre>
+  <div class="business-note">条件更新具有原子性。若还要写库存流水，应把扣减与流水 INSERT 放在同一个短事务中。</div>
+</article>
+
+<article class="business-case">
+  <div class="business-head"><span class="tag">Payment</span><h3>支付回调：用唯一键实现幂等</h3><p>同一个第三方交易号可能被重复通知，数据库必须保证只入账一次。</p></div>
+  <pre>INSERT INTO payment_records
+  (payment_no, order_id, channel_trade_no, amount, status, paid_at)
+VALUES
+  (?, ?, ?, ?, 'SUCCESS', ?) AS incoming
+ON DUPLICATE KEY UPDATE
+  status = IF(status = 'SUCCESS', status, incoming.status),
+  paid_at = COALESCE(paid_at, incoming.paid_at);</pre>
+  <div class="business-note">为 <code>channel_trade_no</code> 建 UNIQUE 索引。幂等性的最后防线应落在数据库约束上。</div>
+</article>
+
+<article class="business-case">
+  <div class="business-head"><span class="tag">Analytics</span><h3>月度经营报表：条件聚合一次完成</h3><p>同一次扫描里计算订单量、付费用户数、实收和退款额。</p></div>
+  <pre>SELECT DATE_FORMAT(created_at, '%Y-%m') AS month,
+       COUNT(*) AS order_count,
+       COUNT(DISTINCT CASE WHEN status IN ('PAID','FINISHED') THEN user_id END)
+         AS paid_user_count,
+       SUM(CASE WHEN status IN ('PAID','FINISHED') THEN pay_amount ELSE 0 END)
+         AS paid_amount,
+       SUM(CASE WHEN status = 'REFUNDED' THEN refund_amount ELSE 0 END)
+         AS refund_amount
+FROM orders
+WHERE created_at &gt;= '2026-01-01'
+  AND created_at &lt;  '2027-01-01'
+GROUP BY DATE_FORMAT(created_at, '%Y-%m')
+ORDER BY month;</pre>
+  <div class="business-note">日期使用左闭右开范围，避免在 WHERE 中写 YEAR(created_at)，这样更容易利用 created_at 索引。</div>
+</article>
+
+<article class="business-case">
+  <div class="business-head"><span class="tag">CRM</span><h3>沉默用户召回：NOT EXISTS 表达“最近没有行为”</h3><p>找出注册满 30 天，并且最近 90 天没有有效订单的用户。</p></div>
+  <pre>SELECT u.id, u.mobile, u.created_at
+FROM users u
+WHERE u.status = 'ACTIVE'
+  AND u.created_at &lt; NOW() - INTERVAL 30 DAY
+  AND NOT EXISTS (
+    SELECT 1
+    FROM orders o
+    WHERE o.user_id = u.id
+      AND o.status IN ('PAID', 'FINISHED')
+      AND o.created_at &gt;= NOW() - INTERVAL 90 DAY
+  );</pre>
+  <div class="business-note">NOT EXISTS 比“NOT IN 子查询”更稳妥，后者遇到 NULL 容易产生意外结果。订单表建议索引 <code>(user_id, status, created_at)</code>。</div>
+</article>
+
+<article class="business-case">
+  <div class="business-head"><span class="tag">Ranking</span><h3>每个品类销量前三：窗口函数分组排名</h3><p>先汇总商品销量，再在每个品类内部排名。</p></div>
+  <pre>WITH product_sales AS (
+  SELECT p.category_id, p.id AS product_id, p.name,
+         SUM(oi.quantity) AS sales_qty
+  FROM order_items oi
+  JOIN orders o ON o.id = oi.order_id AND o.status = 'FINISHED'
+  JOIN products p ON p.id = oi.product_id
+  WHERE o.created_at &gt;= CURRENT_DATE - INTERVAL 30 DAY
+  GROUP BY p.category_id, p.id, p.name
+), ranked AS (
+  SELECT product_sales.*,
+         ROW_NUMBER() OVER (
+           PARTITION BY category_id ORDER BY sales_qty DESC, product_id
+         ) AS rn
+  FROM product_sales
+)
+SELECT category_id, product_id, name, sales_qty
+FROM ranked
+WHERE rn &lt;= 3
+ORDER BY category_id, rn;</pre>
+  <div class="business-note">这是“分组取 Top N”的标准形态。ROW_NUMBER 不保留并列；业务需要并列名次时改用 RANK 或 DENSE_RANK。</div>
+</article>
+
+<article class="business-case">
+  <div class="business-head"><span class="tag">Data Quality</span><h3>清理重复数据：保留最新一条</h3><p>手机号重复时保留 id 最大的记录，删除其余重复行。</p></div>
+  <pre>DELETE u_old
+FROM users u_old
+JOIN users u_new
+  ON u_old.mobile = u_new.mobile
+ AND u_old.id &lt; u_new.id
+WHERE u_old.mobile IS NOT NULL;
+
+-- 清理完成后立即补上约束
+ALTER TABLE users ADD UNIQUE KEY uk_users_mobile (mobile);</pre>
+  <div class="business-note">生产环境先用同样的 JOIN 写 SELECT 核对删除范围，并做好备份；大表应分批删除，避免长事务和大量 undo log。</div>
+</article>
+
+<article class="business-case">
+  <div class="business-head"><span class="tag">Transaction</span><h3>账户转账：固定锁顺序，缩短事务</h3><p>锁定双方账户后再校验余额和更新，所有并发请求采用相同的账号排序。</p></div>
+  <pre>START TRANSACTION;
+
+SELECT account_id, balance
+FROM accounts
+WHERE account_id IN (?, ?)
+ORDER BY account_id
+FOR UPDATE;
+
+UPDATE accounts SET balance = balance - ? WHERE account_id = ?;
+UPDATE accounts SET balance = balance + ? WHERE account_id = ?;
+INSERT INTO transfer_logs(request_no, from_id, to_id, amount)
+VALUES (?, ?, ?, ?);
+
+COMMIT;</pre>
+  <div class="business-note"><code>request_no</code> 应有 UNIQUE 索引用于防重。真实代码还要在余额不足、影响行数异常或写流水失败时 ROLLBACK。</div>
+</article>
+</div>
+
+<div class="teach-section">
+<h2>上线前 SQL 自检清单</h2>
+<div class="review-checklist">
+  <div><b>01</b> 查询结果是否正确处理 NULL 和重复行？</div>
+  <div><b>02</b> UPDATE / DELETE 是否有准确 WHERE？</div>
+  <div><b>03</b> JOIN 条件是否完整，是否造成行数膨胀？</div>
+  <div><b>04</b> 分页是否有稳定排序，是否存在深 OFFSET？</div>
+  <div><b>05</b> EXPLAIN 的 key、rows、Extra 是否合理？</div>
+  <div><b>06</b> 联合索引顺序是否匹配过滤与排序？</div>
+  <div><b>07</b> 写操作是否幂等，唯一约束是否兜底？</div>
+  <div><b>08</b> 事务是否足够短，锁顺序是否一致？</div>
+</div>
+</div>
+
+</div><!-- #showcase -->
+
+
+<!-- ╔═══════════════════════════════════════════════╗ -->
+<!-- ║             PRACTICE PANEL                    ║ -->
+<!-- ╚═══════════════════════════════════════════════╝ -->
+<div id="practice" class="panel">
+
+<div class="practice-intro">
+<h2>// 场景设定</h2>
+<div class="note">
+  你是一家在线教育公司的后端开发。公司的核心业务数据库有以下几张表。<br>
+  先阅读表结构，然后完成下面的需求。每道题都是真实开发中你<b>一定会遇到</b>的查询。
+</div>
+
+<div class="schema-block">
+<h4>建库语句（可以复制到 MySQL 直接执行）</h4>
+<pre><span class="kw">CREATE DATABASE IF NOT EXISTS</span> edu_platform;
+<span class="kw">USE</span> edu_platform;
+
+<span class="cmt">-- 用户表</span>
+<span class="kw">CREATE TABLE</span> users (
+  id          <span class="fn">INT</span> <span class="kw">PRIMARY KEY AUTO_INCREMENT</span>,
+  nickname    <span class="fn">VARCHAR</span>(<span class="num">50</span>) <span class="kw">NOT NULL</span>,
+  email       <span class="fn">VARCHAR</span>(<span class="num">100</span>) <span class="kw">UNIQUE</span>,
+  role        <span class="fn">ENUM</span>(<span class="str">'student'</span>, <span class="str">'teacher'</span>, <span class="str">'admin'</span>) <span class="kw">DEFAULT</span> <span class="str">'student'</span>,
+  created_at  <span class="fn">DATETIME</span> <span class="kw">DEFAULT CURRENT_TIMESTAMP</span>
+);
+
+<span class="cmt">-- 课程表</span>
+<span class="kw">CREATE TABLE</span> courses (
+  id          <span class="fn">INT</span> <span class="kw">PRIMARY KEY AUTO_INCREMENT</span>,
+  title       <span class="fn">VARCHAR</span>(<span class="num">100</span>) <span class="kw">NOT NULL</span>,
+  teacher_id  <span class="fn">INT</span>,
+  category    <span class="fn">VARCHAR</span>(<span class="num">30</span>),
+  price       <span class="fn">DECIMAL</span>(<span class="num">10</span>,<span class="num">2</span>) <span class="kw">DEFAULT</span> <span class="num">0</span>,
+  <span class="kw">FOREIGN KEY</span> (teacher_id) <span class="kw">REFERENCES</span> users(id)
+);
+
+<span class="cmt">-- 选课/购买记录表</span>
+<span class="kw">CREATE TABLE</span> enrollments (
+  id          <span class="fn">INT</span> <span class="kw">PRIMARY KEY AUTO_INCREMENT</span>,
+  user_id     <span class="fn">INT</span> <span class="kw">NOT NULL</span>,
+  course_id   <span class="fn">INT</span> <span class="kw">NOT NULL</span>,
+  paid_amount <span class="fn">DECIMAL</span>(<span class="num">10</span>,<span class="num">2</span>),
+  status      <span class="fn">ENUM</span>(<span class="str">'active'</span>, <span class="str">'refunded'</span>, <span class="str">'expired'</span>) <span class="kw">DEFAULT</span> <span class="str">'active'</span>,
+  enrolled_at <span class="fn">DATETIME</span> <span class="kw">DEFAULT CURRENT_TIMESTAMP</span>,
+  <span class="kw">FOREIGN KEY</span> (user_id) <span class="kw">REFERENCES</span> users(id),
+  <span class="kw">FOREIGN KEY</span> (course_id) <span class="kw">REFERENCES</span> courses(id)
+);
+
+<span class="cmt">-- 学习记录表</span>
+<span class="kw">CREATE TABLE</span> study_logs (
+  id          <span class="fn">INT</span> <span class="kw">PRIMARY KEY AUTO_INCREMENT</span>,
+  user_id     <span class="fn">INT</span> <span class="kw">NOT NULL</span>,
+  course_id   <span class="fn">INT</span> <span class="kw">NOT NULL</span>,
+  duration    <span class="fn">INT</span> <span class="kw">DEFAULT</span> <span class="num">0</span>,          <span class="cmt">-- 学习时长（秒）</span>
+  logged_at   <span class="fn">DATETIME</span> <span class="kw">DEFAULT CURRENT_TIMESTAMP</span>,
+  <span class="kw">FOREIGN KEY</span> (user_id) <span class="kw">REFERENCES</span> users(id),
+  <span class="kw">FOREIGN KEY</span> (course_id) <span class="kw">REFERENCES</span> courses(id)
+);
+
+<span class="cmt">-- ── 插入示例数据 ──</span>
+
+<span class="kw">INSERT INTO</span> users (nickname, email, role) <span class="kw">VALUES</span>
+(<span class="str">'小明'</span>,   <span class="str">'ming@edu.com'</span>,    <span class="str">'student'</span>),
+(<span class="str">'小红'</span>,   <span class="str">'hong@edu.com'</span>,    <span class="str">'student'</span>),
+(<span class="str">'张老师'</span>, <span class="str">'zhang@edu.com'</span>,   <span class="str">'teacher'</span>),
+(<span class="str">'李老师'</span>, <span class="str">'li@edu.com'</span>,      <span class="str">'teacher'</span>),
+(<span class="str">'王同学'</span>, <span class="str">'wang@edu.com'</span>,    <span class="str">'student'</span>),
+(<span class="str">'刘同学'</span>, <span class="str">'liu@edu.com'</span>,     <span class="str">'student'</span>),
+(<span class="str">'赵管理'</span>, <span class="str">'zhao@edu.com'</span>,    <span class="str">'admin'</span>),
+(<span class="str">'新用户'</span>, <span class="str">'new@edu.com'</span>,     <span class="str">'student'</span>);
+
+<span class="kw">INSERT INTO</span> courses (title, teacher_id, category, price) <span class="kw">VALUES</span>
+(<span class="str">'MySQL 入门到精通'</span>,   <span class="num">3</span>, <span class="str">'数据库'</span>,  <span class="num">99.00</span>),
+(<span class="str">'Redis 实战'</span>,         <span class="num">3</span>, <span class="str">'数据库'</span>,  <span class="num">149.00</span>),
+(<span class="str">'Spring Boot 开发'</span>,   <span class="num">4</span>, <span class="str">'后端'</span>,    <span class="num">199.00</span>),
+(<span class="str">'Vue3 全家桶'</span>,        <span class="num">4</span>, <span class="str">'前端'</span>,    <span class="num">169.00</span>),
+(<span class="str">'算法面试通关'</span>,       <span class="num">3</span>, <span class="str">'算法'</span>,    <span class="num">299.00</span>),
+(<span class="str">'Docker 入门'</span>,        <span class="kw">NULL</span>, <span class="str">'运维'</span>,  <span class="num">0.00</span>);
+
+<span class="kw">INSERT INTO</span> enrollments (user_id, course_id, paid_amount, status, enrolled_at) <span class="kw">VALUES</span>
+(<span class="num">1</span>, <span class="num">1</span>, <span class="num">99.00</span>,  <span class="str">'active'</span>,   <span class="str">'2024-03-01 10:00:00'</span>),
+(<span class="num">1</span>, <span class="num">3</span>, <span class="num">199.00</span>, <span class="str">'active'</span>,   <span class="str">'2024-03-15 14:00:00'</span>),
+(<span class="num">2</span>, <span class="num">1</span>, <span class="num">99.00</span>,  <span class="str">'active'</span>,   <span class="str">'2024-04-01 09:00:00'</span>),
+(<span class="num">2</span>, <span class="num">4</span>, <span class="num">169.00</span>, <span class="str">'refunded'</span>, <span class="str">'2024-04-10 11:00:00'</span>),
+(<span class="num">5</span>, <span class="num">1</span>, <span class="num">99.00</span>,  <span class="str">'active'</span>,   <span class="str">'2024-05-01 08:00:00'</span>),
+(<span class="num">5</span>, <span class="num">2</span>, <span class="num">149.00</span>, <span class="str">'active'</span>,   <span class="str">'2024-05-10 16:00:00'</span>),
+(<span class="num">5</span>, <span class="num">5</span>, <span class="num">299.00</span>, <span class="str">'expired'</span>, <span class="str">'2024-01-15 20:00:00'</span>),
+(<span class="num">6</span>, <span class="num">3</span>, <span class="num">199.00</span>, <span class="str">'active'</span>,   <span class="str">'2024-06-01 12:00:00'</span>);
+
+<span class="kw">INSERT INTO</span> study_logs (user_id, course_id, duration, logged_at) <span class="kw">VALUES</span>
+(<span class="num">1</span>, <span class="num">1</span>, <span class="num">3600</span>,  <span class="str">'2024-03-02 10:00:00'</span>),
+(<span class="num">1</span>, <span class="num">1</span>, <span class="num">5400</span>,  <span class="str">'2024-03-03 14:00:00'</span>),
+(<span class="num">1</span>, <span class="num">3</span>, <span class="num">1800</span>,  <span class="str">'2024-03-16 10:00:00'</span>),
+(<span class="num">2</span>, <span class="num">1</span>, <span class="num">7200</span>,  <span class="str">'2024-04-02 09:00:00'</span>),
+(<span class="num">5</span>, <span class="num">1</span>, <span class="num">2700</span>,  <span class="str">'2024-05-02 10:00:00'</span>),
+(<span class="num">5</span>, <span class="num">2</span>, <span class="num">4500</span>,  <span class="str">'2024-05-11 16:00:00'</span>);</pre>
+</div>
+
+<div class="schema-block">
+<h4>表关系速览</h4>
+<pre style="line-height:2"><span class="fn">users</span>.id  ──<  <span class="fn">courses</span>.teacher_id      <span class="cmt">老师 → 课程</span>
+<span class="fn">users</span>.id  ──<  <span class="fn">enrollments</span>.user_id     <span class="cmt">学生 → 选课记录</span>
+<span class="fn">courses</span>.id ──< <span class="fn">enrollments</span>.course_id   <span class="cmt">课程 → 选课记录</span>
+<span class="fn">users</span>.id  ──<  <span class="fn">study_logs</span>.user_id      <span class="cmt">学生 → 学习记录</span>
+<span class="fn">courses</span>.id ──< <span class="fn">study_logs</span>.course_id    <span class="cmt">课程 → 学习记录</span></pre>
+</div>
+</div>
+
+<!-- ═══════ TASKS ═══════ -->
+<div id="taskList"></div>
+
+</div><!-- #practice -->
+
+</div><!-- .wrap -->
+
+<script>
+if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
+
+// ══════ NAV ══════
+document.querySelectorAll('.nav-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById(btn.dataset.tab).classList.add('active');
+    history.replaceState(null, '', '#' + btn.dataset.tab);
+  });
+});
+
+// 支持直接访问 #teach / #showcase / #practice
+const initialTab = location.hash.slice(1);
+if (['teach', 'showcase', 'practice'].includes(initialTab)) {
+  document.querySelector(`.nav-btn[data-tab="${initialTab}"]`).click();
+  const resetInitialScroll = () => window.scrollTo({ top: 0, left: 0, behavior: 'auto' });
+  requestAnimationFrame(resetInitialScroll);
+  window.addEventListener('load', resetInitialScroll, { once: true });
+  setTimeout(resetInitialScroll, 150);
+}
+
+// ══════ TASKS ══════
+const tasks = [
+  // ──── 入门 ────
+  {
+    diff: 'easy', num: 1,
+    title: '查询所有课程信息',
+    desc: '运营想看看平台上所有课程的 <code>title</code>（课程名）、<code>category</code>（分类）和 <code>price</code>（价格），按价格从高到低排列。',
+    hint: '最基础的 SELECT，用 ORDER BY 排序。',
+    sql: `SELECT title, category, price
+FROM courses
+ORDER BY price DESC;`,
+    note: '基础 SELECT + ORDER BY。<code>DESC</code> 表示降序（高→低），默认是 <code>ASC</code>（低→高）。',
+  },
+  {
+    diff: 'easy', num: 2,
+    title: '分页查询学生列表',
+    desc: '后台用户管理页面需要做分页。现在要查<b>第 2 页</b>的学生用户（<code>role = \'student\'</code>），每页显示 <b>3</b> 条记录。显示 nickname 和 email。',
+    hint: '公式：OFFSET = (页码 - 1) × 每页条数。',
+    sql: `SELECT nickname, email
+FROM users
+WHERE role = 'student'
+ORDER BY id
+LIMIT 3 OFFSET 3;`,
+    note: '第 2 页：OFFSET = (2-1) × 3 = 3。跳过前 3 条，取接下来的 3 条。<code>ORDER BY id</code> 保证分页结果稳定。',
+  },
+  {
+    diff: 'easy', num: 3,
+    title: '查每个课程类别有多少门课',
+    desc: '产品经理想了解平台的课程分布：每个 <code>category</code> 下有多少门课，按课程数量降序排列。',
+    hint: 'GROUP BY 按 category 分组，COUNT(*) 统计数量。',
+    sql: `SELECT category, COUNT(*) AS course_count
+FROM courses
+GROUP BY category
+ORDER BY course_count DESC;`,
+    note: '<code>GROUP BY category</code> 将课程按分类分组，<code>COUNT(*)</code> 统计每组的行数。',
+  },
+
+  // ──── 中级 ────
+  {
+    diff: 'medium', num: 4,
+    title: '列出所有课程及其讲师姓名',
+    desc: '课程列表页需要同时显示<b>课程名</b>和<b>讲师姓名</b>。注意 "Docker 入门" 这门课没有讲师（teacher_id 为 NULL），但也必须显示出来。',
+    hint: '这里需要 LEFT JOIN。courses 是主表（每门课都要显示），users 是关联表。',
+    sql: `SELECT c.title, u.nickname AS teacher_name
+FROM courses c
+LEFT JOIN users u ON c.teacher_id = u.id;`,
+    note: '用 <code>LEFT JOIN</code> 而不是 INNER JOIN，因为 "Docker 入门" 的 teacher_id 是 NULL，INNER JOIN 会丢掉这条记录。LEFT JOIN 保留左表（courses）的全部行，匹配不到时 teacher_name 显示 NULL。',
+  },
+  {
+    diff: 'medium', num: 5,
+    title: '找出还没买过任何课程的用户',
+    desc: '运营想做一波精准推送，目标是<b>注册了但从来没有买过课</b>的用户。查出他们的 nickname 和 email。',
+    hint: 'LEFT JOIN + IS NULL 经典模式。',
+    sql: `SELECT u.nickname, u.email
+FROM users u
+LEFT JOIN enrollments e ON u.id = e.user_id
+WHERE e.id IS NULL;`,
+    note: '<code>LEFT JOIN</code> 保留所有用户，没买过课的用户在 enrollments 中没有匹配行，e.id 为 NULL。<code>WHERE e.id IS NULL</code> 筛出这些用户。这是 LEFT JOIN 最经典的用法。',
+  },
+  {
+    diff: 'medium', num: 6,
+    title: '统计每门课的实际收入',
+    desc: '财务需要一份报表：每门课的<b>有效付费人数</b>和<b>总收入</b>（只算 <code>status = \'active\'</code> 的记录），按总收入降序排列。要求<b>所有课程都要出现</b>，哪怕没有人买。',
+    hint: '需要 LEFT JOIN + WHERE 条件。但小心：如果 WHERE 放在 JOIN 外面会过滤掉没有人买的课程。可以考虑把条件放在 ON 里，或者用 CASE WHEN。',
+    sql: `SELECT c.title,
+       COUNT(CASE WHEN e.status = 'active' THEN 1 END) AS paid_users,
+       COALESCE(SUM(CASE WHEN e.status = 'active' THEN e.paid_amount END), 0) AS total_income
+FROM courses c
+LEFT JOIN enrollments e ON c.id = e.course_id
+GROUP BY c.id, c.title
+ORDER BY total_income DESC;`,
+    note: '这题的陷阱：如果写 <code>LEFT JOIN ... WHERE e.status = \'active\'</code>，WHERE 会在 JOIN 之后过滤，把没有人买的课也过滤掉了（因为 e.status 是 NULL，不等于 \'active\'）。<br><br>解法一（推荐）：用 <code>CASE WHEN</code> 在聚合里做条件判断。<br>解法二：把过滤条件写在 <code>ON</code> 里 → <code>LEFT JOIN enrollments e ON c.id = e.course_id AND e.status = \'active\'</code>。',
+  },
+
+  // ──── 进阶 ────
+  {
+    diff: 'medium', num: 7,
+    title: '查每个老师教了多少门课、总共有多少学生报名',
+    desc: 'CEO 想看讲师绩效：每位<b>老师</b>（role = \'teacher\'）教了<b>几门课</b>、总共有<b>多少人次</b>报名。老师没有课程的话也要显示（课程数为 0）。',
+    hint: '需要两次 LEFT JOIN：users → courses → enrollments。',
+    sql: `SELECT u.nickname AS teacher_name,
+       COUNT(DISTINCT c.id) AS course_count,
+       COUNT(e.id) AS enrollment_count
+FROM users u
+LEFT JOIN courses c ON u.id = c.teacher_id
+LEFT JOIN enrollments e ON c.id = e.course_id
+WHERE u.role = 'teacher'
+GROUP BY u.id, u.nickname;`,
+    note: '两次 LEFT JOIN 把三张表串起来：老师 → 课程 → 选课记录。<code>COUNT(DISTINCT c.id)</code> 对课程去重计数（因为一门课可能有多条选课记录，JOIN 后课程会重复）。<code>COUNT(e.id)</code> 统计报名人次（NULL 不计入）。',
+  },
+  {
+    diff: 'hard', num: 8,
+    title: '每个学生的总学习时长排行榜',
+    desc: '产品要做一个「学霸排行榜」：展示每位学生的 nickname 和<b>总学习时长</b>（从 study_logs 汇总 duration，转换成小时，保留 1 位小数），按时长降序排列。<b>没有学习记录的学生也要显示</b>（时长为 0）。',
+    hint: 'LEFT JOIN + SUM + COALESCE（处理 NULL 为 0）。',
+    sql: `SELECT u.nickname,
+       ROUND(COALESCE(SUM(s.duration), 0) / 3600, 1) AS total_hours
+FROM users u
+LEFT JOIN study_logs s ON u.id = s.user_id
+WHERE u.role = 'student'
+GROUP BY u.id, u.nickname
+ORDER BY total_hours DESC;`,
+    note: '<code>COALESCE(SUM(s.duration), 0)</code> 保证没有学习记录时总时长为 0（而不是 NULL）。<code>ROUND(..., 1)</code> 保留一位小数。<code>/ 3600</code> 把秒转换成小时。',
+  },
+  {
+    diff: 'hard', num: 9,
+    title: '2024年每月的新增付费用户数和收入',
+    desc: '数据分析师需要一份月度报表：2024 年<b>每个月</b>有多少<b>新付费用户</b>（只算 status = \'active\'）和<b>总收入</b>。按月份升序排列。',
+    hint: '按 enrolled_at 的年月分组。用 DATE_FORMAT 提取年月。',
+    sql: `SELECT DATE_FORMAT(enrolled_at, '%Y-%m') AS month,
+       COUNT(*) AS paid_count,
+       SUM(paid_amount) AS monthly_income
+FROM enrollments
+WHERE status = 'active'
+  AND enrolled_at >= '2024-01-01'
+  AND enrolled_at < '2025-01-01'
+GROUP BY month
+ORDER BY month;`,
+    note: '<code>DATE_FORMAT(enrolled_at, \'%Y-%m\')</code> 提取到「年-月」格式（如 2024-03）。WHERE 用范围过滤 2024 年（比 YEAR() 函数性能好，能走索引）。',
+  },
+  {
+    diff: 'hard', num: 10,
+    title: '找出「买了课但从来没学过」的用户和课程',
+    desc: '运营要做召回通知。找出：用户买了课（enrollments 有记录且 status = \'active\'），但<b>从来没有打开学习过</b>（study_logs 中没有对应记录）。显示用户 nickname、课程 title。',
+    hint: '需要三表 JOIN：enrollments JOIN users、JOIN courses，再 LEFT JOIN study_logs 看有没有学习记录。',
+    sql: `SELECT u.nickname, c.title
+FROM enrollments e
+JOIN users u ON e.user_id = u.id
+JOIN courses c ON e.course_id = c.id
+LEFT JOIN study_logs s
+  ON e.user_id = s.user_id AND e.course_id = s.course_id
+WHERE e.status = 'active'
+  AND s.id IS NULL;`,
+    note: '核心思路：以 enrollments 为基础，JOIN users 和 courses 拿到名字和课名。再 <code>LEFT JOIN study_logs</code>（注意 ON 条件要同时匹配 user_id 和 course_id），用 <code>s.id IS NULL</code> 找出没有学习记录的组合。<br><br>这又是 LEFT JOIN + IS NULL 模式，只是场景更复杂——ON 条件涉及两列。',
+  },
+  {
+    diff: 'hard', num: 11,
+    title: '每个分类下收入最高的课程',
+    desc: '管理层要看：每个课程分类中，<b>哪门课的总收入最高</b>？显示分类、课程名、总收入。',
+    hint: '「分组取 Top 1」问题。可以用窗口函数 ROW_NUMBER()，也可以用子查询。',
+    sql: `SELECT category, title, total_income
+FROM (
+  SELECT c.category, c.title,
+         SUM(CASE WHEN e.status = 'active' THEN e.paid_amount ELSE 0 END) AS total_income,
+         ROW_NUMBER() OVER (
+           PARTITION BY c.category
+           ORDER BY SUM(CASE WHEN e.status = 'active' THEN e.paid_amount ELSE 0 END) DESC
+         ) AS rn
+  FROM courses c
+  LEFT JOIN enrollments e ON c.id = e.course_id
+  GROUP BY c.id, c.category, c.title
+) t
+WHERE rn = 1;`,
+    note: '<code>ROW_NUMBER() OVER (PARTITION BY category ORDER BY total DESC)</code> 的意思：在每个 category 内部，按收入降序编号。外层查询取 rn = 1 就是每个分类的第一名。<br><br>这是面试高频题，也是实际开发中非常常见的需求。',
+  },
+  {
+    diff: 'hard', num: 12,
+    title: '计算每门课的退款率',
+    desc: '风控团队要监控退款情况。查出每门课的：总购买人次、退款人次、<b>退款率</b>（退款/总数，保留 2 位小数的百分比）。只展示有过购买记录的课程，按退款率降序排列。',
+    hint: '用 SUM(CASE WHEN status = \'refunded\' THEN 1 ELSE 0 END) 计算退款数。',
+    sql: `SELECT c.title,
+       COUNT(*) AS total_enrollments,
+       SUM(CASE WHEN e.status = 'refunded' THEN 1 ELSE 0 END) AS refund_count,
+       ROUND(
+         SUM(CASE WHEN e.status = 'refunded' THEN 1 ELSE 0 END) / COUNT(*) * 100, 2
+       ) AS refund_rate_pct
+FROM enrollments e
+JOIN courses c ON e.course_id = c.id
+GROUP BY c.id, c.title
+ORDER BY refund_rate_pct DESC;`,
+    note: '<code>SUM(CASE WHEN status = \'refunded\' THEN 1 ELSE 0 END)</code> 只计退款数。除以 <code>COUNT(*)</code> 再乘 100 得到百分比。<code>ROUND(..., 2)</code> 保留两位小数。',
+  },
+];
+
+// ── RENDER ──
+const taskList = document.getElementById('taskList');
+
+tasks.forEach(t => {
+  const div = document.createElement('div');
+  div.className = 'task-card';
+
+  const diffLabel = { easy:'入门', medium:'中级', hard:'进阶' }[t.diff];
+
+  div.innerHTML = `
+    <div class="task-header">
+      <span class="task-num">Task ${String(t.num).padStart(2,'0')}</span>
+      <span class="diff-tag ${t.diff}">${diffLabel}</span>
+    </div>
+    <div class="task-desc">${t.desc}</div>
+    ${t.hint ? `<div class="task-hint">💡 提示：${t.hint}</div>` : ''}
+    <div class="answer-wrap">
+      <button class="answer-toggle">▶ 查看答案</button>
+      <div class="answer-body">
+        <span class="answer-label">参考 SQL</span>
+        <pre>${t.sql.replace(/</g,'&lt;').replace(/>/g,'&gt;')}</pre>
+        ${t.note ? `<div class="answer-note">${t.note}</div>` : ''}
+      </div>
+    </div>
+  `;
+
+  taskList.appendChild(div);
+
+  // toggle
+  const toggle = div.querySelector('.answer-toggle');
+  const body = div.querySelector('.answer-body');
+  toggle.addEventListener('click', () => {
+    const open = body.classList.toggle('show');
+    toggle.classList.toggle('open', open);
+    toggle.textContent = open ? '▼ 收起答案' : '▶ 查看答案';
+  });
+});
+</script>
+</body>
+</html>
